@@ -1,0 +1,353 @@
+"use client";
+import { useEffect, useState, useRef } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { useAuthStore } from "@/lib/store";
+import api from "@/lib/api";
+import { io, Socket } from "socket.io-client";
+
+const GOOGLE_MAPS_KEY = "AIzaSyC5G5cQdrtKPRdMJnO1WR06WC0c_0iSJr0";
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace("/api", "");
+
+declare global {
+  interface Window {
+    google: any;
+    initMap: () => void;
+  }
+}
+
+export default function TrackingPage() {
+  const router = useRouter();
+  const { bookingId } = useParams();
+  const { user } = useAuthStore();
+  const [booking, setBooking] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [isSharing, setIsSharing] = useState(false);
+  const [location, setLocation] = useState<{ lat: number; lng: number; timestamp?: string } | null>(null);
+  const [status, setStatus] = useState("Waiting for location...");
+  const [error, setError] = useState("");
+  const [actionLoading, setActionLoading] = useState(false);
+  const socketRef = useRef<Socket | null>(null);
+  const watchRef = useRef<number | null>(null);
+  const mapRef = useRef<any>(null);
+  const markerRef = useRef<any>(null);
+  const pathRef = useRef<any>(null);
+  const pathPointsRef = useRef<{lat: number; lng: number}[]>([]);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapInitialized = useRef(false);
+
+  useEffect(() => {
+    if (!user) { router.push("/auth/login"); return; }
+    fetchBooking();
+    return () => {
+      stopSharing();
+      socketRef.current?.disconnect();
+    };
+  }, []);
+
+  const fetchBooking = async () => {
+    try {
+      const res = await api.get("/bookings/" + bookingId);
+      setBooking(res.data.booking);
+    } catch { setError("Booking not found"); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => {
+    if (loading || mapInitialized.current || !mapContainerRef.current) return;
+    mapInitialized.current = true;
+    loadGoogleMaps();
+  }, [loading]);
+
+  const loadGoogleMaps = () => {
+    if (window.google) {
+      initializeMap();
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_KEY}&callback=initMap`;
+    script.async = true;
+    script.defer = true;
+    window.initMap = initializeMap;
+    document.head.appendChild(script);
+  };
+
+  const initializeMap = () => {
+    if (!mapContainerRef.current || !window.google) return;
+
+    const map = new window.google.maps.Map(mapContainerRef.current, {
+      center: { lat: 9.0320, lng: 38.7469 },
+      zoom: 12,
+      mapTypeControl: false,
+      streetViewControl: false,
+      fullscreenControl: false,
+      styles: [
+        { elementType: "geometry", stylers: [{ color: "#1a2744" }] },
+        { elementType: "labels.text.fill", stylers: [{ color: "#f0ebe0" }] },
+        { elementType: "labels.text.stroke", stylers: [{ color: "#1a2744" }] },
+        { featureType: "road", elementType: "geometry", stylers: [{ color: "#2d3f6b" }] },
+        { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#1a2744" }] },
+        { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#c8901e" }] },
+        { featureType: "water", elementType: "geometry", stylers: [{ color: "#0f1a35" }] },
+        { featureType: "poi", stylers: [{ visibility: "off" }] },
+      ],
+    });
+    mapRef.current = map;
+
+    // Draw route if we have pickup and delivery coords
+    if (booking?.load?.pickupLat && booking?.load?.deliveryLat) {
+      const directionsService = new window.google.maps.DirectionsService();
+      const directionsRenderer = new window.google.maps.DirectionsRenderer({
+        map,
+        suppressMarkers: true,
+        polylineOptions: { strokeColor: "#c8901e", strokeWeight: 4, strokeOpacity: 0.6 },
+      });
+
+      directionsService.route({
+        origin: { lat: booking.load.pickupLat, lng: booking.load.pickupLng },
+        destination: { lat: booking.load.deliveryLat, lng: booking.load.deliveryLng },
+        travelMode: window.google.maps.TravelMode.DRIVING,
+      }, (result: any, status: any) => {
+        if (status === "OK") directionsRenderer.setDirections(result);
+      });
+
+      // Pickup marker
+      new window.google.maps.Marker({
+        position: { lat: booking.load.pickupLat, lng: booking.load.pickupLng },
+        map,
+        icon: { path: window.google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: "#4ade80", fillOpacity: 1, strokeColor: "#fff", strokeWeight: 2 },
+        title: "Pickup: " + booking.load.pickupCity,
+      });
+
+      // Delivery marker
+      new window.google.maps.Marker({
+        position: { lat: booking.load.deliveryLat, lng: booking.load.deliveryLng },
+        map,
+        icon: { path: window.google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: "#f87171", fillOpacity: 1, strokeColor: "#fff", strokeWeight: 2 },
+        title: "Delivery: " + booking.load.deliveryCity,
+      });
+    }
+
+    // Truck path line
+    pathRef.current = new window.google.maps.Polyline({
+      map,
+      path: [],
+      strokeColor: "#c8901e",
+      strokeWeight: 3,
+      strokeOpacity: 1,
+    });
+
+    // Connect socket
+    const socket = io(API_URL);
+    socketRef.current = socket;
+    socket.emit("join_tracking", bookingId);
+
+    socket.on("location_updated", (data: any) => {
+      setLocation(data);
+      setStatus("Live · " + new Date(data.timestamp).toLocaleTimeString());
+
+      const pos = { lat: data.lat, lng: data.lng };
+      pathPointsRef.current.push(pos);
+      pathRef.current?.setPath(pathPointsRef.current);
+
+      if (markerRef.current) {
+        markerRef.current.setPosition(pos);
+      } else {
+        markerRef.current = new window.google.maps.Marker({
+          position: pos,
+          map,
+          icon: {
+            url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+                <circle cx="24" cy="24" r="22" fill="#c8901e" stroke="white" stroke-width="3"/>
+                <path d="M10 20h18v12H10z" fill="white"/>
+                <path d="M28 23h6l4 4v5h-10z" fill="white"/>
+                <circle cx="16" cy="33" r="3" fill="#c8901e"/>
+                <circle cx="32" cy="33" r="3" fill="#c8901e"/>
+              </svg>
+            `),
+            scaledSize: new window.google.maps.Size(48, 48),
+            anchor: new window.google.maps.Point(24, 24),
+          },
+          title: "Truck Location",
+        });
+      }
+      map.panTo(pos);
+    });
+
+    socket.on("tracking_stopped", () => {
+      setStatus("Location sharing stopped");
+      setIsSharing(false);
+    });
+
+    socket.on("journey_started", () => {
+      setStatus("Journey started — waiting for location...");
+      fetchBooking();
+    });
+
+    socket.on("delivered", () => {
+      setStatus("Cargo delivered!");
+      fetchBooking();
+    });
+  };
+
+  const startSharing = () => {
+    if (!navigator.geolocation) { setError("GPS not supported on this device"); return; }
+    setIsSharing(true);
+    setStatus("Sharing location...");
+    watchRef.current = navigator.geolocation.watchPosition(
+      (pos) => {
+        const data = { bookingId, lat: pos.coords.latitude, lng: pos.coords.longitude, speed: pos.coords.speed || 0 };
+        socketRef.current?.emit("location_update", data);
+        setLocation({ lat: data.lat, lng: data.lng, timestamp: new Date().toISOString() });
+      },
+      (err) => { setError("GPS error: " + err.message); setIsSharing(false); },
+      { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 }
+    );
+  };
+
+  const stopSharing = () => {
+    if (watchRef.current !== null) {
+      navigator.geolocation.clearWatch(watchRef.current);
+      watchRef.current = null;
+    }
+    socketRef.current?.emit("stop_tracking", bookingId);
+    setIsSharing(false);
+  };
+
+  const handleStartJourney = async () => {
+    setActionLoading(true);
+    try {
+      await api.patch("/bookings/" + bookingId + "/start");
+      socketRef.current?.emit("journey_started_broadcast", { bookingId });
+      await fetchBooking();
+      startSharing();
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Failed to start journey");
+    } finally { setActionLoading(false); }
+  };
+
+  const handleMarkDelivered = async () => {
+    setActionLoading(true);
+    try {
+      stopSharing();
+      await api.patch("/bookings/" + bookingId + "/deliver");
+      socketRef.current?.emit("delivered_broadcast", { bookingId });
+      await fetchBooking();
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Failed to mark as delivered");
+    } finally { setActionLoading(false); }
+  };
+
+  if (loading) return (
+    <div style={{ minHeight: "100vh", background: "#1a2744", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ width: "36px", height: "36px", border: "3px solid rgba(240,235,224,0.2)", borderTop: "3px solid #c8901e", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+      <style>{`@keyframes spin{to{transform:rotate(360deg);}}`}</style>
+    </div>
+  );
+
+  const isTruckOwner = user?.role === "TRUCK_OWNER";
+  const bStatus = booking?.status;
+  const loadStatus = booking?.load?.status;
+  const isDelivered = bStatus === "COMPLETED";
+  const isInTransit = loadStatus === "IN_TRANSIT";
+
+  return (
+    <div style={{ height: "100vh", background: "#1a2744", fontFamily: "\'Helvetica Neue\', Arial, sans-serif", display: "flex", flexDirection: "column" as const, overflow: "hidden" }}>
+      <style>{`@keyframes spin{to{transform:rotate(360deg);}} @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}`}</style>
+
+      {/* Header */}
+      <div style={{ padding: "12px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(240,235,224,0.08)", flexShrink: 0, background: "#1a2744", zIndex: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <button onClick={() => router.back()} style={{ background: "rgba(240,235,224,0.08)", border: "none", borderRadius: "8px", padding: "7px 12px", color: "#f0ebe0", fontSize: "13px", cursor: "pointer" }}>← Back</button>
+          <div>
+            <div style={{ fontSize: "14px", fontWeight: "700", color: "#f0ebe0" }}>{booking?.load?.title || "Tracking"}</div>
+            <div style={{ fontSize: "11px", color: "rgba(240,235,224,0.4)", marginTop: "1px" }}>{booking?.load?.pickupCity} → {booking?.load?.deliveryCity}</div>
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: isSharing ? "#4ade80" : isDelivered ? "#c8901e" : "#6b7280", animation: isSharing ? "pulse 1.5s infinite" : "none" }} />
+          <span style={{ fontSize: "11px", color: isSharing ? "#4ade80" : "rgba(240,235,224,0.4)", fontWeight: "700" }}>
+            {isSharing ? "LIVE" : isDelivered ? "DELIVERED" : isInTransit ? "IN TRANSIT" : bStatus || "—"}
+          </span>
+        </div>
+      </div>
+
+      {/* Map - takes most of screen */}
+      <div ref={mapContainerRef} style={{ flex: 1 }} />
+
+      {/* Bottom panel */}
+      <div style={{ background: "#0f1a35", padding: "16px 20px", flexShrink: 0, zIndex: 10 }}>
+        {error && <div style={{ background: "rgba(220,38,38,0.15)", border: "1px solid rgba(220,38,38,0.3)", borderRadius: "8px", padding: "10px 14px", color: "#fca5a5", fontSize: "13px", marginBottom: "10px" }}>{error}</div>}
+
+        <div style={{ fontSize: "11px", color: "rgba(240,235,224,0.35)", marginBottom: "10px" }}>{status}</div>
+
+        {location && (
+          <div style={{ display: "flex", gap: "10px", marginBottom: "12px" }}>
+            <div style={{ background: "rgba(240,235,224,0.05)", borderRadius: "8px", padding: "8px 12px", flex: 1, textAlign: "center" as const }}>
+              <div style={{ fontSize: "9px", color: "rgba(240,235,224,0.3)", textTransform: "uppercase" as const, letterSpacing: "1px", marginBottom: "3px" }}>Lat</div>
+              <div style={{ fontSize: "12px", fontWeight: "700", color: "#f0ebe0", fontFamily: "monospace" }}>{location.lat.toFixed(5)}</div>
+            </div>
+            <div style={{ background: "rgba(240,235,224,0.05)", borderRadius: "8px", padding: "8px 12px", flex: 1, textAlign: "center" as const }}>
+              <div style={{ fontSize: "9px", color: "rgba(240,235,224,0.3)", textTransform: "uppercase" as const, letterSpacing: "1px", marginBottom: "3px" }}>Lng</div>
+              <div style={{ fontSize: "12px", fontWeight: "700", color: "#f0ebe0", fontFamily: "monospace" }}>{location.lng.toFixed(5)}</div>
+            </div>
+          </div>
+        )}
+
+        {isTruckOwner && (
+          <div style={{ display: "flex", flexDirection: "column" as const, gap: "8px" }}>
+            {!isInTransit && !isDelivered && (
+              <button onClick={handleStartJourney} disabled={actionLoading}
+                style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "none", background: "#c8901e", color: "#fff", fontSize: "14px", fontWeight: "700", cursor: actionLoading ? "not-allowed" : "pointer", opacity: actionLoading ? 0.7 : 1 }}>
+                {actionLoading ? "Starting..." : "Start Journey"}
+              </button>
+            )}
+            {isInTransit && !isDelivered && (
+              <>
+                <button onClick={isSharing ? stopSharing : startSharing}
+                  style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "1px solid rgba(240,235,224,0.1)" }}>
+                  {isSharing ? "Pause Location Sharing" : "Resume Sharing"}
+                </button>
+                <button onClick={handleMarkDelivered} disabled={actionLoading}
+                  style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "none", background: "#16a34a", color: "#fff", fontSize: "14px", fontWeight: "700", cursor: actionLoading ? "not-allowed" : "pointer", opacity: actionLoading ? 0.7 : 1 }}>
+                  {actionLoading ? "Updating..." : "Mark as Delivered"}
+                </button>
+              </>
+            )}
+            {isDelivered && (
+              <div style={{ textAlign: "center" as const, padding: "14px", background: "rgba(22,163,74,0.1)", borderRadius: "10px", color: "#4ade80", fontSize: "14px", fontWeight: "600" }}>
+                Delivery Completed
+              </div>
+            )}
+          </div>
+        )}
+
+        {!isTruckOwner && (
+          <div>
+            {!isInTransit && !isDelivered && (
+              <div style={{ textAlign: "center" as const, padding: "12px", color: "rgba(240,235,224,0.4)", fontSize: "13px" }}>
+                Waiting for truck owner to start the journey...
+              </div>
+            )}
+            {isInTransit && !location && (
+              <div style={{ textAlign: "center" as const, padding: "12px", color: "rgba(240,235,224,0.4)", fontSize: "13px" }}>
+                Journey started — waiting for location update...
+              </div>
+            )}
+            {isInTransit && location && (
+              <a href={"https://maps.google.com/?q=" + location.lat + "," + location.lng} target="_blank" rel="noopener noreferrer"
+                style={{ display: "block", width: "100%", padding: "14px", borderRadius: "10px", background: "#c8901e", color: "#fff", fontSize: "14px", fontWeight: "700", textAlign: "center" as const, textDecoration: "none" }}>
+                Open in Google Maps
+              </a>
+            )}
+            {isDelivered && (
+              <div style={{ textAlign: "center" as const, padding: "14px", background: "rgba(22,163,74,0.1)", borderRadius: "10px", color: "#4ade80", fontSize: "14px", fontWeight: "600" }}>
+                Your cargo has been delivered!
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

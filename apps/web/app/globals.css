@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Auth pages responsive */
+@media (max-width: 768px) {
+  .auth-left { display: none !important; }
+  .auth-right { padding: 32px 20px !important; width: 100% !important; align-items: flex-start !important; padding-top: 60px !important; }
+  .auth-card { width: 100% !important; max-width: 100% !important; }
+  .auth-card > div { padding: 32px 24px !important; border-radius: 16px !important; }
+}
+
+/* Landing page responsive */
+@media (max-width: 768px) {
+  .how-grid { grid-template-columns: 1fr !important; }
+  .features-grid { grid-template-columns: 1fr !important; }
+  .countries-flex { flex-direction: column !important; align-items: stretch !important; }
+  .trucks-grid { grid-template-columns: 1fr 1fr !important; }
+  .cta-btns { flex-direction: column !important; align-items: center !important; }
+  .footer-inner { flex-direction: column !important; }
+  .footer-links { flex-direction: column !important; gap: 32px !important; }
+  .nav-ctas { display: none !important; }
+  .hero-h1 { font-size: 38px !important; letter-spacing: -1px !important; }
+  .hero-stats { gap: 20px !important; flex-wrap: wrap !important; }
+  .hero-btns { flex-direction: column !important; align-items: center !important; }
+  section { padding: 64px 20px !important; }
+}
+
+/* Verify/OTP page responsive */
+@media (max-width: 768px) {
+  .verify-left { display: none !important; }
+  .verify-right { padding: 32px 20px !important; width: 100% !important; }
+  .verify-card { padding: 32px 24px !important; border-radius: 16px !important; }
+}
+
+/* Bookings page responsive */
+@media (max-width: 768px) {
+  .bookings-grid { grid-template-columns: 1fr !important; }
+}
+
+/* Overview stat cards - already 2 col but ensure on small screens */
+@media (max-width: 480px) {
+  .stat-cards { grid-template-columns: 1fr 1fr !important; }
+}
+
+/* Fix recent loads table on mobile - show as cards */
+@media (max-width: 768px) {
+  .loads-table-header { display: none !important; }
+  .loads-table-row { grid-template-columns: 1fr !important; gap: 4px !important; padding: 12px 16px !important; }
+}
