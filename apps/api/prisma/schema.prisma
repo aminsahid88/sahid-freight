@@ -57,6 +57,7 @@ enum LoadStatus {
 enum BookingStatus {
   PENDING
   ACCEPTED
+  IN_TRANSIT
   REJECTED
   CANCELLED
   COMPLETED

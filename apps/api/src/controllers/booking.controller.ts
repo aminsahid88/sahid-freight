@@ -173,6 +173,12 @@ export const startJourney = async (req: AuthRequest, res: Response) => {
     if (!isOwner && !isDriver) return res.status(403).json({ message: "Not your booking" });
     if (booking.status !== "ACCEPTED") return res.status(400).json({ message: "Booking must be accepted first" });
 
+    // Update booking status to IN_TRANSIT
+    const updatedBooking = await prisma.booking.update({
+      where: { id },
+      data: { status: "IN_TRANSIT", pickedUpAt: new Date() },
+    });
+
     // Update load status to IN_TRANSIT
     const updatedLoad = await prisma.load.update({
       where: { id: booking.loadId },
@@ -191,7 +197,7 @@ export const startJourney = async (req: AuthRequest, res: Response) => {
       }
     } catch (err) { console.error("SMS failed (journey still started):", err); }
 
-    return res.status(200).json({ message: "Journey started", booking: { ...booking, load: updatedLoad } });
+    return res.status(200).json({ message: "Journey started", booking: { ...updatedBooking, load: updatedLoad } });
   } catch (error) {
     console.error("startJourney failed:", error);
     return res.status(500).json({ message: "Failed to start journey. Please try again." });
