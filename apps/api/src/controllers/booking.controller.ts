@@ -26,13 +26,13 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
       data: { loadId, truckId, senderId: load.senderId, ownerId: req.user!.userId, agreedPrice, currency: currency || "USD" },
     });
 
-    // Notify cargo sender
-    await notify(load.senderId, "NEW_LOAD", "New Booking Request", `A truck owner has applied for your load: ${load.title}`);
+    try { await notify(load.senderId, "NEW_LOAD", "New Booking Request", `A truck owner has applied for your load: ${load.title}`); }
+    catch (err) { console.error("Notify failed (booking still created):", err); }
 
     return res.status(201).json({ message: "Booking request sent", booking });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Something went wrong" });
+    console.error("createBooking failed:", error);
+    return res.status(500).json({ message: "Failed to create booking. Please try again." });
   }
 };
 
@@ -84,13 +84,13 @@ export const acceptBooking = async (req: AuthRequest, res: Response) => {
       data: { status: "BOOKED" },
     });
 
-    // Notify truck owner
-    await notify(booking.ownerId, "BOOKING_ACCEPTED", "Booking Accepted! 🎉", `Your booking for "${booking.load.title}" has been accepted!`);
+    try { await notify(booking.ownerId, "BOOKING_ACCEPTED", "Booking Accepted! 🎉", `Your booking for "${booking.load.title}" has been accepted!`); }
+    catch (err) { console.error("Notify failed (booking still accepted):", err); }
 
     return res.status(200).json({ message: "Booking accepted", booking: updated });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Something went wrong" });
+    console.error("acceptBooking failed:", error);
+    return res.status(500).json({ message: "Failed to accept booking. Please try again." });
   }
 };
 
@@ -108,13 +108,13 @@ export const rejectBooking = async (req: AuthRequest, res: Response) => {
       data: { status: "REJECTED" },
     });
 
-    // Notify truck owner
-    await notify(booking.ownerId, "BOOKING_REJECTED", "Booking Rejected", `Your booking for "${booking.load.title}" was not accepted this time.`);
+    try { await notify(booking.ownerId, "BOOKING_REJECTED", "Booking Rejected", `Your booking for "${booking.load.title}" was not accepted this time.`); }
+    catch (err) { console.error("Notify failed (booking still rejected):", err); }
 
     return res.status(200).json({ message: "Booking rejected", booking: updated });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Something went wrong" });
+    console.error("rejectBooking failed:", error);
+    return res.status(500).json({ message: "Failed to reject booking. Please try again." });
   }
 };
 
@@ -179,20 +179,22 @@ export const startJourney = async (req: AuthRequest, res: Response) => {
       data: { status: "IN_TRANSIT" },
     });
 
-    // Notify cargo sender
-    const { notify } = await import("../utils/notify");
-    await notify(booking.load.senderId, "LOAD_PICKED_UP", "Cargo On The Way", "Your cargo is now in transit. You can track it live.");
+    try {
+      const { notify } = await import("../utils/notify");
+      await notify(booking.load.senderId, "LOAD_PICKED_UP", "Cargo On The Way", "Your cargo is now in transit. You can track it live.");
+    } catch (err) { console.error("Notify failed (journey still started):", err); }
 
-    // SMS cargo sender
-    const sender = await prisma.user.findUnique({ where: { id: booking.load.senderId }, select: { phone: true } });
-    if (sender?.phone) {
-      await sendSMS(sender.phone, `SahidFreight: Your cargo "${booking.load.title}" is now in transit. Track it in your dashboard.`);
-    }
+    try {
+      const sender = await prisma.user.findUnique({ where: { id: booking.load.senderId }, select: { phone: true } });
+      if (sender?.phone) {
+        await sendSMS(sender.phone, `SahidFreight: Your cargo "${booking.load.title}" is now in transit. Track it in your dashboard.`);
+      }
+    } catch (err) { console.error("SMS failed (journey still started):", err); }
 
     return res.status(200).json({ message: "Journey started", booking: { ...booking, load: updatedLoad } });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Something went wrong" });
+    console.error("startJourney failed:", error);
+    return res.status(500).json({ message: "Failed to start journey. Please try again." });
   }
 };
 
@@ -222,20 +224,22 @@ export const markDelivered = async (req: AuthRequest, res: Response) => {
       data: { status: "DELIVERED" },
     });
 
-    // Notify cargo sender
-    const { notify } = await import("../utils/notify");
-    await notify(booking.load.senderId, "LOAD_DELIVERED", "Cargo Delivered!", "Your cargo has been delivered successfully.");
+    try {
+      const { notify } = await import("../utils/notify");
+      await notify(booking.load.senderId, "LOAD_DELIVERED", "Cargo Delivered!", "Your cargo has been delivered successfully.");
+    } catch (err) { console.error("Notify failed (delivery still recorded):", err); }
 
-    // SMS cargo sender
-    const senderDelivered = await prisma.user.findUnique({ where: { id: booking.load.senderId }, select: { phone: true } });
-    if (senderDelivered?.phone) {
-      await sendSMS(senderDelivered.phone, `SahidFreight: Your cargo "${booking.load.title}" has been delivered! Rate your experience in the app.`);
-    }
+    try {
+      const senderDelivered = await prisma.user.findUnique({ where: { id: booking.load.senderId }, select: { phone: true } });
+      if (senderDelivered?.phone) {
+        await sendSMS(senderDelivered.phone, `SahidFreight: Your cargo "${booking.load.title}" has been delivered! Rate your experience in the app.`);
+      }
+    } catch (err) { console.error("SMS failed (delivery still recorded):", err); }
 
     return res.status(200).json({ message: "Marked as delivered", booking: updated });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Something went wrong" });
+    console.error("markDelivered failed:", error);
+    return res.status(500).json({ message: "Failed to mark as delivered. Please try again." });
   }
 };
 
@@ -262,14 +266,15 @@ export const assignDriver = async (req: AuthRequest, res: Response) => {
       data: { driverId },
     });
 
-    // Notify driver
-    const { notify } = await import("../utils/notify");
-    await notify(driverId, "BOOKING_ACCEPTED", "New Assignment", `You have been assigned to deliver: ${booking.loadId}`);
+    try {
+      const { notify } = await import("../utils/notify");
+      await notify(driverId, "BOOKING_ACCEPTED", "New Assignment", `You have been assigned to deliver: ${booking.loadId}`);
+    } catch (err) { console.error("Notify failed (driver still assigned):", err); }
 
     return res.status(200).json({ message: "Driver assigned", booking: updated });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Something went wrong" });
+    console.error("assignDriver failed:", error);
+    return res.status(500).json({ message: "Failed to assign driver. Please try again." });
   }
 };
 
@@ -323,14 +328,15 @@ export const rateBooking = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // Notify the rated user
-    const { notify } = await import("../utils/notify");
-    await notify(ratedUserId, "NEW_REVIEW", "New Rating Received", `You received a ${rating}-star rating for load: ${booking.load.title}`);
+    try {
+      const { notify } = await import("../utils/notify");
+      await notify(ratedUserId, "NEW_REVIEW", "New Rating Received", `You received a ${rating}-star rating for load: ${booking.load.title}`);
+    } catch (err) { console.error("Notify failed (rating still saved):", err); }
 
     return res.status(200).json({ message: "Rating submitted" });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Something went wrong" });
+    console.error("rateBooking failed:", error);
+    return res.status(500).json({ message: "Failed to submit rating. Please try again." });
   }
 };
 
