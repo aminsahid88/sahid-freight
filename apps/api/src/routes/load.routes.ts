@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createLoad, getLoads, getLoad, getMyLoads, updateLoad, cancelLoad, deleteLoad, getSuggestedTrucks, getPriceSuggestion } from "../controllers/load.controller";
+import { createLoad, getLoads, getLoad, getMyLoads, updateLoad, cancelLoad, completeLoad, deleteLoad, getSuggestedTrucks, getPriceSuggestion } from "../controllers/load.controller";
 import { protect, cargoSenderOnly } from "../middleware/auth.middleware";
 
 const router = Router();
@@ -11,6 +11,7 @@ router.get("/suggested-trucks", protect, getSuggestedTrucks);
 router.get("/:id", protect, getLoad);
 router.post("/", protect, cargoSenderOnly, createLoad);
 router.patch("/:id/cancel", protect, cargoSenderOnly, cancelLoad);
+router.patch("/:id/complete", protect, cargoSenderOnly, completeLoad);
 router.patch("/:id", protect, cargoSenderOnly, updateLoad);
 router.delete("/:id", protect, cargoSenderOnly, deleteLoad);
 

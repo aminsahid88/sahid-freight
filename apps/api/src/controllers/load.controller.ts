@@ -304,12 +304,18 @@ export const cancelLoad = async (req: AuthRequest, res: Response) => {
 
     if (!load) return res.status(404).json({ message: "Load not found" });
     if (load.senderId !== req.user!.userId) return res.status(403).json({ message: "Not your load" });
-    if (load.status !== "OPEN") return res.status(400).json({ message: "Only open loads can be cancelled" });
+    if (!["OPEN", "BOOKED"].includes(load.status)) {
+      return res.status(400).json({ message: "Only open or booked loads can be cancelled" });
+    }
 
     const updated = await prisma.load.update({
       where: { id },
       data: { status: "CANCELLED" },
     });
+
+    // Cancel related pending bids and accepted bookings
+    await prisma.bid.updateMany({ where: { loadId: id, status: "PENDING" }, data: { status: "REJECTED" } });
+    await prisma.booking.updateMany({ where: { loadId: id, status: { in: ["PENDING", "ACCEPTED"] } }, data: { status: "CANCELLED" } });
 
     return res.status(200).json({ message: "Load cancelled", load: updated });
   } catch (error) {
@@ -380,5 +386,34 @@ export const getSuggestedTrucks = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+// ─────────────────────────────────────────
+// MARK LOAD AS COMPLETE (sender, manual close)
+// ─────────────────────────────────────────
+export const completeLoad = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const load = await prisma.load.findUnique({ where: { id } });
+    if (!load) return res.status(404).json({ message: "Load not found" });
+    if (load.senderId !== req.user!.userId) return res.status(403).json({ message: "Not your load" });
+    if (load.status !== "IN_TRANSIT") return res.status(400).json({ message: "Only in-transit loads can be completed" });
+
+    const updated = await prisma.load.update({
+      where: { id },
+      data: { status: "DELIVERED" },
+    });
+
+    // Also complete the associated booking
+    await prisma.booking.updateMany({
+      where: { loadId: id, status: "IN_TRANSIT" },
+      data: { status: "COMPLETED", deliveredAt: new Date() },
+    });
+
+    return res.status(200).json({ message: "Load marked as complete", load: updated });
+  } catch (error) {
+    console.error("completeLoad failed:", error);
+    return res.status(500).json({ message: "Failed to complete load. Please try again." });
   }
 };
