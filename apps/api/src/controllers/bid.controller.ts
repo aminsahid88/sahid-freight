@@ -24,9 +24,9 @@ export const placeBid = async (req: AuthRequest, res: Response) => {
     if (!load) return res.status(404).json({ message: "Load not found" });
     if (load.status !== "OPEN") return res.status(400).json({ message: "Load is no longer accepting bids" });
 
-    // Prevent double booking: if owner has active trip, only allow bids from that delivery city
+    // Prevent double booking: if owner has an active accepted booking, only allow bids from that delivery city
     const activeBooking = await prisma.booking.findFirst({
-      where: { ownerId: req.user!.userId, status: { in: ["ACCEPTED", "IN_TRANSIT"] as any[] } },
+      where: { ownerId: req.user!.userId, status: "ACCEPTED" },
       include: { load: true },
     });
     if (activeBooking) {
@@ -62,18 +62,22 @@ export const placeBid = async (req: AuthRequest, res: Response) => {
       },
     });
 
-    await notify(load.senderId, "NEW_BID", "New Bid Received", `A truck owner placed a bid of ${parsedPrice} ${currency || "USD"} on your load: ${load.title}`);
+    // Side effects — failures here should not break bid placement
+    try {
+      await notify(load.senderId, "NEW_BID", "New Bid Received", `A truck owner placed a bid of ${parsedPrice} ${currency || "USD"} on your load: ${load.title}`);
+    } catch (err) { console.error("Notify failed (bid still placed):", err); }
 
-    // SMS to cargo sender
-    const sender = await prisma.user.findUnique({ where: { id: load.senderId }, select: { phone: true } });
-    if (sender?.phone) {
-      await sendSMS(sender.phone, `SahidFreight: New bid of ${parsedPrice} ${currency || "USD"} on your load "${load.title}". Login to review.`);
-    }
+    try {
+      const sender = await prisma.user.findUnique({ where: { id: load.senderId }, select: { phone: true } });
+      if (sender?.phone) {
+        await sendSMS(sender.phone, `SahidFreight: New bid of ${parsedPrice} ${currency || "USD"} on your load "${load.title}". Login to review.`);
+      }
+    } catch (err) { console.error("SMS failed (bid still placed):", err); }
 
     return res.status(201).json({ message: "Bid placed successfully", bid });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Something went wrong" });
+    console.error("placeBid failed:", error);
+    return res.status(500).json({ message: "Failed to place bid. Please try again." });
   }
 };
 
@@ -180,25 +184,28 @@ export const acceptBid = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    await notify(
-      bid.truckOwnerId,
-      "BID_ACCEPTED",
-      "Bid Accepted! 🎉",
-      bid.truckId
-        ? `Your bid for "${bid.load.title}" was accepted and a booking has been created. You can now start the journey.`
-        : `Your bid for "${bid.load.title}" was accepted. Contact the sender to arrange the booking.`
-    );
+    try {
+      await notify(
+        bid.truckOwnerId,
+        "BID_ACCEPTED",
+        "Bid Accepted! 🎉",
+        bid.truckId
+          ? `Your bid for "${bid.load.title}" was accepted and a booking has been created. You can now start the journey.`
+          : `Your bid for "${bid.load.title}" was accepted. Contact the sender to arrange the booking.`
+      );
+    } catch (err) { console.error("Notify failed (bid still accepted):", err); }
 
-    // SMS to truck owner
-    const truckOwner = await prisma.user.findUnique({ where: { id: bid.truckOwnerId }, select: { phone: true } });
-    if (truckOwner?.phone) {
-      await sendSMS(truckOwner.phone, `SahidFreight: Your bid for "${bid.load.title}" was accepted! Login to start the journey.`);
-    }
+    try {
+      const truckOwner = await prisma.user.findUnique({ where: { id: bid.truckOwnerId }, select: { phone: true } });
+      if (truckOwner?.phone) {
+        await sendSMS(truckOwner.phone, `SahidFreight: Your bid for "${bid.load.title}" was accepted! Login to start the journey.`);
+      }
+    } catch (err) { console.error("SMS failed (bid still accepted):", err); }
 
     return res.status(200).json({ message: "Bid accepted", bid: updated, booking });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Something went wrong" });
+    console.error("acceptBid failed:", error);
+    return res.status(500).json({ message: "Failed to accept bid. Please try again." });
   }
 };
 
@@ -219,11 +226,13 @@ export const rejectBid = async (req: AuthRequest, res: Response) => {
       data: { status: "REJECTED" },
     });
 
-    await notify(bid.truckOwnerId, "BID_REJECTED", "Bid Not Accepted", `Your bid for "${bid.load.title}" was not accepted this time.`);
+    try {
+      await notify(bid.truckOwnerId, "BID_REJECTED", "Bid Not Accepted", `Your bid for "${bid.load.title}" was not accepted this time.`);
+    } catch (err) { console.error("Notify failed (bid still rejected):", err); }
 
     return res.status(200).json({ message: "Bid rejected", bid: updated });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Something went wrong" });
+    console.error("rejectBid failed:", error);
+    return res.status(500).json({ message: "Failed to reject bid. Please try again." });
   }
 };
