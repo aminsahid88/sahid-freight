@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import dotenv from "dotenv";
+import { keepAlive } from "./utils/keepalive";
 import path from "path";
 import { createServer } from "http";
 import { Server } from "socket.io";
@@ -15,6 +16,11 @@ import notificationRoutes from "./routes/notification.routes";
 import uploadRoutes from "./routes/upload.routes";
 import adminRoutes from "./routes/admin.routes";
 import driverRoutes from "./routes/driver.routes";
+import bidRoutes from "./routes/bid.routes";
+import messageRoutes from "./routes/message.routes";
+import paymentRoutes from "./routes/payment.routes";
+import prisma from "./utils/prisma";
+import { setIO } from "./utils/socket";
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
@@ -35,6 +41,20 @@ app.use(cors());
 app.use(express.json());
 
 // ── ROUTES ──────────────────────────────
+app.get("/health", (req, res) => res.json({ status: "ok" }));
+
+// Public stats (no auth)
+app.get("/stats/public", async (_req, res) => {
+  try {
+    const [totalLoads, totalTrucks] = await Promise.all([
+      prisma.load.count(),
+      prisma.truck.count(),
+    ]);
+    res.json({ totalLoads, totalTrucks, countries: 3 });
+  } catch {
+    res.json({ totalLoads: 0, totalTrucks: 0, countries: 3 });
+  }
+});
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/loads", loadRoutes);
@@ -45,10 +65,15 @@ app.use("/notifications", notificationRoutes);
 app.use("/uploads", uploadRoutes);
 app.use("/admin", adminRoutes);
 app.use("/drivers", driverRoutes);
+app.use("/bids", bidRoutes);
+app.use("/messages", messageRoutes);
+app.use("/payments", paymentRoutes);
 
 app.get("/", (req, res) => {
   res.json({ status: "ok", message: "Sahid Freight API is running", version: "1.0.0" });
 });
+
+setIO(io);
 
 // ── SOCKET.IO ───────────────────────────
 io.on("connection", (socket) => {
@@ -92,6 +117,7 @@ io.on("connection", (socket) => {
 
 httpServer.listen(Number(PORT), "0.0.0.0", () => {
   console.log(`✅ Sahid Freight API running on port ${PORT}`);
+  keepAlive();
 });
 
 export default app;

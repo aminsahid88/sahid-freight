@@ -1,6 +1,6 @@
 import { Response } from "express";
 import { AuthRequest } from "../middleware/auth.middleware";
-import { uploadFile } from "../utils/minio";
+import { uploadToS3 } from "../utils/s3";
 import prisma from "../utils/prisma";
 import crypto from "crypto";
 
@@ -12,8 +12,7 @@ export const uploadDocument = async (req: AuthRequest, res: Response) => {
     const { documentType, profileType } = req.body;
     if (!documentType) return res.status(400).json({ message: "documentType is required" });
 
-    const fileName = `${crypto.randomUUID()}-${file.originalname}`;
-    const fileUrl = await uploadFile(fileName, file.buffer, file.mimetype);
+    const fileUrl = await uploadToS3(file.buffer, file.originalname, file.mimetype, "documents");
 
     let senderProfileId = null;
     let truckOwnerProfileId = null;
@@ -40,6 +39,12 @@ export const uploadDocument = async (req: AuthRequest, res: Response) => {
         senderProfileId,
         truckOwnerProfileId,
       },
+    });
+
+    // Update user status to DOCUMENTS_SUBMITTED
+    await prisma.user.update({
+      where: { id: req.user!.userId },
+      data: { status: "DOCUMENTS_SUBMITTED" },
     });
 
     return res.status(201).json({ message: "Document uploaded successfully", document });

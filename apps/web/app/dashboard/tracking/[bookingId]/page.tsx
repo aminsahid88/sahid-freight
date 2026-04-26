@@ -5,8 +5,8 @@ import { useAuthStore } from "@/lib/store";
 import api from "@/lib/api";
 import { io, Socket } from "socket.io-client";
 
-const GOOGLE_MAPS_KEY = "AIzaSyC5G5cQdrtKPRdMJnO1WR06WC0c_0iSJr0";
-const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace("/api", "");
+const GOOGLE_MAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || "";
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || "https://sahid-freight-production.up.railway.app").replace("/api", "");
 
 declare global {
   interface Window {

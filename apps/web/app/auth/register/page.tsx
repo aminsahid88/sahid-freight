@@ -16,6 +16,8 @@ export default function RegisterPage() {
   const [form, setForm] = useState({
     fullName: "",
     phone: "",
+    countryCode: "+251",
+    phoneNumber: "",
     password: "",
     confirmPassword: "",
     role: "",
@@ -35,9 +37,10 @@ export default function RegisterPage() {
     setLoading(true);
     setError("");
     try {
+      const fullPhone = form.countryCode + form.phoneNumber.replace(/^0+/, "");
       const res = await api.post("/auth/register", {
         fullName: form.fullName,
-        phone: form.phone,
+        phone: fullPhone,
         password: form.password,
         role: form.role,
         country: form.country,
@@ -53,13 +56,16 @@ export default function RegisterPage() {
     }
   };
 
+  const P = "var(--primary)";
+  const A = "var(--accent)";
+
   const inputStyle = (field: string) => ({
     width: "100%",
-    background: focused === field ? "#fff" : "#faf8f4",
-    border: `1.5px solid ${focused === field ? "#1a2744" : "#e8e3d8"}`,
+    background: focused === field ? "var(--surface)" : "var(--bg)",
+    border: `1.5px solid ${focused === field ? P : "var(--border)"}`,
     borderRadius: "10px",
     padding: "13px 16px",
-    color: "#1a2744",
+    color: P,
     fontSize: "15px",
     outline: "none",
     boxSizing: "border-box" as const,
@@ -71,33 +77,33 @@ export default function RegisterPage() {
     display: "block",
     fontSize: "13px",
     fontWeight: "700" as const,
-    color: "#1a2744",
+    color: P,
     marginBottom: "8px",
     letterSpacing: "0.2px",
   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", fontFamily: "'Helvetica Neue', Arial, sans-serif", background: "#f0ebe0" }}>
+    <div style={{ minHeight: "100vh", display: "flex", fontFamily: "'Inter, system-ui, sans-serif", background: "var(--bg)" }}>
 
       {/* Left Panel */}
-      <div className="auth-left" style={{ width: "44%", background: "#1a2744", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", padding: "52px 56px" }}>
+      <div className="auth-left" style={{ width: "44%", background: "#1B3A2D", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", padding: "52px 56px" }}>
         <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle at 80% 20%, rgba(240,220,170,0.06) 0%, transparent 50%), radial-gradient(circle at 20% 80%, rgba(200,144,30,0.08) 0%, transparent 50%)" }} />
         <div style={{ position: "absolute", right: "-120px", top: "50%", transform: "translateY(-50%)", width: "500px", height: "500px", borderRadius: "50%", border: "1px solid rgba(240,220,170,0.05)" }} />
 
         {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: "12px", position: "relative", zIndex: 1 }}>
-          <img src="/loadlink.png" alt="Sahid Freight" style={{ width: "42px", height: "42px", borderRadius: "10px", objectFit: "contain" }} />
+          <img src="/logo.svg" alt="Sahid Freight" style={{ width: "42px", height: "42px", borderRadius: "10px", objectFit: "contain" }} />
           <div>
-            <div style={{ fontSize: "20px", fontWeight: "800", color: "#f0ebe0", letterSpacing: "-0.5px" }}>Sahid Freight</div>
-            <div style={{ fontSize: "10px", color: "#c8901e", letterSpacing: "2px", marginTop: "-2px" }}>ETHIOPIA · SOMALIA · DJIBOUTI</div>
+            <div style={{ fontSize: "20px", fontWeight: "800", color: "#FAFAF8", letterSpacing: "-0.5px" }}>Sahid Freight</div>
+            <div style={{ fontSize: "10px", color: "#E8A020", letterSpacing: "2px", marginTop: "-2px" }}>ETHIOPIA · SOMALIA · DJIBOUTI</div>
           </div>
         </div>
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", position: "relative", zIndex: 1 }}>
-          <div style={{ width: "48px", height: "3px", background: "#c8901e", borderRadius: "2px", marginBottom: "32px" }} />
-          <h1 style={{ fontSize: "42px", fontWeight: "800", color: "#f0ebe0", lineHeight: "1.15", margin: "0 0 24px", letterSpacing: "-1.5px" }}>
+          <div style={{ width: "48px", height: "3px", background: "#E8A020", borderRadius: "2px", marginBottom: "32px" }} />
+          <h1 style={{ fontSize: "42px", fontWeight: "800", color: "#FAFAF8", lineHeight: "1.15", margin: "0 0 24px", letterSpacing: "-1.5px" }}>
             Join the<br />
-            <span style={{ color: "#c8901e" }}>network.</span>
+            <span style={{ color: "#E8A020" }}>network.</span>
           </h1>
           <p style={{ color: "rgba(240,235,224,0.4)", fontSize: "15px", lineHeight: "1.8", maxWidth: "300px", margin: "0 0 48px" }}>
             Whether you own trucks or need to move cargo — Sahid Freight connects you with the right partner instantly.
@@ -110,9 +116,9 @@ export default function RegisterPage() {
               { icon: "package", title: "Cargo Sender", desc: "Post loads, find trucks, track delivery" },
             ].map((r) => (
               <div key={r.title} style={{ display: "flex", alignItems: "center", gap: "14px", background: "rgba(240,235,224,0.04)", border: "1px solid rgba(240,235,224,0.06)", borderRadius: "10px", padding: "14px 16px" }}>
-                {r.icon === "truck" ? <Truck size={22} color="#c8901e" />  : <Package size={22} color="#c8901e" />}
+                {r.icon === "truck" ? <Truck size={22} color="#E8A020" />  : <Package size={22} color="#E8A020" />}
                 <div>
-                  <div style={{ fontSize: "14px", fontWeight: "700", color: "#f0ebe0" }}>{r.title}</div>
+                  <div style={{ fontSize: "14px", fontWeight: "700", color: "#FAFAF8" }}>{r.title}</div>
                   <div style={{ fontSize: "12px", color: "rgba(240,235,224,0.3)", marginTop: "2px" }}>{r.desc}</div>
                 </div>
               </div>
@@ -126,38 +132,38 @@ export default function RegisterPage() {
       </div>
 
       {/* Right Panel */}
-      <div className="auth-right" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "48px", background: "#f0ebe0" }}>
+      <div className="auth-right" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "48px", background: "var(--bg)" }}>
         <div style={{ width: "100%", maxWidth: "460px" }}>
 
           {/* Step indicator */}
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "28px" }}>
             {[1, 2].map((s) => (
               <div key={s} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: step >= s ? "#1a2744" : "#e8e3d8", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "700", color: step >= s ? "#f0ebe0" : "#9e9890", transition: "all 0.2s" }}>
+                <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: step >= s ? P : "var(--border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "700", color: step >= s ? "var(--bg)" : "var(--text-secondary)", transition: "all 0.2s" }}>
                   {s}
                 </div>
-                <span style={{ fontSize: "13px", color: step >= s ? "#1a2744" : "#9e9890", fontWeight: step >= s ? "600" : "400" }}>
+                <span style={{ fontSize: "13px", color: step >= s ? P : "var(--text-secondary)", fontWeight: step >= s ? "600" : "400" }}>
                   {s === 1 ? "Your Info" : "Account Details"}
                 </span>
-                {s < 2 && <div style={{ width: "32px", height: "1px", background: step > s ? "#1a2744" : "#e8e3d8", margin: "0 4px" }} />}
+                {s < 2 && <div style={{ width: "32px", height: "1px", background: step > s ? P : "var(--border)", margin: "0 4px" }} />}
               </div>
             ))}
           </div>
 
           {/* Card */}
-          <div style={{ background: "#fff", borderRadius: "20px", padding: "44px", boxShadow: "0 2px 4px rgba(26,39,68,0.04), 0 16px 48px rgba(26,39,68,0.10)", border: "1px solid rgba(26,39,68,0.06)" }}>
+          <div style={{ background: "var(--surface)", borderRadius: "20px", padding: "44px", boxShadow: "0 2px 4px rgba(26,39,68,0.04), 0 16px 48px rgba(26,39,68,0.10)", border: "1px solid rgba(26,39,68,0.06)" }}>
 
             <div style={{ marginBottom: "32px" }}>
-              <h2 style={{ fontSize: "24px", fontWeight: "800", color: "#1a2744", margin: "0 0 6px", letterSpacing: "-0.5px" }}>
+              <h2 style={{ fontSize: "24px", fontWeight: "800", color: P, margin: "0 0 6px", letterSpacing: "-0.5px" }}>
                 {step === 1 ? "Create your account" : "Almost done"}
               </h2>
-              <p style={{ color: "#9e9890", fontSize: "14px", margin: 0 }}>
+              <p style={{ color: "var(--text-secondary)", fontSize: "14px", margin: 0 }}>
                 {step === 1 ? "Step 1 of 2 — Basic information" : "Step 2 of 2 — Choose your role"}
               </p>
             </div>
 
             {error && (
-              <div style={{ background: "#fff5f5", border: "1px solid #fecaca", borderRadius: "10px", padding: "12px 16px", color: "#dc2626", fontSize: "14px", marginBottom: "24px" }}>
+              <div style={{ background: "#fff5f5", border: "1px solid #fecaca", borderRadius: "10px", padding: "12px 16px", color: "var(--danger)", fontSize: "14px", marginBottom: "24px" }}>
                 {error}
               </div>
             )}
@@ -167,11 +173,18 @@ export default function RegisterPage() {
                 <div style={{ display: "flex", flexDirection: "column" as const, gap: "18px" }}>
                   <div>
                     <label style={labelStyle}>Full Name</label>
-                    <input type="text" value={form.fullName} onChange={(e) => update("fullName", e.target.value)} placeholder="Amin Abdirahman" required onFocus={() => setFocused("fullName")} onBlur={() => setFocused(null)} style={inputStyle("fullName")} />
+                    <input type="text" value={form.fullName} onChange={(e) => update("fullName", e.target.value)} placeholder="Your full name" required onFocus={() => setFocused("fullName")} onBlur={() => setFocused(null)} style={inputStyle("fullName")} />
                   </div>
                   <div>
                     <label style={labelStyle}>Phone Number</label>
-                    <input type="tel" value={form.phone} onChange={(e) => update("phone", e.target.value)} placeholder="+251 900 000 000" required onFocus={() => setFocused("phone")} onBlur={() => setFocused(null)} style={{ ...inputStyle("phone"), fontFamily: "monospace" }} />
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <select value={form.countryCode} onChange={(e) => { update("countryCode", e.target.value); update("phone", e.target.value + form.phoneNumber.replace(/^0/, "")); }} style={{ ...inputStyle("countryCode"), width: "140px", flexShrink: 0, appearance: "none" as const, fontFamily: "monospace" }}>
+                        <option value="+251">🇪🇹 +251</option>
+                        <option value="+252">🇸🇴 +252</option>
+                        <option value="+253">🇩🇯 +253</option>
+                      </select>
+                      <input type="tel" value={form.phoneNumber} onChange={(e) => { const clean = e.target.value.replace(/[^0-9]/g, ""); update("phoneNumber", clean); update("phone", form.countryCode + clean.replace(/^0+/, "")); }} placeholder="900 000 000" required onFocus={() => setFocused("phone")} onBlur={() => setFocused(null)} style={{ ...inputStyle("phone"), fontFamily: "monospace", flex: 1 }} />
+                    </div>
                   </div>
                   <div>
                     <label style={labelStyle}>Email Address</label>
@@ -195,7 +208,7 @@ export default function RegisterPage() {
                     <label style={labelStyle}>I am a...</label>
                     <div style={{ display: "flex", gap: "12px" }}>
                       {[{ value: "CARGO_SENDER", label: "Cargo Sender" }, { value: "TRUCK_OWNER", label: "Truck Owner" }].map((r) => (
-                        <div key={r.value} onClick={() => update("role", r.value)} style={{ flex: 1, padding: "14px", borderRadius: "10px", border: `2px solid ${form.role === r.value ? "#1a2744" : "#e8e3d8"}`, background: form.role === r.value ? "#f0ebe0" : "#fff", cursor: "pointer", textAlign: "center" as const, fontSize: "14px", fontWeight: "600", color: form.role === r.value ? "#1a2744" : "#9e9890", transition: "all 0.15s" }}>
+                        <div key={r.value} onClick={() => update("role", r.value)} style={{ flex: 1, padding: "14px", borderRadius: "10px", border: `2px solid ${form.role === r.value ? P : "var(--border)"}`, background: form.role === r.value ? "var(--bg)" : "var(--surface)", cursor: "pointer", textAlign: "center" as const, fontSize: "14px", fontWeight: "600", color: form.role === r.value ? P : "var(--text-secondary)", transition: "all 0.15s" }}>
                           {r.label}
                         </div>
                       ))}
@@ -223,19 +236,19 @@ export default function RegisterPage() {
 
               <div style={{ display: "flex", gap: "12px", marginTop: "28px" }}>
                 {step === 2 && (
-                  <button type="button" onClick={() => setStep(1)} style={{ flex: 1, background: "#f0ebe0", border: "none", borderRadius: "10px", padding: "14px", color: "#1a2744", fontSize: "15px", fontWeight: "700", cursor: "pointer" }}>
+                  <button type="button" onClick={() => setStep(1)} style={{ flex: 1, background: "var(--bg)", border: "none", borderRadius: "10px", padding: "14px", color: P, fontSize: "15px", fontWeight: "700", cursor: "pointer" }}>
                     Back
                   </button>
                 )}
-                <button type="submit" disabled={loading || (step === 2 && !form.role)} style={{ flex: 2, background: loading || (step === 2 && !form.role) ? "#e8e3d8" : "#1a2744", border: "none", borderRadius: "10px", padding: "14px", color: loading || (step === 2 && !form.role) ? "#aaa" : "#f0ebe0", fontSize: "15px", fontWeight: "700", cursor: loading || (step === 2 && !form.role) ? "not-allowed" : "pointer", transition: "all 0.2s" }}>
+                <button type="submit" disabled={loading || (step === 2 && !form.role)} style={{ flex: 2, background: loading || (step === 2 && !form.role) ? "var(--border)" : P, border: "none", borderRadius: "10px", padding: "14px", color: loading || (step === 2 && !form.role) ? "#aaa" : "var(--bg)", fontSize: "15px", fontWeight: "700", cursor: loading || (step === 2 && !form.role) ? "not-allowed" : "pointer", transition: "all 0.2s" }}>
                   {loading ? "Creating account..." : step === 1 ? "Continue" : "Create Account"}
                 </button>
               </div>
             </form>
 
             <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #f0ede6", textAlign: "center" as const }}>
-              <span style={{ color: "#9e9890", fontSize: "14px" }}>Already have an account? </span>
-              <a href="/auth/login" style={{ color: "#c8901e", fontSize: "14px", fontWeight: "700", textDecoration: "none" }}>Sign in</a>
+              <span style={{ color: "var(--text-secondary)", fontSize: "14px" }}>Already have an account? </span>
+              <a href="/auth/login" style={{ color: A, fontSize: "14px", fontWeight: "700", textDecoration: "none" }}>Sign in</a>
             </div>
           </div>
         </div>

@@ -19,6 +19,7 @@ enum UserRole {
 }
 
 enum UserStatus {
+  DOCUMENTS_SUBMITTED
   ACTIVE
   SUSPENDED
   PENDING_VERIFICATION
@@ -110,6 +111,7 @@ enum VerificationStatus {
 }
 
 enum DocumentType {
+  PROFILE_PHOTO
   NATIONAL_ID
   DRIVERS_LICENSE
   TRUCK_REGISTRATION

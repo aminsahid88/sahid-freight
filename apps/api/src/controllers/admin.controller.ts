@@ -1,5 +1,6 @@
 import { Response } from "express";
 import prisma from "../utils/prisma";
+import { getPresignedUrl } from "../utils/s3";
 import { AuthRequest } from "../middleware/auth.middleware";
 import { notify } from "../utils/notify";
 
@@ -85,8 +86,6 @@ export const getUser = async (req: AuthRequest, res: Response) => {
       include: {
         senderProfile: { include: { documents: true } },
         truckOwnerProfile: { include: { documents: true } },
-        trucks: true,
-        loadsPosted: { orderBy: { createdAt: "desc" }, take: 5 },
       },
     });
 
@@ -95,7 +94,7 @@ export const getUser = async (req: AuthRequest, res: Response) => {
     return res.status(200).json({ user });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Something went wrong" });
+    return res.status(500).json({ message: "Something went wrong", detail: (error as any)?.message });
   }
 };
 

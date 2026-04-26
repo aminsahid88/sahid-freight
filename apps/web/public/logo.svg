@@ -1,21 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" fill="none">
-  <!-- Truck body -->
-  <rect x="60" y="20" width="80" height="28" rx="4" fill="#d49b32"/>
-  <!-- Truck cab -->
-  <rect x="130" y="26" width="30" height="22" rx="4" fill="#f0c060"/>
-  <!-- Windshield -->
-  <rect x="134" y="29" width="18" height="12" rx="2" fill="#1a1a1a"/>
-  <!-- Wheels -->
-  <circle cx="80" cy="50" r="7" fill="#1a1a1a"/>
-  <circle cx="80" cy="50" r="3" fill="#d49b32"/>
-  <circle cx="140" cy="50" r="7" fill="#1a1a1a"/>
-  <circle cx="140" cy="50" r="3" fill="#d49b32"/>
-  <!-- Chain links on truck body -->
-  <rect x="75" y="30" width="10" height="6" rx="3" stroke="#1a1a1a" strokeWidth="2" fill="none"/>
-  <rect x="83" y="30" width="10" height="6" rx="3" stroke="#1a1a1a" strokeWidth="2" fill="none"/>
-  <rect x="91" y="30" width="10" height="6" rx="3" stroke="#1a1a1a" strokeWidth="2" fill="none"/>
-  <!-- Road line -->
-  <line x1="10" y1="57" x2="190" y2="57" stroke="#d49b32" strokeWidth="1.5" strokeDasharray="8 4"/>
-  <!-- LL text mark -->
-  <text x="10" y="42" fontFamily="Georgia, serif" fontSize="28" fontWeight="700" fill="#d49b32" letterSpacing="-1">LL</text>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <line x1="100" y1="8" x2="100" y2="75" stroke="#C8901E" stroke-width="12" stroke-linecap="round"/>
+  <line x1="45" y1="8" x2="155" y2="8" stroke="#C8901E" stroke-width="12" stroke-linecap="round"/>
+  <path d="M93 72 Q80 92 100 102 Q120 92 107 72" fill="none" stroke="#C8901E" stroke-width="9" stroke-linecap="round"/>
+  <rect x="25" y="102" width="150" height="90" fill="#C8901E" rx="6"/>
+  <line x1="25" y1="147" x2="175" y2="147" stroke="#0A1628" stroke-width="5"/>
+  <line x1="100" y1="102" x2="100" y2="192" stroke="#0A1628" stroke-width="5"/>
+  <rect x="80" y="160" width="9" height="18" fill="#0A1628" rx="2"/>
+  <rect x="111" y="160" width="9" height="18" fill="#0A1628" rx="2"/>
 </svg>

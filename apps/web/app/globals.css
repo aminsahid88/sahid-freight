@@ -2,7 +2,85 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Auth pages responsive */
+/* ── Light theme (default) ─────────────────── */
+:root,
+[data-theme="light"] {
+  --bg:         #FAFAF8;
+  --primary:    #1B3A2D;
+  --accent:     #E8A020;
+  --accent-dim: rgba(232,160,32,0.1);
+  --surface:    #FFFFFF;
+  --surface2:   #F5F5F0;
+  --border:     #E8E4DC;
+  --text:       #111111;
+  --text-secondary: #6B6B6B;
+  --text-muted: #9CA3AF;
+  --input-bg:   #FFFFFF;
+  --input-text: #111111;
+  --input-border: #E8E4DC;
+  --input-placeholder: #9CA3AF;
+  --success:    #16A34A;
+  --danger:     #DC2626;
+  --warning:    #C2791A;
+  --blue:       #2563EB;
+  --sidebar:    #1B3A2D;
+  --sidebar-text: #FFFFFF;
+  --sidebar-muted: rgba(255,255,255,0.42);
+  --sidebar-active-bg: rgba(255,255,255,0.08);
+  --sidebar-border: rgba(255,255,255,0.08);
+  --topbar-bg:  #FAFAF8;
+  --topbar-border: #E8E4DC;
+  --card-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  --dropdown-shadow: 0 16px 48px rgba(0,0,0,0.14);
+  --shimmer-from: #EDEBE6;
+  --shimmer-mid:  #E4E0D8;
+  --shimmer-to:   #EDEBE6;
+  --font:       var(--font-inter), Inter, system-ui, sans-serif;
+}
+
+/* ── Dark theme ────────────────────────────── */
+[data-theme="dark"] {
+  --bg:         #0D0F0E;
+  --primary:    #E8A020;
+  --accent:     #E8A020;
+  --accent-dim: rgba(232,160,32,0.12);
+  --surface:    #1A1C1B;
+  --surface2:   #242624;
+  --border:     #2A2C2A;
+  --text:       #F0F0EC;
+  --text-secondary: #8A8A82;
+  --text-muted: #555555;
+  --input-bg:   #1A1C1B;
+  --input-text: #F0F0EC;
+  --input-border: #2A2C2A;
+  --input-placeholder: #555555;
+  --success:    #4ADE80;
+  --danger:     #F87171;
+  --warning:    #FBBF24;
+  --blue:       #60A5FA;
+  --sidebar:    #111311;
+  --sidebar-text: #F0F0EC;
+  --sidebar-muted: rgba(240,240,236,0.4);
+  --sidebar-active-bg: rgba(232,160,32,0.12);
+  --sidebar-border: rgba(255,255,255,0.06);
+  --topbar-bg:  #0D0F0E;
+  --topbar-border: #2A2C2A;
+  --card-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  --dropdown-shadow: 0 16px 48px rgba(0,0,0,0.4);
+  --shimmer-from: #1A1C1B;
+  --shimmer-mid:  #242624;
+  --shimmer-to:   #1A1C1B;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.2s, color 0.2s;
+}
+
+/* ── Auth pages ─────────────────────────────────── */
 @media (max-width: 768px) {
   .auth-left { display: none !important; }
   .auth-right { padding: 32px 20px !important; width: 100% !important; align-items: flex-start !important; padding-top: 60px !important; }
@@ -10,7 +88,7 @@
   .auth-card > div { padding: 32px 24px !important; border-radius: 16px !important; }
 }
 
-/* Landing page responsive */
+/* ── Landing page ───────────────────────────────── */
 @media (max-width: 768px) {
   .how-grid { grid-template-columns: 1fr !important; }
   .features-grid { grid-template-columns: 1fr !important; }
@@ -26,25 +104,33 @@
   section { padding: 64px 20px !important; }
 }
 
-/* Verify/OTP page responsive */
+/* ── Verify / OTP ───────────────────────────────── */
 @media (max-width: 768px) {
   .verify-left { display: none !important; }
   .verify-right { padding: 32px 20px !important; width: 100% !important; }
   .verify-card { padding: 32px 24px !important; border-radius: 16px !important; }
 }
 
-/* Bookings page responsive */
+/* ── Dashboard misc ─────────────────────────────── */
 @media (max-width: 768px) {
   .bookings-grid { grid-template-columns: 1fr !important; }
+  .loads-table-header { display: none !important; }
+  .loads-table-row { grid-template-columns: 1fr !important; gap: 4px !important; padding: 12px 16px !important; }
 }
 
-/* Overview stat cards - already 2 col but ensure on small screens */
 @media (max-width: 480px) {
   .stat-cards { grid-template-columns: 1fr 1fr !important; }
 }
 
-/* Fix recent loads table on mobile - show as cards */
-@media (max-width: 768px) {
-  .loads-table-header { display: none !important; }
-  .loads-table-row { grid-template-columns: 1fr !important; gap: 4px !important; padding: 12px 16px !important; }
+/* ── Spinner / shimmer ─────────────────────────── */
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes shimmer {
+  0%   { background-position: -1000px 0; }
+  100% { background-position:  1000px 0; }
+}
+.sk {
+  background: linear-gradient(90deg, var(--shimmer-from) 25%, var(--shimmer-mid) 50%, var(--shimmer-to) 75%);
+  background-size: 2000px 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
 }

@@ -27,3 +27,17 @@ router.post("/", protect, multerMiddleware, uploadDocument);
 router.get("/", protect, getMyDocuments);
 
 export default router;
+
+// Get presigned URL for a document
+router.get("/presign", protect, async (req: any, res: any) => {
+  try {
+    const { getPresignedUrl } = require("../utils/s3");
+    const { url } = req.query;
+    if (!url) return res.status(400).json({ message: "url is required" });
+    const presignedUrl = await getPresignedUrl(url as string, 900);
+    return res.json({ url: presignedUrl });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Failed to generate presigned URL" });
+  }
+});

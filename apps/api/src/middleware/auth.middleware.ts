@@ -55,11 +55,21 @@ export const truckOwnerOnly = (req: AuthRequest, res: Response, next: NextFuncti
 };
 
 // ─────────────────────────────────────────
+// FLEET MANAGER — truck owners OR cargo senders
+// ─────────────────────────────────────────
+export const fleetManagerOnly = (req: AuthRequest, res: Response, next: NextFunction) => {
+  if (!["TRUCK_OWNER", "CARGO_SENDER"].includes(req.user?.role || "")) {
+    return res.status(403).json({ message: "Access denied, truck owners and cargo senders only" });
+  }
+  next();
+};
+
+// ─────────────────────────────────────────
 // CARGO SENDER ONLY
 // ─────────────────────────────────────────
 export const cargoSenderOnly = (req: AuthRequest, res: Response, next: NextFunction) => {
   if (req.user?.role !== "CARGO_SENDER") {
-    return res.status(403).json({ message: "Access denied, cargo senders only" });
+    return res.status(403).json({ message: "Only cargo sender accounts can post loads. If you need to ship cargo, please register a separate cargo sender account." });
   }
   next();
 };

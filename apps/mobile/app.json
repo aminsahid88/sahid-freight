@@ -1,0 +1,76 @@
+{
+  "expo": {
+    "name": "Sahid Freight",
+    "slug": "sahid-freight",
+    "version": "1.0.0",
+    "description": "Move cargo across Ethiopia, Somalia and Djibouti",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1B3A2D"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sahidfreight.app",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Sahid Freight uses your location to track deliveries and show your position to cargo senders.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Sahid Freight uses your location in the background to continuously track active deliveries.",
+        "NSCameraUsageDescription": "Sahid Freight uses your camera to take photos of truck documents and cargo.",
+        "NSPhotoLibraryUsageDescription": "Sahid Freight accesses your photos to upload truck registration and cargo documents.",
+        "NSContactsUsageDescription": "Sahid Freight does not access your contacts.",
+        "NSUserTrackingUsageDescription": "We use tracking to improve app performance and show relevant content."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1B3A2D"
+      },
+      "package": "com.sahidfreight.app",
+      "versionCode": 1,
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-location",
+      "expo-camera",
+      "expo-apple-authentication",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#1B3A2D"
+        }
+      ],
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.YOUR_IOS_CLIENT_ID"
+        }
+      ]
+    ],
+    "scheme": "sahidfreight",
+    "extra": {
+      "eas": {
+        "projectId": "YOUR_EAS_PROJECT_ID"
+      }
+    }
+  }
+}

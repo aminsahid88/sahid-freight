@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
 import api from "@/lib/api";
-import { UserPlus, Truck, Phone, Trash2, CheckCircle, Clock } from "lucide-react";
+import { UserPlus, Phone, Trash2, FileText, CheckCircle, XCircle } from "lucide-react";
 
 export default function DriversPage() {
   const router = useRouter();
@@ -11,14 +11,14 @@ export default function DriversPage() {
   const [drivers, setDrivers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
-  const [form, setForm] = useState({ fullName: "", phone: "", password: "", country: "ETHIOPIA", city: "" });
+  const [form, setForm] = useState({ fullName: "", phone: "", licenseNumber: "", password: "", country: "ETHIOPIA", city: "" });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
 
   useEffect(() => {
     if (!user) { router.push("/auth/login"); return; }
-    if (user.role !== "TRUCK_OWNER") { router.push("/dashboard"); return; }
+    if (!["TRUCK_OWNER", "CARGO_SENDER"].includes(user.role)) { router.push("/dashboard"); return; }
     fetchDrivers();
   }, [user]);
 
@@ -33,13 +33,13 @@ export default function DriversPage() {
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
 
   const handleAdd = async () => {
-    if (!form.fullName || !form.phone || !form.password) { setError("All fields required"); return; }
+    if (!form.fullName || !form.phone || !form.password) { setError("Full name, phone and password are required"); return; }
     setSaving(true); setError("");
     try {
       await api.post("/drivers/invite", form);
       showToast("Driver added successfully");
       setShowAdd(false);
-      setForm({ fullName: "", phone: "", password: "", country: "ETHIOPIA", city: "" });
+      setForm({ fullName: "", phone: "", licenseNumber: "", password: "", country: "ETHIOPIA", city: "" });
       fetchDrivers();
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to add driver");
@@ -47,7 +47,7 @@ export default function DriversPage() {
   };
 
   const handleRemove = async (id: string) => {
-    if (!confirm("Remove this driver?")) return;
+    if (!confirm("Remove this driver from your fleet?")) return;
     try {
       await api.delete("/drivers/" + id);
       showToast("Driver removed");
@@ -55,69 +55,116 @@ export default function DriversPage() {
     } catch { showToast("Failed to remove driver"); }
   };
 
-  const inputStyle = { width: "100%", padding: "10px 14px", borderRadius: "9px", border: "1px solid #ede9e0", fontSize: "13px", color: "#1a2744", outline: "none", background: "#faf8f4", boxSizing: "border-box" as const };
+  const inp = {
+    width: "100%", padding: "10px 14px", borderRadius: "9px",
+    border: "1px solid var(--border)", fontSize: "13px", color: "var(--primary)",
+    outline: "none", background: "var(--bg)", boxSizing: "border-box" as const,
+  };
+
+  const lbl = {
+    display: "block", fontSize: "11px", fontWeight: "600" as const,
+    color: "#6b7280", marginBottom: "5px", textTransform: "uppercase" as const, letterSpacing: "0.5px",
+  };
 
   if (loading) return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "60vh" }}>
-      <div style={{ width: "32px", height: "32px", border: "3px solid #e8e3d8", borderTop: "3px solid #1a2744", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-      <style>{`@keyframes spin{to{transform:rotate(360deg);}}`}</style>
+    <div style={{ padding: "32px" }}>
+      <style>{`@keyframes shimmer{0%{background-position:-1000px 0}100%{background-position:1000px 0}}.sk{background:linear-gradient(90deg,#ede9e2 25%,#e2ddd6 50%,#ede9e2 75%);background-size:2000px 100%;animation:shimmer 1.5s infinite;border-radius:10px;}`}</style>
+      <div className="sk" style={{ height: "32px", width: "200px", marginBottom: "24px" }} />
+      {[1, 2, 3].map((i) => <div key={i} className="sk" style={{ height: "100px", marginBottom: "12px" }} />)}
     </div>
   );
 
   return (
     <div>
-      {toast && <div style={{ position: "fixed" as const, top: "24px", right: "24px", background: "#1a2744", color: "#f0ebe0", padding: "12px 20px", borderRadius: "10px", fontSize: "13px", fontWeight: "600", zIndex: 9999 }}>{toast}</div>}
+      {toast && (
+        <div style={{ position: "fixed", top: "24px", right: "24px", background: "var(--primary)", color: "#FAFAF8", padding: "12px 20px", borderRadius: "10px", fontSize: "13px", fontWeight: "600", zIndex: 9999 }}>
+          {toast}
+        </div>
+      )}
 
+      {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: "22px", fontWeight: "800", color: "#1a2744", letterSpacing: "-0.5px" }}>My Drivers</h1>
-          <div style={{ fontSize: "13px", color: "#9e9890", marginTop: "3px" }}>Manage drivers assigned to your fleet</div>
+          <h1 style={{ margin: 0, fontSize: "22px", fontWeight: "800", color: "var(--primary)", letterSpacing: "-0.5px" }}>My Drivers</h1>
+          <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginTop: "3px" }}>
+            {drivers.length} driver{drivers.length !== 1 ? "s" : ""} in your fleet
+          </div>
         </div>
-        <button onClick={() => setShowAdd(true)} style={{ display: "flex", alignItems: "center", gap: "7px", background: "#1a2744", color: "#f0ebe0", padding: "10px 18px", borderRadius: "9px", fontSize: "13px", fontWeight: "700", border: "none", cursor: "pointer" }}>
+        <button onClick={() => setShowAdd(true)}
+          style={{ display: "flex", alignItems: "center", gap: "7px", background: "var(--primary)", color: "#FAFAF8", padding: "10px 18px", borderRadius: "9px", fontSize: "13px", fontWeight: "700", border: "none", cursor: "pointer" }}>
           <UserPlus size={15} /> Add Driver
         </button>
       </div>
 
+      {/* Empty state */}
       {drivers.length === 0 ? (
-        <div style={{ background: "#fff", borderRadius: "12px", padding: "72px 24px", textAlign: "center" as const, border: "1px solid #ede9e0" }}>
-          <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "#f5f3ef", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 18px", color: "#c8c0b0" }}><UserPlus size={24} /></div>
-          <div style={{ fontSize: "16px", fontWeight: "700", color: "#1a2744", marginBottom: "7px" }}>No drivers yet</div>
-          <div style={{ fontSize: "13px", color: "#9e9890", marginBottom: "20px" }}>Add drivers to assign them to bookings.</div>
-          <button onClick={() => setShowAdd(true)} style={{ display: "inline-flex", alignItems: "center", gap: "7px", background: "#1a2744", color: "#f0ebe0", padding: "10px 18px", borderRadius: "9px", fontSize: "13px", fontWeight: "700", border: "none", cursor: "pointer" }}>
+        <div style={{ background: "var(--surface)", borderRadius: "14px", padding: "72px 24px", textAlign: "center", border: "1px solid var(--border)" }}>
+          <div style={{ width: "56px", height: "56px", borderRadius: "14px", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 18px", color: "#c8c0b0" }}>
+            <UserPlus size={26} />
+          </div>
+          <div style={{ fontSize: "16px", fontWeight: "700", color: "var(--primary)", marginBottom: "7px" }}>No drivers yet</div>
+          <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "20px" }}>Add drivers to your fleet and assign them to trucks and bookings.</div>
+          <button onClick={() => setShowAdd(true)}
+            style={{ display: "inline-flex", alignItems: "center", gap: "7px", background: "var(--primary)", color: "#FAFAF8", padding: "10px 20px", borderRadius: "9px", fontSize: "13px", fontWeight: "700", border: "none", cursor: "pointer" }}>
             <UserPlus size={15} /> Add First Driver
           </button>
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "14px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "14px" }}>
           {drivers.map((driver: any) => (
-            <div key={driver.id} style={{ background: "#fff", borderRadius: "12px", padding: "20px", border: "1px solid #ede9e0" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
+            <div key={driver.id} style={{ background: "var(--surface)", borderRadius: "14px", padding: "20px", border: "1px solid var(--border)" }}>
+              {/* Top row: avatar + name + delete */}
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "14px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "#1a2744", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px", fontWeight: "800", color: "#f0ebe0" }}>
+                  <div style={{ width: "44px", height: "44px", borderRadius: "11px", background: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", fontWeight: "800", color: "#FAFAF8", flexShrink: 0 }}>
                     {driver.fullName?.charAt(0)}
                   </div>
                   <div>
-                    <div style={{ fontSize: "14px", fontWeight: "700", color: "#1a2744" }}>{driver.fullName}</div>
-                    <div style={{ fontSize: "12px", color: "#9e9890", display: "flex", alignItems: "center", gap: "4px", marginTop: "2px" }}>
+                    <div style={{ fontSize: "15px", fontWeight: "700", color: "var(--primary)" }}>{driver.fullName}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "12px", color: "var(--text-secondary)", marginTop: "2px" }}>
                       <Phone size={11} />{driver.phone}
                     </div>
                   </div>
                 </div>
-                <button onClick={() => handleRemove(driver.id)} style={{ background: "#fef2f2", border: "none", borderRadius: "7px", padding: "7px", cursor: "pointer", color: "#dc2626", display: "flex" }}>
+                <button onClick={() => handleRemove(driver.id)}
+                  style={{ background: "#fef2f2", border: "none", borderRadius: "7px", padding: "7px", cursor: "pointer", color: "#dc2626", display: "flex", flexShrink: 0 }}>
                   <Trash2 size={14} />
                 </button>
               </div>
-              <div style={{ background: "#faf8f4", borderRadius: "8px", padding: "10px 12px" }}>
-                <div style={{ fontSize: "10px", color: "#9e9890", textTransform: "uppercase" as const, letterSpacing: "0.8px", marginBottom: "4px" }}>Current Assignment</div>
+
+              {/* Details */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "12px" }}>
+                <div style={{ background: "var(--bg)", borderRadius: "8px", padding: "9px 11px" }}>
+                  <div style={{ fontSize: "10px", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "3px" }}>License</div>
+                  <div style={{ fontSize: "12px", fontWeight: "600", color: "var(--primary)", display: "flex", alignItems: "center", gap: "4px" }}>
+                    <FileText size={11} />
+                    {driver.licenseNumber || <span style={{ color: "var(--text-muted)", fontWeight: "400" }}>Not provided</span>}
+                  </div>
+                </div>
+                <div style={{ background: "var(--bg)", borderRadius: "8px", padding: "9px 11px" }}>
+                  <div style={{ fontSize: "10px", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "3px" }}>Status</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                    {driver.status === "ACTIVE" ? (
+                      <><CheckCircle size={12} color="#16a34a" /><span style={{ fontSize: "12px", fontWeight: "600", color: "#16a34a" }}>Active</span></>
+                    ) : (
+                      <><XCircle size={12} color="#dc2626" /><span style={{ fontSize: "12px", fontWeight: "600", color: "#dc2626" }}>Inactive</span></>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Current assignment */}
+              <div style={{ background: "var(--bg)", borderRadius: "8px", padding: "9px 11px" }}>
+                <div style={{ fontSize: "10px", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "4px" }}>Current Assignment</div>
                 {driver.bookingsAsDriver?.[0] ? (
-                  <div style={{ fontSize: "12px", fontWeight: "600", color: "#1a2744" }}>
+                  <div style={{ fontSize: "12px", fontWeight: "600", color: "var(--primary)", display: "flex", alignItems: "center", gap: "8px" }}>
                     {driver.bookingsAsDriver[0].load?.title}
-                    <span style={{ marginLeft: "8px", fontSize: "11px", fontWeight: "600", padding: "2px 8px", borderRadius: "99px", background: "#f0fdf4", color: "#16a34a", border: "1px solid #bbf7d0" }}>
+                    <span style={{ fontSize: "11px", padding: "2px 8px", borderRadius: "99px", background: "#f0fdf4", color: "#16a34a", border: "1px solid #bbf7d0" }}>
                       {driver.bookingsAsDriver[0].status}
                     </span>
                   </div>
                 ) : (
-                  <div style={{ fontSize: "12px", color: "#9e9890" }}>No active assignment</div>
+                  <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>No active assignment</div>
                 )}
               </div>
             </div>
@@ -127,31 +174,52 @@ export default function DriversPage() {
 
       {/* Add Driver Modal */}
       {showAdd && (
-        <div style={{ position: "fixed" as const, inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ background: "#fff", borderRadius: "16px", width: "100%", maxWidth: "420px", padding: "28px", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
-            <div style={{ fontSize: "17px", fontWeight: "800", color: "#1a2744", marginBottom: "20px" }}>Add New Driver</div>
-            {error && <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "8px", padding: "10px 14px", color: "#dc2626", fontSize: "13px", marginBottom: "14px" }}>{error}</div>}
-            <div style={{ display: "flex", flexDirection: "column" as const, gap: "12px" }}>
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div style={{ background: "var(--surface)", borderRadius: "16px", width: "100%", maxWidth: "440px", padding: "28px", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
+            <div style={{ fontSize: "17px", fontWeight: "800", color: "var(--primary)", marginBottom: "4px" }}>Add New Driver</div>
+            <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "20px" }}>This creates a driver account they can log in with</div>
+
+            {error && (
+              <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "8px", padding: "10px 14px", color: "#dc2626", fontSize: "13px", marginBottom: "14px" }}>
+                {error}
+              </div>
+            )}
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               <div>
-                <label style={{ fontSize: "11px", fontWeight: "600", color: "#6b7280", display: "block", marginBottom: "5px", textTransform: "uppercase" as const, letterSpacing: "0.5px" }}>Full Name</label>
-                <input style={inputStyle} placeholder="Driver full name" value={form.fullName} onChange={e => setForm(p => ({ ...p, fullName: e.target.value }))} />
+                <label style={lbl}>Full Name *</label>
+                <input style={inp} placeholder="e.g. Abdi Warsame" value={form.fullName}
+                  onChange={e => setForm(p => ({ ...p, fullName: e.target.value }))} />
               </div>
               <div>
-                <label style={{ fontSize: "11px", fontWeight: "600", color: "#6b7280", display: "block", marginBottom: "5px", textTransform: "uppercase" as const, letterSpacing: "0.5px" }}>Phone Number</label>
-                <input style={inputStyle} placeholder="+251900000000" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} />
+                <label style={lbl}>Phone Number *</label>
+                <input style={inp} placeholder="+251900000000" value={form.phone}
+                  onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} />
               </div>
               <div>
-                <label style={{ fontSize: "11px", fontWeight: "600", color: "#6b7280", display: "block", marginBottom: "5px", textTransform: "uppercase" as const, letterSpacing: "0.5px" }}>City</label>
-                <input style={inputStyle} placeholder="Driver city" value={form.city} onChange={e => setForm(p => ({ ...p, city: e.target.value }))} />
+                <label style={lbl}>License Number</label>
+                <input style={inp} placeholder="e.g. ETH-DL-123456" value={form.licenseNumber}
+                  onChange={e => setForm(p => ({ ...p, licenseNumber: e.target.value }))} />
               </div>
               <div>
-                <label style={{ fontSize: "11px", fontWeight: "600", color: "#6b7280", display: "block", marginBottom: "5px", textTransform: "uppercase" as const, letterSpacing: "0.5px" }}>Password</label>
-                <input style={inputStyle} type="password" placeholder="Set a password for the driver" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} />
+                <label style={lbl}>City</label>
+                <input style={inp} placeholder="Driver's city" value={form.city}
+                  onChange={e => setForm(p => ({ ...p, city: e.target.value }))} />
+              </div>
+              <div>
+                <label style={lbl}>Password *</label>
+                <input style={inp} type="password" placeholder="They'll use this to log in" value={form.password}
+                  onChange={e => setForm(p => ({ ...p, password: e.target.value }))} />
               </div>
             </div>
+
             <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
-              <button onClick={() => { setShowAdd(false); setError(""); }} style={{ flex: 1, padding: "11px", borderRadius: "9px", border: "1px solid #ede9e0", background: "#fff", color: "#6b7280", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
-              <button onClick={handleAdd} disabled={saving} style={{ flex: 2, padding: "11px", borderRadius: "9px", border: "none", background: "#1a2744", color: "#f0ebe0", fontSize: "13px", fontWeight: "700", cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.7 : 1 }}>
+              <button onClick={() => { setShowAdd(false); setError(""); setForm({ fullName: "", phone: "", licenseNumber: "", password: "", country: "ETHIOPIA", city: "" }); }}
+                style={{ flex: 1, padding: "11px", borderRadius: "9px", border: "1px solid var(--border)", background: "var(--surface)", color: "#6b7280", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>
+                Cancel
+              </button>
+              <button onClick={handleAdd} disabled={saving}
+                style={{ flex: 2, padding: "11px", borderRadius: "9px", border: "none", background: "var(--primary)", color: "#FAFAF8", fontSize: "13px", fontWeight: "700", cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.7 : 1 }}>
                 {saving ? "Adding..." : "Add Driver"}
               </button>
             </div>

@@ -1,21 +1,17 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
-import "leaflet/dist/leaflet.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-});
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
   icons: {
-    icon: "/loadlink.png",
-    apple: "/loadlink.png",
+    icon: "/sahidfreight-icon.png",
+    apple: "/sahidfreight-icon.png",
   },
   title: "Sahid Freight — Move Cargo. Connect East Africa.",
   description: "The fastest way to connect cargo senders with trusted truck owners across Ethiopia, Somalia, and Djibouti.",
@@ -33,8 +29,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.variable} antialiased`} style={{ fontFamily: "var(--font-inter), Inter, system-ui, sans-serif" }}>
+        <script dangerouslySetInnerHTML={{ __html: `(function(){var t=localStorage.getItem('theme')||'light';var l=localStorage.getItem('language')||'en';document.documentElement.setAttribute('data-theme',t);document.documentElement.setAttribute('lang',l);})();` }} />
         {children}
       </body>
     </html>

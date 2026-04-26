@@ -1,133 +1,142 @@
 "use client";
-import { Truck, Package, Bell, Shield, DollarSign, Globe, Clock, MapPin, CheckCircle, AlertCircle, Inbox, BellOff, Fuel, Box, Minimize2, Container } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+
+const P = "var(--primary)";   // primary forest green
+const A = "var(--accent)";   // accent amber
+const BG = "var(--bg)";  // off-white background
+const SRF = "var(--surface)"; // surface white
 
 export default function LandingPage() {
   const router = useRouter();
+  const [stats, setStats] = useState({ loads: "...", trucks: "...", countries: "3" });
+
   useEffect(() => {
     const user = localStorage.getItem("user");
     const token = localStorage.getItem("accessToken");
     if (user && token) router.push("/dashboard");
+
+    // Fetch live stats
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://sahid-freight-production.up.railway.app"}/stats/public`)
+      .then(r => r.json())
+      .then(d => setStats({ loads: d.totalLoads ?? "...", trucks: d.totalTrucks ?? "...", countries: "3" }))
+      .catch(() => setStats({ loads: "500+", trucks: "200+", countries: "3" }));
   }, []);
-  
-  
-
-
 
   return (
-<div style={{ fontFamily: "'Helvetica Neue', Arial, sans-serif", background: "#fff", color: "#1a2744" }}>
+    <div style={{ fontFamily: "var(--font-inter, Inter, system-ui, sans-serif)", background: BG, color: "var(--text)", overflowX: "hidden", width: "100%" }}>
 
-      {/* NAVBAR */}
-      <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000, background: "rgba(26,39,68,0.97)", backdropFilter: "blur(10px)", padding: "0 20px", height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between", transition: "all 0.3s" }}>
+      {/* ── NAVBAR ──────────────────────────────────── */}
+      <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000, background: "rgba(27,58,45,0.97)", backdropFilter: "blur(12px)", padding: "0 24px", height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between", boxSizing: "border-box" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <img src="/loadlink.png" alt="Sahid Freight" style={{ height: "38px", width: "38px", objectFit: "contain", borderRadius: "8px" }} />
-          <span style={{ fontSize: "20px", fontWeight: "800", color: "#f0ebe0", letterSpacing: "-0.5px" }}>Sahid Freight</span>
+          <img src="/logo.svg" alt="Sahid Freight" style={{ height: "38px", width: "38px", objectFit: "contain", borderRadius: "8px" }} />
+          <span style={{ fontSize: "20px", fontWeight: "800", color: "#fff", letterSpacing: "-0.5px" }}>Sahid Freight</span>
         </div>
         <div className="nav-ctas" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <button onClick={() => router.push("/auth/login")} style={{ background: "transparent", border: "1px solid rgba(240,235,224,0.4)", borderRadius: "8px", padding: "8px 20px", color: "#f0ebe0", fontSize: "14px", fontWeight: "600", cursor: "pointer" }}>Login</button>
-          <button onClick={() => router.push("/auth/register")} style={{ background: "#c8901e", border: "none", borderRadius: "8px", padding: "8px 20px", color: "#fff", fontSize: "14px", fontWeight: "700", cursor: "pointer" }}>Get Started →</button>
+          <button onClick={() => router.push("/auth/login")} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.35)", borderRadius: "10px", padding: "9px 22px", color: "#fff", fontSize: "14px", fontWeight: "600", cursor: "pointer" }}>Login</button>
+          <button onClick={() => router.push("/auth/register")} style={{ background: A, border: "none", borderRadius: "10px", padding: "9px 22px", color: "#fff", fontSize: "14px", fontWeight: "700", cursor: "pointer" }}>Get Started →</button>
         </div>
       </nav>
 
-      {/* HERO */}
-      <section style={{ minHeight: "100vh", background: "linear-gradient(135deg, #1a2744 0%, #0f1a35 50%, #1a2744 100%)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden", padding: "120px 24px 60px" }}>
-        {/* Background pattern */}
-        <div style={{ position: "absolute", inset: 0, opacity: 0.04, backgroundImage: "radial-gradient(circle, #c8901e 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
-        <div style={{ position: "absolute", top: "20%", right: "10%", width: "400px", height: "400px", background: "radial-gradient(circle, rgba(200,144,30,0.15) 0%, transparent 70%)", borderRadius: "50%" }} />
-        <div style={{ position: "absolute", bottom: "10%", left: "5%", width: "300px", height: "300px", background: "radial-gradient(circle, rgba(200,144,30,0.08) 0%, transparent 70%)", borderRadius: "50%" }} />
+      {/* ── HERO ─────────────────────────────────────── */}
+      <section style={{ minHeight: "100vh", background: `linear-gradient(150deg, ${P} 0%, #0E2419 55%, #162E20 100%)`, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden", padding: "130px 24px 80px", boxSizing: "border-box" }}>
+        {/* Dot grid */}
+        <div style={{ position: "absolute", inset: 0, opacity: 0.06, backgroundImage: `radial-gradient(circle, ${A} 1px, transparent 1px)`, backgroundSize: "36px 36px" }} />
+        {/* Glow blobs */}
+        <div style={{ position: "absolute", top: "15%", right: "8%", width: "480px", height: "480px", background: `radial-gradient(circle, rgba(232,160,32,0.18) 0%, transparent 70%)`, borderRadius: "50%", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", bottom: "8%", left: "3%", width: "320px", height: "320px", background: `radial-gradient(circle, rgba(232,160,32,0.09) 0%, transparent 70%)`, borderRadius: "50%", pointerEvents: "none" }} />
 
-        <div style={{ maxWidth: "900px", textAlign: "center", position: "relative", zIndex: 1 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(200,144,30,0.15)", border: "1px solid rgba(200,144,30,0.3)", borderRadius: "99px", padding: "6px 16px", marginBottom: "32px" }}>
-            <span style={{ width: "8px", height: "8px", background: "#c8901e", borderRadius: "50%", display: "inline-block" }} />
-            <span style={{ color: "#c8901e", fontSize: "13px", fontWeight: "600" }}>Now live in Ethiopia, Somalia & Djibouti</span>
+        <div style={{ maxWidth: "860px", textAlign: "center", position: "relative", zIndex: 1 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(232,160,32,0.15)", border: "1px solid rgba(232,160,32,0.35)", borderRadius: "99px", padding: "6px 18px", marginBottom: "36px" }}>
+            <span style={{ width: "7px", height: "7px", background: "#4ade80", borderRadius: "50%", boxShadow: "0 0 6px #4ade80", display: "inline-block" }} />
+            <span style={{ color: A, fontSize: "13px", fontWeight: "600" }}>Now live in Ethiopia, Somalia & Djibouti</span>
           </div>
 
-          <h1 className="hero-h1" style={{ margin: "0 0 24px", fontSize: "clamp(38px, 7vw, 80px)", fontWeight: "900", color: "#f0ebe0", lineHeight: 1.05, letterSpacing: "-2px" }}>
+          <h1 className="hero-h1" style={{ margin: "0 0 24px", fontSize: "clamp(40px, 7vw, 82px)", fontWeight: "800", color: "#fff", lineHeight: 1.05, letterSpacing: "-2.5px" }}>
             Move Cargo.<br />
-            <span style={{ color: "#c8901e" }}>Connect East Africa.</span>
+            <span style={{ color: A }}>Connect East Africa.</span>
           </h1>
 
-          <p style={{ margin: "0 0 48px", fontSize: "clamp(16px, 2.5vw, 22px)", color: "rgba(240,235,224,0.7)", lineHeight: 1.6, maxWidth: "600px", marginLeft: "auto", marginRight: "auto" }}>
+          <p style={{ margin: "0 0 52px", fontSize: "clamp(16px, 2.3vw, 20px)", color: "rgba(255,255,255,0.65)", lineHeight: 1.7, maxWidth: "580px", marginLeft: "auto", marginRight: "auto" }}>
             The fastest way to connect cargo senders with trusted truck owners across Ethiopia, Somalia, and Djibouti.
           </p>
 
-          <div className="hero-btns" style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap", marginBottom: "64px" }}>
-            <button onClick={() => router.push("/auth/register")} style={{ background: "#c8901e", border: "none", borderRadius: "12px", padding: "16px 36px", color: "#fff", fontSize: "16px", fontWeight: "700", cursor: "pointer", boxShadow: "0 8px 32px rgba(200,144,30,0.4)", transition: "transform 0.2s" }}
+          <div className="hero-btns" style={{ display: "flex", gap: "14px", justifyContent: "center", flexWrap: "wrap", marginBottom: "72px" }}>
+            <button onClick={() => router.push("/auth/register")} style={{ background: A, border: "none", borderRadius: "12px", padding: "16px 40px", color: "#fff", fontSize: "16px", fontWeight: "700", cursor: "pointer", boxShadow: `0 8px 32px rgba(232,160,32,0.45)` }}
               onMouseOver={e => (e.currentTarget.style.transform = "translateY(-2px)")}
               onMouseOut={e => (e.currentTarget.style.transform = "translateY(0)")}>
               Start Shipping →
             </button>
-            <button onClick={() => router.push("/auth/register")} style={{ background: "rgba(240,235,224,0.1)", border: "1px solid rgba(240,235,224,0.2)", borderRadius: "12px", padding: "16px 36px", color: "#f0ebe0", fontSize: "16px", fontWeight: "600", cursor: "pointer", transition: "transform 0.2s" }}
+            <button onClick={() => router.push("/auth/register")} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.2)", borderRadius: "12px", padding: "16px 40px", color: "#fff", fontSize: "16px", fontWeight: "600", cursor: "pointer" }}
               onMouseOver={e => (e.currentTarget.style.transform = "translateY(-2px)")}
               onMouseOut={e => (e.currentTarget.style.transform = "translateY(0)")}>
               Register Your Truck
             </button>
           </div>
 
-          {/* Stats */}
-          <div className="hero-stats" style={{ display: "flex", gap: "48px", justifyContent: "center", flexWrap: "wrap" }}>
+          <div className="hero-stats" style={{ display: "flex", gap: "56px", justifyContent: "center", flexWrap: "wrap" }}>
             {[
-              { value: "3", label: "Countries" },
-              { value: "6+", label: "Truck Types" },
+              { value: stats.loads, label: "Loads Posted" },
+              { value: stats.trucks, label: "Trucks Registered" },
+              { value: stats.countries, label: "Countries" },
               { value: "24h", label: "Verification" },
-              { value: "100%", label: "Verified Users" },
             ].map((s, i) => (
               <div key={i} style={{ textAlign: "center" }}>
-                <div style={{ fontSize: "36px", fontWeight: "900", color: "#c8901e", letterSpacing: "-1px" }}>{s.value}</div>
-                <div style={{ fontSize: "13px", color: "rgba(240,235,224,0.5)", fontWeight: "500", marginTop: "4px" }}>{s.label}</div>
+                <div style={{ fontSize: "34px", fontWeight: "800", color: A, letterSpacing: "-1px" }}>{s.value}</div>
+                <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.45)", fontWeight: "500", marginTop: "4px", textTransform: "uppercase", letterSpacing: "0.8px" }}>{s.label}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
-      <section style={{ padding: "100px 24px", background: "#f0ebe0" }}>
+      {/* ── HOW IT WORKS ────────────────────────────── */}
+      <section style={{ padding: "100px 24px", background: BG }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: "64px" }}>
-            <h2 style={{ margin: "0 0 16px", fontSize: "clamp(28px, 4vw, 48px)", fontWeight: "900", color: "#1a2744", letterSpacing: "-1px" }}>How It Works</h2>
-            <p style={{ margin: 0, fontSize: "18px", color: "#6b7280", maxWidth: "500px", marginLeft: "auto", marginRight: "auto" }}>Simple, fast, and reliable logistics for East Africa</p>
+            <div style={{ display: "inline-block", background: `rgba(27,58,45,0.07)`, borderRadius: "99px", padding: "5px 16px", fontSize: "12px", fontWeight: "700", color: P, letterSpacing: "1px", textTransform: "uppercase", marginBottom: "16px" }}>How It Works</div>
+            <h2 style={{ margin: "0 0 12px", fontSize: "clamp(28px, 4vw, 48px)", fontWeight: "800", color: P, letterSpacing: "-1px" }}>Simple, Fast, Reliable</h2>
+            <p style={{ margin: 0, fontSize: "17px", color: "var(--text-secondary)", maxWidth: "460px", marginLeft: "auto", marginRight: "auto" }}>Logistics built for East Africa, from signup to delivery</p>
           </div>
 
-          <div className="how-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "48px" }}>
+          <div className="how-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px" }}>
             {/* Cargo Senders */}
-            <div style={{ background: "#fff", borderRadius: "24px", padding: "40px", boxShadow: "0 4px 24px rgba(0,0,0,0.06)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "32px" }}>
-                <span style={{ fontSize: "13px", fontWeight: "800", color: "#f0ebe0", background: "#c8901e", borderRadius: "6px", padding: "4px 8px" }}>SENDER</span>
-                <h3 style={{ margin: 0, fontSize: "22px", fontWeight: "800", color: "#1a2744" }}>For Cargo Senders</h3>
+            <div style={{ background: SRF, borderRadius: "20px", padding: "40px", border: "1px solid var(--border)", boxShadow: "0 2px 20px rgba(0,0,0,0.04)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "36px" }}>
+                <span style={{ fontSize: "11px", fontWeight: "800", color: "#fff", background: A, borderRadius: "6px", padding: "4px 10px", letterSpacing: "0.5px" }}>SENDER</span>
+                <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: P }}>For Cargo Senders</h3>
               </div>
               {[
-                { step: "1", title: "Post Your Load", desc: "Describe your cargo, pickup and delivery locations, and your budget." },
-                { step: "2", title: "Receive Applications", desc: "Verified truck owners apply with their price and truck details." },
-                { step: "3", title: "Track & Deliver", desc: "Accept the best offer and track your cargo live until delivery." },
+                { step: "1", title: "Post Your Load", desc: "Describe your cargo, pickup & delivery, and set your budget." },
+                { step: "2", title: "Receive Bids", desc: "Verified truck owners bid with their price and truck details." },
+                { step: "3", title: "Track & Deliver", desc: "Accept the best bid and track your cargo live to delivery." },
               ].map((s, i) => (
-                <div key={i} style={{ display: "flex", gap: "16px", marginBottom: i < 2 ? "24px" : "0" }}>
-                  <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "#1a2744", color: "#f0ebe0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: "800", flexShrink: 0 }}>{s.step}</div>
+                <div key={i} style={{ display: "flex", gap: "16px", marginBottom: i < 2 ? "28px" : "0" }}>
+                  <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: P, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: "800", flexShrink: 0 }}>{s.step}</div>
                   <div>
-                    <div style={{ fontWeight: "700", fontSize: "15px", color: "#1a2744", marginBottom: "4px" }}>{s.title}</div>
-                    <div style={{ fontSize: "14px", color: "#6b7280", lineHeight: "1.5" }}>{s.desc}</div>
+                    <div style={{ fontWeight: "700", fontSize: "15px", color: P, marginBottom: "5px" }}>{s.title}</div>
+                    <div style={{ fontSize: "14px", color: "var(--text-secondary)", lineHeight: "1.6" }}>{s.desc}</div>
                   </div>
                 </div>
               ))}
             </div>
 
             {/* Truck Owners */}
-            <div style={{ background: "#1a2744", borderRadius: "24px", padding: "40px", boxShadow: "0 4px 24px rgba(0,0,0,0.15)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "32px" }}>
-                <span style={{ fontSize: "13px", fontWeight: "800", color: "#1a2744", background: "#f0ebe0", borderRadius: "6px", padding: "4px 8px" }}>DRIVER</span>
-                <h3 style={{ margin: 0, fontSize: "22px", fontWeight: "800", color: "#f0ebe0" }}>For Truck Owners</h3>
+            <div style={{ background: P, borderRadius: "20px", padding: "40px", boxShadow: "0 8px 40px rgba(27,58,45,0.25)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "36px" }}>
+                <span style={{ fontSize: "11px", fontWeight: "800", color: P, background: "rgba(255,255,255,0.9)", borderRadius: "6px", padding: "4px 10px", letterSpacing: "0.5px" }}>DRIVER</span>
+                <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: "#fff" }}>For Truck Owners</h3>
               </div>
               {[
-                { step: "1", title: "Register Your Truck", desc: "List your truck with type, capacity, and availability." },
-                { step: "2", title: "Browse Available Loads", desc: "Find loads matching your route and apply with your best price." },
-                { step: "3", title: "Get Paid", desc: "Complete the delivery and receive payment securely." },
+                { step: "1", title: "Register Your Truck", desc: "List your truck type, capacity, and availability." },
+                { step: "2", title: "Bid on Loads", desc: "Find loads matching your route and submit your best bid." },
+                { step: "3", title: "Deliver & Earn", desc: "Win the bid, deliver the cargo, and get paid." },
               ].map((s, i) => (
-                <div key={i} style={{ display: "flex", gap: "16px", marginBottom: i < 2 ? "24px" : "0" }}>
-                  <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "#c8901e", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: "800", flexShrink: 0 }}>{s.step}</div>
+                <div key={i} style={{ display: "flex", gap: "16px", marginBottom: i < 2 ? "28px" : "0" }}>
+                  <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: A, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: "800", flexShrink: 0 }}>{s.step}</div>
                   <div>
-                    <div style={{ fontWeight: "700", fontSize: "15px", color: "#f0ebe0", marginBottom: "4px" }}>{s.title}</div>
-                    <div style={{ fontSize: "14px", color: "rgba(240,235,224,0.6)", lineHeight: "1.5" }}>{s.desc}</div>
+                    <div style={{ fontWeight: "700", fontSize: "15px", color: "#fff", marginBottom: "5px" }}>{s.title}</div>
+                    <div style={{ fontSize: "14px", color: "rgba(255,255,255,0.6)", lineHeight: "1.6" }}>{s.desc}</div>
                   </div>
                 </div>
               ))}
@@ -136,81 +145,86 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* FEATURES */}
-      <section style={{ padding: "100px 24px", background: "#fff" }}>
+      {/* ── FEATURES ─────────────────────────────────── */}
+      <section style={{ padding: "100px 24px", background: SRF }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: "64px" }}>
-            <h2 style={{ margin: "0 0 16px", fontSize: "clamp(28px, 4vw, 48px)", fontWeight: "900", color: "#1a2744", letterSpacing: "-1px" }}>Everything You Need</h2>
-            <p style={{ margin: 0, fontSize: "18px", color: "#6b7280" }}>Built specifically for East African logistics</p>
+            <div style={{ display: "inline-block", background: `rgba(27,58,45,0.07)`, borderRadius: "99px", padding: "5px 16px", fontSize: "12px", fontWeight: "700", color: P, letterSpacing: "1px", textTransform: "uppercase", marginBottom: "16px" }}>Features</div>
+            <h2 style={{ margin: "0 0 12px", fontSize: "clamp(28px, 4vw, 48px)", fontWeight: "800", color: P, letterSpacing: "-1px" }}>Everything You Need</h2>
+            <p style={{ margin: 0, fontSize: "17px", color: "var(--text-secondary)" }}>Built specifically for East African logistics</p>
           </div>
-          <div className="features-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "24px" }}>
+          <div className="features-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px" }}>
             {[
               { icon: "📍", title: "Live GPS Tracking", desc: "Track your cargo in real-time from pickup to delivery on an interactive map." },
-              { icon: "check", title: "Verified Users Only", desc: "Every truck owner and cargo sender is verified by our admin team before using the platform." },
-              { icon: "PRC", title: "Best Price Guarantee", desc: "Competitive bidding ensures you always get the best price for your shipment." },
-              { icon: "NTF", title: "Instant Notifications", desc: "Get notified immediately when your booking is accepted, rejected, or your cargo moves." },
-              { icon: "GBL", title: "3 Countries Covered", desc: "Seamlessly ship across Ethiopia, Somalia, and Djibouti with one platform." },
-              { icon: "shield", title: "Secure & Reliable", desc: "All transactions and documents are secured and stored safely in our system." },
+              { icon: "✅", title: "Verified Users Only", desc: "Every truck owner and cargo sender is verified by our admin team." },
+              { icon: "🏷️", title: "Competitive Bidding", desc: "Truck owners bid on your load — you always get the best market price." },
+              { icon: "🔔", title: "Instant Notifications", desc: "Get notified when a bid arrives, booking accepted, or cargo moves." },
+              { icon: "🌍", title: "3 Countries Covered", desc: "Ship seamlessly across Ethiopia, Somalia, and Djibouti." },
+              { icon: "🔒", title: "Secure & Reliable", desc: "All documents and data are secured and stored safely in our system." },
             ].map((f, i) => (
-              <div key={i} style={{ padding: "32px", borderRadius: "20px", border: "1px solid #f0ebe0", background: "#faf8f4", transition: "transform 0.2s, box-shadow 0.2s" }}
+              <div key={i} style={{ padding: "32px", borderRadius: "16px", border: "1px solid var(--border)", background: BG, transition: "transform 0.2s, box-shadow 0.2s" }}
                 onMouseOver={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 12px 40px rgba(0,0,0,0.08)"; }}
                 onMouseOut={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
-                <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "rgba(26,39,68,0.06)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "16px", color: "#1a2744" }}>
-                {f.icon === "package" ? <Package size={24} /> : f.icon === "truck" ? <Truck size={24} /> : f.icon === "dollar" ? <DollarSign size={24} /> : f.icon === "bell" ? <Bell size={24} /> : f.icon === "globe" ? <Globe size={24} /> : f.icon === "check" ? <CheckCircle size={24} /> : <Shield size={24} />}
-              </div>
-                <h3 style={{ margin: "0 0 8px", fontSize: "17px", fontWeight: "700", color: "#1a2744" }}>{f.title}</h3>
-                <p style={{ margin: 0, fontSize: "14px", color: "#6b7280", lineHeight: "1.6" }}>{f.desc}</p>
+                <div style={{ fontSize: "28px", marginBottom: "18px" }}>{f.icon}</div>
+                <h3 style={{ margin: "0 0 10px", fontSize: "16px", fontWeight: "700", color: P }}>{f.title}</h3>
+                <p style={{ margin: 0, fontSize: "14px", color: "var(--text-secondary)", lineHeight: "1.6" }}>{f.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* COUNTRIES */}
-      <section style={{ padding: "100px 24px", background: "#1a2744" }}>
-        <div style={{ maxWidth: "1100px", margin: "0 auto", textAlign: "center" }}>
-          <h2 style={{ margin: "0 0 16px", fontSize: "clamp(28px, 4vw, 48px)", fontWeight: "900", color: "#f0ebe0", letterSpacing: "-1px" }}>Covering the Horn of Africa</h2>
-          <p style={{ margin: "0 0 64px", fontSize: "18px", color: "rgba(240,235,224,0.6)" }}>One platform for cross-border freight across East Africa</p>
-          <div className="countries-flex" style={{ display: "flex", gap: "24px", justifyContent: "center", flexWrap: "wrap" }}>
+      {/* ── COUNTRIES ─────────────────────────────────── */}
+      <section style={{ padding: "100px 24px", background: "#0E2419", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "radial-gradient(ellipse at 50% 0%, rgba(232,160,32,0.1) 0%, transparent 70%)" }} />
+        <div style={{ maxWidth: "1100px", margin: "0 auto", textAlign: "center", position: "relative", zIndex: 1 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(232,160,32,0.1)", border: "1px solid rgba(232,160,32,0.2)", borderRadius: "20px", padding: "6px 18px", marginBottom: "24px" }}>
+            <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px #4ade80" }} />
+            <span style={{ fontSize: "12px", color: A, letterSpacing: "1px", fontWeight: "600" }}>LIVE IN 3 COUNTRIES</span>
+          </div>
+          <h2 style={{ margin: "0 0 12px", fontSize: "clamp(28px, 4vw, 48px)", fontWeight: "800", color: "#fff", letterSpacing: "-1px" }}>Covering the Horn of Africa</h2>
+          <p style={{ margin: "0 0 64px", fontSize: "17px", color: "rgba(255,255,255,0.45)" }}>One platform for cross-border freight across East Africa</p>
+          <div className="countries-flex" style={{ display: "flex", gap: "20px", justifyContent: "center", flexWrap: "wrap" }}>
             {[
-              { flag: "🇪��", country: "Ethiopia", city: "Addis Ababa", desc: "Largest economy in East Africa" },
-              { flag: "SO", country: "Somalia", city: "Mogadishu", desc: "Strategic Horn of Africa location" },
-              { flag: "DJ", country: "Djibouti", city: "Djibouti City", desc: "Gateway port to the region" },
+              { flag: "🇪🇹", country: "Ethiopia", city: "Addis Ababa", desc: "Largest economy in East Africa", accent: "#078930", routes: "120+ routes" },
+              { flag: "🇸🇴", country: "Somalia", city: "Mogadishu", desc: "Strategic Horn of Africa location", accent: "#4189dd", routes: "80+ routes" },
+              { flag: "🇩🇯", country: "Djibouti", city: "Djibouti City", desc: "Gateway port to the region", accent: "#6AB2E7", routes: "40+ routes" },
             ].map((c, i) => (
-              <div key={i} style={{ background: "rgba(240,235,224,0.06)", border: "1px solid rgba(240,235,224,0.1)", borderRadius: "24px", padding: "40px 48px", minWidth: "260px", flex: 1, maxWidth: "320px" }}>
-                <div style={{ fontSize: "22px", fontWeight: "900", color: "#c8901e", marginBottom: "12px", background: "rgba(200,144,30,0.15)", borderRadius: "8px", padding: "8px 16px", display: "inline-block" }}>{c.flag}</div>
-                <div style={{ fontSize: "22px", fontWeight: "800", color: "#f0ebe0", marginBottom: "4px" }}>{c.country}</div>
-                <div style={{ fontSize: "14px", color: "#c8901e", fontWeight: "600", marginBottom: "8px" }}>{c.city}</div>
-                <div style={{ fontSize: "13px", color: "rgba(240,235,224,0.5)" }}>{c.desc}</div>
+              <div key={i} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "20px", padding: "40px 32px", minWidth: "250px", flex: 1, maxWidth: "320px" }}>
+                <div style={{ fontSize: "60px", marginBottom: "20px", lineHeight: 1 }}>{c.flag}</div>
+                <div style={{ fontSize: "22px", fontWeight: "800", color: "#fff", marginBottom: "4px" }}>{c.country}</div>
+                <div style={{ fontSize: "13px", color: A, fontWeight: "600", marginBottom: "14px" }}>{c.city}</div>
+                <div style={{ width: "36px", height: "2px", background: c.accent, borderRadius: "2px", margin: "0 auto 16px" }} />
+                <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)", lineHeight: 1.6, marginBottom: "18px" }}>{c.desc}</div>
+                <div style={{ display: "inline-block", background: "rgba(232,160,32,0.1)", border: "1px solid rgba(232,160,32,0.2)", borderRadius: "20px", padding: "4px 14px", fontSize: "12px", color: A, fontWeight: "600" }}>{c.routes}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* TRUCK TYPES */}
-      <section style={{ padding: "100px 24px", background: "#f0ebe0" }}>
+      {/* ── TRUCK TYPES ──────────────────────────────── */}
+      <section style={{ padding: "100px 24px", background: BG }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: "64px" }}>
-            <h2 style={{ margin: "0 0 16px", fontSize: "clamp(28px, 4vw, 48px)", fontWeight: "900", color: "#1a2744", letterSpacing: "-1px" }}>All Truck Types</h2>
-            <p style={{ margin: 0, fontSize: "18px", color: "#6b7280" }}>Whatever your cargo needs, we have the right truck</p>
+            <div style={{ display: "inline-block", background: `rgba(27,58,45,0.07)`, borderRadius: "99px", padding: "5px 16px", fontSize: "12px", fontWeight: "700", color: P, letterSpacing: "1px", textTransform: "uppercase", marginBottom: "16px" }}>Fleet</div>
+            <h2 style={{ margin: "0 0 12px", fontSize: "clamp(28px, 4vw, 48px)", fontWeight: "800", color: P, letterSpacing: "-1px" }}>All Truck Types</h2>
+            <p style={{ margin: 0, fontSize: "17px", color: "var(--text-secondary)" }}>Whatever your cargo needs, we have the right truck</p>
           </div>
-          <div className="trucks-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+          <div className="trucks-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "14px" }}>
             {[
-              { icon: "truck", name: "Flatbed", desc: "Open cargo, construction materials" },
-              { icon: "RF", name: "Refrigerated", desc: "Perishables, food, medicine" },
-              { icon: "TK", name: "Tanker", desc: "Liquids, fuel, chemicals" },
-              { icon: "PKG", name: "Container", desc: "Sealed goods, imports/exports" },
-              { icon: "OB", name: "Open Body", desc: "Bulk goods, agriculture" },
-              { icon: "MT", name: "Mini Truck", desc: "Small loads, city deliveries" },
+              { emoji: "🚛", name: "Flatbed", desc: "Open cargo, construction materials" },
+              { emoji: "❄️", name: "Refrigerated", desc: "Perishables, food, medicine" },
+              { emoji: "⛽", name: "Tanker", desc: "Liquids, fuel, chemicals" },
+              { emoji: "📦", name: "Container", desc: "Sealed goods, imports/exports" },
+              { emoji: "🚚", name: "Open Body", desc: "Bulk goods, agriculture" },
+              { emoji: "🛻", name: "Mini Truck", desc: "Small loads, city deliveries" },
             ].map((t, i) => (
-              <div key={i} style={{ background: "#fff", borderRadius: "16px", padding: "24px", display: "flex", alignItems: "center", gap: "16px", border: "1px solid #e8e3d8" }}>
-                <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "#f0ebe0", display: "flex", alignItems: "center", justifyContent: "center", color: "#1a2744", flexShrink: 0 }}>
-                {t.icon === "flatbed" ? <Truck size={18} /> : t.icon === "refrigerated" ? <Box size={18} /> : t.icon === "tanker" ? <Fuel size={18} /> : t.icon === "container" ? <Container size={18} /> : t.icon === "openBody" ? <Box size={18} /> : <Minimize2 size={18} />}
-              </div>
+              <div key={i} style={{ background: SRF, borderRadius: "14px", padding: "22px", display: "flex", alignItems: "center", gap: "16px", border: "1px solid var(--border)" }}>
+                <div style={{ width: "44px", height: "44px", borderRadius: "10px", background: `rgba(27,58,45,0.07)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", flexShrink: 0 }}>{t.emoji}</div>
                 <div>
-                  <div style={{ fontWeight: "700", fontSize: "15px", color: "#1a2744" }}>{t.name}</div>
-                  <div style={{ fontSize: "13px", color: "#9e9890", marginTop: "2px" }}>{t.desc}</div>
+                  <div style={{ fontWeight: "700", fontSize: "15px", color: P }}>{t.name}</div>
+                  <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginTop: "2px" }}>{t.desc}</div>
                 </div>
               </div>
             ))}
@@ -218,63 +232,126 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section style={{ padding: "100px 24px", background: "linear-gradient(135deg, #c8901e 0%, #a06e10 100%)", textAlign: "center" }}>
-        <div style={{ maxWidth: "700px", margin: "0 auto" }}>
-          <h2 style={{ margin: "0 0 16px", fontSize: "clamp(28px, 4vw, 52px)", fontWeight: "900", color: "#fff", letterSpacing: "-1px" }}>Ready to Get Started?</h2>
-          <p style={{ margin: "0 0 48px", fontSize: "18px", color: "rgba(255,255,255,0.8)", lineHeight: 1.6 }}>Join thousands of cargo senders and truck owners across East Africa. Free to sign up, verified in 24 hours.</p>
-          <div className="cta-btns" style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap" }}>
-            <button onClick={() => router.push("/auth/register")} style={{ background: "#fff", border: "none", borderRadius: "12px", padding: "16px 40px", color: "#c8901e", fontSize: "16px", fontWeight: "800", cursor: "pointer", boxShadow: "0 8px 32px rgba(0,0,0,0.15)" }}>
+      {/* ── POPULAR ROUTES ──────────────────────────── */}
+      <section style={{ padding: "100px 24px", background: SRF }}>
+        <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: "64px" }}>
+            <div style={{ display: "inline-block", background: `rgba(27,58,45,0.07)`, borderRadius: "99px", padding: "5px 16px", fontSize: "12px", fontWeight: "700", color: P, letterSpacing: "1px", textTransform: "uppercase", marginBottom: "16px" }}>Routes</div>
+            <h2 style={{ margin: "0 0 12px", fontSize: "clamp(28px, 4vw, 48px)", fontWeight: "800", color: P, letterSpacing: "-1px" }}>Popular Trade Routes</h2>
+            <p style={{ margin: 0, fontSize: "17px", color: "var(--text-secondary)" }}>High-demand corridors across East Africa</p>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
+            {[
+              { from: "Addis Ababa", to: "Djibouti City", distance: "780 km", flag: "🇪🇹→🇩🇯", desc: "Primary import/export corridor", volume: "High" },
+              { from: "Jigjiga", to: "Mogadishu", distance: "920 km", flag: "🇪🇹→🇸🇴", desc: "Cross-border trade route", volume: "Medium" },
+              { from: "Dire Dawa", to: "Hargeisa", distance: "530 km", flag: "🇪🇹→🇸🇴", desc: "Regional distribution hub", volume: "High" },
+            ].map((route, i) => (
+              <div key={i} style={{ background: BG, borderRadius: "16px", padding: "24px", border: "1px solid var(--border)", position: "relative", overflow: "hidden" }}>
+                <div style={{ position: "absolute", top: 0, left: 0, width: "4px", height: "100%", background: i === 0 ? A : i === 1 ? P : "#16a34a", borderRadius: "4px 0 0 4px" }} />
+                <div style={{ fontSize: "22px", marginBottom: "12px" }}>{route.flag}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                  <span style={{ fontSize: "15px", fontWeight: "700", color: P }}>{route.from}</span>
+                  <span style={{ color: A, fontWeight: "800", fontSize: "16px" }}>→</span>
+                  <span style={{ fontSize: "15px", fontWeight: "700", color: P }}>{route.to}</span>
+                </div>
+                <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "12px" }}>{route.desc}</div>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <span style={{ fontSize: "11px", fontWeight: "600", padding: "3px 10px", borderRadius: "99px", background: "#f0ede6", color: "var(--text-secondary)" }}>{route.distance}</span>
+                  <span style={{ fontSize: "11px", fontWeight: "700", padding: "3px 10px", borderRadius: "99px", background: route.volume === "High" ? "#f0fdf4" : "#fff7ed", color: route.volume === "High" ? "#16a34a" : "#E8A020" }}>{route.volume} Volume</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── TESTIMONIALS ─────────────────────────── */}
+      <section style={{ padding: "100px 24px", background: BG }}>
+        <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: "64px" }}>
+            <div style={{ display: "inline-block", background: `rgba(27,58,45,0.07)`, borderRadius: "99px", padding: "5px 16px", fontSize: "12px", fontWeight: "700", color: P, letterSpacing: "1px", textTransform: "uppercase", marginBottom: "16px" }}>Testimonials</div>
+            <h2 style={{ margin: "0 0 12px", fontSize: "clamp(28px, 4vw, 48px)", fontWeight: "800", color: P, letterSpacing: "-1px" }}>Trusted by Shippers & Drivers</h2>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "20px" }}>
+            {[
+              { name: "Ahmed Hassan", role: "Cargo Sender · Addis Ababa", quote: "I posted a load at 8 AM and had three bids by noon. The verification gives me confidence that the truck owners are legitimate.", stars: 5 },
+              { name: "Mustafa Ibrahim", role: "Truck Owner · Djibouti City", quote: "Before Sahid Freight I'd drive back empty half the time. Now I find return loads on the app and my income has doubled.", stars: 5 },
+              { name: "Faadumo Abdi", role: "Logistics Manager · Mogadishu", quote: "The live tracking feature is a game changer. My clients can see exactly where their goods are at any moment.", stars: 5 },
+            ].map((t, i) => (
+              <div key={i} style={{ background: SRF, borderRadius: "16px", padding: "28px", border: "1px solid var(--border)" }}>
+                <div style={{ fontSize: "18px", color: A, marginBottom: "14px", letterSpacing: "2px" }}>{"★".repeat(t.stars)}</div>
+                <p style={{ margin: "0 0 20px", fontSize: "15px", color: "var(--text)", lineHeight: 1.7, fontStyle: "italic" }}>"{t.quote}"</p>
+                <div>
+                  <div style={{ fontSize: "14px", fontWeight: "700", color: P }}>{t.name}</div>
+                  <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "2px" }}>{t.role}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA ───────────────────────────────────────── */}
+      <section style={{ padding: "100px 24px", background: `linear-gradient(135deg, ${P} 0%, #0E2419 100%)`, textAlign: "center", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", inset: 0, opacity: 0.05, backgroundImage: `radial-gradient(circle, ${A} 1px, transparent 1px)`, backgroundSize: "36px 36px" }} />
+        <div style={{ maxWidth: "640px", margin: "0 auto", position: "relative", zIndex: 1 }}>
+          <h2 style={{ margin: "0 0 16px", fontSize: "clamp(28px, 4vw, 52px)", fontWeight: "800", color: "#fff", letterSpacing: "-1.5px" }}>Ready to Get Started?</h2>
+          <p style={{ margin: "0 0 48px", fontSize: "17px", color: "rgba(255,255,255,0.65)", lineHeight: 1.7 }}>Join cargo senders and truck owners across East Africa. Free to sign up, verified in 24 hours.</p>
+          <div className="cta-btns" style={{ display: "flex", gap: "14px", justifyContent: "center", flexWrap: "wrap" }}>
+            <button onClick={() => router.push("/auth/register")} style={{ background: A, border: "none", borderRadius: "12px", padding: "16px 44px", color: "#fff", fontSize: "16px", fontWeight: "800", cursor: "pointer", boxShadow: `0 8px 32px rgba(232,160,32,0.45)` }}>
               Sign Up Free →
             </button>
-            <button onClick={() => router.push("/auth/login")} style={{ background: "transparent", border: "2px solid rgba(255,255,255,0.5)", borderRadius: "12px", padding: "16px 40px", color: "#fff", fontSize: "16px", fontWeight: "600", cursor: "pointer" }}>
+            <button onClick={() => router.push("/auth/login")} style={{ background: "transparent", border: "2px solid rgba(255,255,255,0.35)", borderRadius: "12px", padding: "16px 44px", color: "#fff", fontSize: "16px", fontWeight: "600", cursor: "pointer" }}>
               Login
             </button>
           </div>
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer style={{ background: "#0f1a35", padding: "48px 40px 32px" }}>
+      {/* ── FOOTER ───────────────────────────────────── */}
+      <footer style={{ background: "#0A1A10", padding: "56px 40px 32px" }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-          <div className="footer-inner" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "32px", marginBottom: "48px" }}>
-            <div style={{ maxWidth: "280px" }}>
+          <div className="footer-inner" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "40px", marginBottom: "48px" }}>
+            <div style={{ maxWidth: "300px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
-                <img src="/loadlink.png" alt="Sahid Freight" style={{ height: "36px", width: "36px", objectFit: "contain", borderRadius: "8px" }} />
-                <span style={{ fontSize: "20px", fontWeight: "800", color: "#f0ebe0", letterSpacing: "-0.5px" }}>Sahid Freight</span>
+                <img src="/logo.svg" alt="Sahid Freight" style={{ height: "36px", width: "36px", objectFit: "contain", borderRadius: "8px" }} />
+                <span style={{ fontSize: "19px", fontWeight: "800", color: "#fff", letterSpacing: "-0.5px" }}>Sahid Freight</span>
               </div>
-              <p style={{ margin: 0, fontSize: "14px", color: "rgba(240,235,224,0.5)", lineHeight: 1.6 }}>Move Cargo. Connect East Africa. The trusted freight marketplace for Ethiopia, Somalia, and Djibouti.</p>
+              <p style={{ margin: "0 0 20px", fontSize: "14px", color: "rgba(255,255,255,0.4)", lineHeight: 1.7 }}>Move Cargo. Connect East Africa. The trusted freight marketplace for Ethiopia, Somalia, and Djibouti.</p>
+              <div style={{ display: "flex", flexDirection: "column" as const, gap: "8px" }}>
+                <a href="mailto:info@sahidfreight.com" style={{ color: "rgba(255,255,255,0.45)", fontSize: "13px", textDecoration: "none", display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span style={{ fontSize: "14px" }}>✉</span> info@sahidfreight.com
+                </a>
+                <a href="tel:+251911000000" style={{ color: "rgba(255,255,255,0.45)", fontSize: "13px", textDecoration: "none", display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span style={{ fontSize: "14px" }}>📞</span> +251 911 000 000
+                </a>
+                <div style={{ color: "rgba(255,255,255,0.45)", fontSize: "13px", display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span style={{ fontSize: "14px" }}>📍</span> Addis Ababa, Ethiopia
+                </div>
+              </div>
             </div>
             <div className="footer-links" style={{ display: "flex", gap: "64px", flexWrap: "wrap" }}>
-              <div>
-                <h4 style={{ margin: "0 0 16px", fontSize: "13px", fontWeight: "700", color: "rgba(240,235,224,0.4)", textTransform: "uppercase", letterSpacing: "1px" }}>Platform</h4>
-                {["How It Works", "Features", "Pricing", "FAQ"].map(l => (
-                  <div key={l} style={{ marginBottom: "10px" }}>
-                    <a href="#" style={{ color: "rgba(240,235,224,0.6)", fontSize: "14px", textDecoration: "none" }}>{l}</a>
-                  </div>
-                ))}
-              </div>
-              <div>
-                <h4 style={{ margin: "0 0 16px", fontSize: "13px", fontWeight: "700", color: "rgba(240,235,224,0.4)", textTransform: "uppercase", letterSpacing: "1px" }}>Countries</h4>
-                {["Ethiopia", "Somalia", "Djibouti"].map(l => (
-                  <div key={l} style={{ marginBottom: "10px" }}>
-                    <a href="#" style={{ color: "rgba(240,235,224,0.6)", fontSize: "14px", textDecoration: "none" }}>{l}</a>
-                  </div>
-                ))}
-              </div>
-              <div>
-                <h4 style={{ margin: "0 0 16px", fontSize: "13px", fontWeight: "700", color: "rgba(240,235,224,0.4)", textTransform: "uppercase", letterSpacing: "1px" }}>Company</h4>
-                {["About Us", "Contact", "Privacy Policy", "Terms"].map(l => (
-                  <div key={l} style={{ marginBottom: "10px" }}>
-                    <a href="#" style={{ color: "rgba(240,235,224,0.6)", fontSize: "14px", textDecoration: "none" }}>{l}</a>
-                  </div>
-                ))}
-              </div>
+              {[
+                { title: "Platform", links: ["How It Works", "Features", "Post a Load", "Register Truck"] },
+                { title: "Routes", links: ["Ethiopia", "Somalia", "Djibouti", "Cross-border"] },
+                { title: "Company", links: ["About Us", "Contact", "Privacy Policy", "Terms of Service"] },
+              ].map((col, i) => (
+                <div key={i}>
+                  <h4 style={{ margin: "0 0 16px", fontSize: "11px", fontWeight: "700", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "1.5px" }}>{col.title}</h4>
+                  {col.links.map(l => (
+                    <div key={l} style={{ marginBottom: "10px" }}>
+                      <a href="#" style={{ color: "rgba(255,255,255,0.55)", fontSize: "14px", textDecoration: "none" }}>{l}</a>
+                    </div>
+                  ))}
+                </div>
+              ))}
             </div>
           </div>
-          <div style={{ borderTop: "1px solid rgba(240,235,224,0.08)", paddingTop: "24px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
-            <p style={{ margin: 0, fontSize: "13px", color: "rgba(240,235,224,0.3)" }}>© 2026 Sahid Freight. All rights reserved.</p>
-            <p style={{ margin: 0, fontSize: "13px", color: "rgba(240,235,224,0.3)" }}>Ethiopia · Somalia · Djibouti</p>
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: "24px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "16px" }}>
+            <p style={{ margin: 0, fontSize: "13px", color: "rgba(255,255,255,0.25)" }}>© 2026 Sahid Freight. All rights reserved.</p>
+            <div style={{ display: "flex", gap: "20px", alignItems: "center" }}>
+              <p style={{ margin: 0, fontSize: "13px", color: "rgba(255,255,255,0.25)" }}>🇪🇹 Ethiopia · 🇸🇴 Somalia · 🇩🇯 Djibouti</p>
+            </div>
           </div>
         </div>
       </footer>

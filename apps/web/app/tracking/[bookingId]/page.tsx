@@ -5,8 +5,8 @@ import { useAuthStore } from "@/lib/store";
 import api from "@/lib/api";
 import { io, Socket } from "socket.io-client";
 
-const GOOGLE_MAPS_KEY = "AIzaSyC5G5cQdrtKPRdMJnO1WR06WC0c_0iSJr0";
-const API_URL = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000").replace("/api", "");
+const GOOGLE_MAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || "";
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || "https://sahid-freight-production.up.railway.app").replace("/api", "");
 
 declare global {
   interface Window {
@@ -245,7 +245,8 @@ export default function TrackingPage() {
     </div>
   );
 
-  const isTruckOwner = user?.role === "TRUCK_OWNER";
+  // Only the assigned DRIVER can start/deliver — TRUCK_OWNER and CARGO_SENDER are tracking-only
+  const canTakeActions = user?.role === "DRIVER" && booking?.driverId === user?.id;
   const bStatus = booking?.status;
   const loadStatus = booking?.load?.status;
   const isDelivered = bStatus === "COMPLETED";
@@ -294,7 +295,7 @@ export default function TrackingPage() {
           </div>
         )}
 
-        {isTruckOwner && (
+        {canTakeActions && (
           <div style={{ display: "flex", flexDirection: "column" as const, gap: "8px" }}>
             {!isInTransit && !isDelivered && (
               <button onClick={handleStartJourney} disabled={actionLoading}
@@ -305,7 +306,7 @@ export default function TrackingPage() {
             {isInTransit && !isDelivered && (
               <>
                 <button onClick={isSharing ? stopSharing : startSharing}
-                  style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "1px solid rgba(240,235,224,0.1)" }}>
+                  style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "1px solid rgba(240,235,224,0.1)", background: "rgba(240,235,224,0.06)", color: "#f0ebe0", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>
                   {isSharing ? "Pause Location Sharing" : "Resume Sharing"}
                 </button>
                 <button onClick={handleMarkDelivered} disabled={actionLoading}
@@ -322,11 +323,11 @@ export default function TrackingPage() {
           </div>
         )}
 
-        {!isTruckOwner && (
+        {!canTakeActions && (
           <div>
             {!isInTransit && !isDelivered && (
               <div style={{ textAlign: "center" as const, padding: "12px", color: "rgba(240,235,224,0.4)", fontSize: "13px" }}>
-                Waiting for truck owner to start the journey...
+                Waiting for journey to start...
               </div>
             )}
             {isInTransit && !location && (
@@ -342,7 +343,7 @@ export default function TrackingPage() {
             )}
             {isDelivered && (
               <div style={{ textAlign: "center" as const, padding: "14px", background: "rgba(22,163,74,0.1)", borderRadius: "10px", color: "#4ade80", fontSize: "14px", fontWeight: "600" }}>
-                Your cargo has been delivered!
+                {user?.role === "CARGO_SENDER" ? "Your cargo has been delivered!" : "Delivery Completed"}
               </div>
             )}
           </div>

@@ -46,11 +46,24 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
     const { currentPassword, newPassword } = req.body;
     const user = await prisma.user.findUnique({ where: { id: req.user!.userId } });
     if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user.passwordHash) return res.status(400).json({ message: "No password set. Use social login." });
     const valid = await bcrypt.compare(currentPassword, user.passwordHash);
     if (!valid) return res.status(400).json({ message: "Current password is incorrect" });
     const passwordHash = await bcrypt.hash(newPassword, 12);
     await prisma.user.update({ where: { id: req.user!.userId }, data: { passwordHash } });
     return res.status(200).json({ message: "Password changed successfully" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+export const updatePushToken = async (req: AuthRequest, res: Response) => {
+  try {
+    const { pushToken } = req.body;
+    if (!pushToken) return res.status(400).json({ message: "pushToken required" });
+    await prisma.user.update({ where: { id: req.user!.userId }, data: { pushToken } });
+    return res.status(200).json({ message: "Push token updated" });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Something went wrong" });

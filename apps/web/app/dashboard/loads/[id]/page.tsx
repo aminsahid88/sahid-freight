@@ -4,248 +4,331 @@ import { useRouter, useParams } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
 import api from "@/lib/api";
 
+const P = "var(--primary)";
+const A = "var(--accent)";
+
+const statusStyle: any = {
+  OPEN:       { bg: "#F0FDF4", color: "#16A34A", border: "#BBF7D0", label: "Open" },
+  BOOKED:     { bg: "#EFF6FF", color: "#2563EB", border: "#BFDBFE", label: "Booked" },
+  IN_TRANSIT: { bg: "#FFF7ED", color: "#C2791A", border: "#FED7AA", label: "In Transit" },
+  DELIVERED:  { bg: "#F0FDF4", color: "#15803D", border: "#86EFAC", label: "Delivered" },
+  CANCELLED:  { bg: "#FEF2F2", color: "#DC2626", border: "#FECACA", label: "Cancelled" },
+  DRAFT:      { bg: "#F9FAFB", color: "#6B7280", border: "#E5E7EB", label: "Draft" },
+  PENDING:    { bg: "#FFF7ED", color: "#C2791A", border: "#FED7AA", label: "Pending" },
+  ACCEPTED:   { bg: "#F0FDF4", color: "#16A34A", border: "#BBF7D0", label: "Accepted" },
+  REJECTED:   { bg: "#FEF2F2", color: "#DC2626", border: "#FECACA", label: "Rejected" },
+};
+const StatusBadge = ({ status }: { status: string }) => {
+  const s = statusStyle[status] || { bg: "#F9FAFB", color: "#6B7280", border: "#E5E7EB", label: status };
+  return <span style={{ fontSize: "11px", fontWeight: "700", padding: "3px 10px", borderRadius: "99px", background: s.bg, color: s.color, border: `1px solid ${s.border}` }}>{s.label}</span>;
+};
+
 export default function LoadDetailPage() {
   const router = useRouter();
   const { id } = useParams();
   const { user } = useAuthStore();
-  const [load, setLoad] = useState<any>(null);
-  const [bookings, setBookings] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [load, setLoad]           = useState<any>(null);
+  const [bids, setBids]           = useState<any[]>([]);
+  const [bookings, setBookings]   = useState<any[]>([]);
+  const [loading, setLoading]     = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [toast, setToast]         = useState("");
 
   useEffect(() => {
     if (!user) { router.push("/auth/login"); return; }
     fetchData();
+    const interval = setInterval(fetchData, 10000);
+    return () => clearInterval(interval);
   }, [user, id]);
+
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
 
   const fetchData = async () => {
     try {
-      const [loadRes, bookingsRes] = await Promise.all([
+      const [loadRes, bidsRes, bookingsRes] = await Promise.all([
         api.get(`/loads/${id}`),
+        user?.role === "CARGO_SENDER" ? api.get(`/bids/load/${id}`) : Promise.resolve({ data: { bids: [] } }),
         user?.role === "CARGO_SENDER" ? api.get(`/bookings/load/${id}`) : Promise.resolve({ data: { bookings: [] } }),
       ]);
       setLoad(loadRes.data.load || loadRes.data);
+      setBids(bidsRes.data.bids || []);
       setBookings(bookingsRes.data.bookings || []);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   };
 
-  const handleAccept = async (bookingId: string) => {
-    setActionLoading(bookingId);
+  const handleAcceptBid = async (bidId: string) => {
+    setActionLoading(bidId);
+    const prevBids = bids;
+    // Optimistic: mark this bid ACCEPTED, all other PENDING bids REJECTED
+    setBids(prev => prev.map(b => b.id === bidId
+      ? { ...b, status: "ACCEPTED" }
+      : b.status === "PENDING" ? { ...b, status: "REJECTED" } : b
+    ));
     try {
-      await api.patch(`/bookings/${bookingId}/accept`);
+      await api.patch(`/bids/${bidId}/accept`);
+      showToast("Bid accepted!");
       fetchData();
-    } catch (err) { console.error(err); }
+    } catch (err: any) {
+      setBids(prevBids);
+      showToast(err.response?.data?.message || "Error");
+    }
     finally { setActionLoading(null); }
   };
 
-  const handleReject = async (bookingId: string) => {
+  const handleRejectBid = async (bidId: string) => {
+    setActionLoading(bidId);
+    try {
+      await api.patch(`/bids/${bidId}/reject`);
+      fetchData();
+    } catch (err: any) { showToast(err.response?.data?.message || "Error"); }
+    finally { setActionLoading(null); }
+  };
+
+  const handleAcceptBooking = async (bookingId: string) => {
+    setActionLoading(bookingId);
+    try {
+      await api.patch(`/bookings/${bookingId}/accept`);
+      showToast("Booking accepted!");
+      fetchData();
+    } catch (err: any) { showToast(err.response?.data?.message || "Error"); }
+    finally { setActionLoading(null); }
+  };
+
+  const handleRejectBooking = async (bookingId: string) => {
     setActionLoading(bookingId);
     try {
       await api.patch(`/bookings/${bookingId}/reject`);
       fetchData();
-    } catch (err) { console.error(err); }
+    } catch (err: any) { showToast(err.response?.data?.message || "Error"); }
     finally { setActionLoading(null); }
   };
 
-  const statusColor: any = {
-    OPEN:       { bg: "#f0fdf4", color: "#16a34a", border: "#bbf7d0" },
-    BOOKED:     { bg: "#eff6ff", color: "#2563eb", border: "#bfdbfe" },
-    IN_TRANSIT: { bg: "#fff7ed", color: "#c8901e", border: "#fed7aa" },
-    DELIVERED:  { bg: "#f0fdf4", color: "#15803d", border: "#86efac" },
-    CANCELLED:  { bg: "#fef2f2", color: "#dc2626", border: "#fecaca" },
-    DRAFT:      { bg: "#f9fafb", color: "#6b7280", border: "#e5e7eb" },
-    PENDING:    { bg: "#fff7ed", color: "#c8901e", border: "#fed7aa" },
-    ACCEPTED:   { bg: "#f0fdf4", color: "#16a34a", border: "#bbf7d0" },
-    REJECTED:   { bg: "#fef2f2", color: "#dc2626", border: "#fecaca" },
-  };
-
   if (loading) return (
-    <div style={{ minHeight: "100vh", background: "#f0ebe0", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
-      <div style={{ width: "36px", height: "36px", border: "3px solid #e8e3d8", borderTop: "3px solid #1a2744", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60vh" }}>
+      <div style={{ width: "36px", height: "36px", border: `3px solid var(--border)`, borderTop: `3px solid ${P}`, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 
   if (!load) return (
-    <div style={{ minHeight: "100vh", background: "#f0ebe0", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
-      <div style={{ textAlign: "center" as const }}>
-        <div style={{ fontSize: "48px", marginBottom: "16px" }}>😕</div>
-        <h2 style={{ color: "#1a2744", fontWeight: "800" }}>Load not found</h2>
-        <button onClick={() => router.back()} style={{ marginTop: "16px", background: "#1a2744", color: "#f0ebe0", border: "none", borderRadius: "10px", padding: "12px 24px", fontWeight: "700", cursor: "pointer" }}>Go Back</button>
-      </div>
+    <div style={{ textAlign: "center", padding: "80px 24px" }}>
+      <div style={{ fontSize: "48px", marginBottom: "16px" }}>😕</div>
+      <h2 style={{ color: P, fontWeight: "800" }}>Load not found</h2>
+      <button onClick={() => router.back()} style={{ marginTop: "16px", background: P, color: "#fff", border: "none", borderRadius: "10px", padding: "12px 24px", fontWeight: "700", cursor: "pointer" }}>Go Back</button>
     </div>
   );
 
+  const pendingBids = bids.filter((b: any) => b.status === "PENDING");
+  const lowestBid  = bids.length > 0 ? Math.min(...bids.map((b: any) => b.price)) : null;
+
   return (
-    <div style={{ minHeight: "100vh", background: "#f0ebe0", fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>
-      {/* Nav */}
-      <div style={{ background: "#1a2744", padding: "0 32px", height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky" as const, top: 0, zIndex: 100 }}>
-        <div onClick={() => router.push("/dashboard")} style={{ display: "flex", alignItems: "center", gap: "12px", cursor: "pointer" }}>
-          <img src="/loadlink.png" alt="Sahid Freight" style={{ height: "40px", objectFit: "contain" }} />
+    <div>
+      {/* Toast */}
+      {toast && (
+        <div style={{ position: "fixed", top: "24px", right: "24px", background: P, color: "#fff", padding: "12px 20px", borderRadius: "10px", fontSize: "13px", fontWeight: "600", zIndex: 9999, boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}>
+          {toast}
         </div>
-        <button onClick={() => router.back()} style={{ background: "rgba(240,235,224,0.08)", border: "none", borderRadius: "8px", padding: "8px 16px", color: "rgba(240,235,224,0.6)", fontSize: "14px", cursor: "pointer" }}>
-          ← Back
-        </button>
+      )}
+
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "28px", gap: "16px", flexWrap: "wrap" }}>
+        <div>
+          <button onClick={() => router.back()} style={{ background: "none", border: "none", color: "var(--text-secondary)", fontSize: "13px", cursor: "pointer", padding: "0 0 8px", display: "flex", alignItems: "center", gap: "4px" }}>
+            ← Back
+          </button>
+          <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "800", color: P, letterSpacing: "-0.5px" }}>{load.title}</h1>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "8px", flexWrap: "wrap" }}>
+            <StatusBadge status={load.status} />
+            <span style={{ fontSize: "13px", color: "var(--text-secondary)" }}>Posted {new Date(load.createdAt).toLocaleDateString()}</span>
+            {bids.length > 0 && <span style={{ fontSize: "13px", color: A, fontWeight: "600" }}>{bids.length} bid{bids.length !== 1 ? "s" : ""}</span>}
+          </div>
+        </div>
+        <div style={{ background: P, borderRadius: "14px", padding: "16px 24px", textAlign: "right" }}>
+          <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.5)", letterSpacing: "1px", textTransform: "uppercase", marginBottom: "4px" }}>Offered Price</div>
+          <div style={{ fontSize: "28px", fontWeight: "800", color: "#fff", letterSpacing: "-1px" }}>${load.offeredPrice}</div>
+          {lowestBid && lowestBid < load.offeredPrice && (
+            <div style={{ fontSize: "11px", color: A, marginTop: "4px" }}>Lowest bid: ${lowestBid}</div>
+          )}
+        </div>
       </div>
 
-      <div style={{ maxWidth: "900px", margin: "0 auto", padding: "40px 32px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "16px" }}>
 
-        {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "32px" }}>
-          <div>
-            <h1 style={{ fontSize: "32px", fontWeight: "800", color: "#1a2744", margin: "0 0 8px", letterSpacing: "-1px" }}>{load.title}</h1>
-            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              <span style={{ fontSize: "13px", fontWeight: "600", padding: "5px 12px", borderRadius: "20px", background: statusColor[load.status]?.bg, color: statusColor[load.status]?.color, border: `1px solid ${statusColor[load.status]?.border}` }}>
-                {load.status}
-              </span>
-              <span style={{ fontSize: "13px", color: "#9e9890" }}>
-                Posted {new Date(load.createdAt).toLocaleDateString()}
-              </span>
+        {/* Route card */}
+        <div style={{ background: "var(--surface)", borderRadius: "16px", padding: "24px", border: "1px solid var(--border)" }}>
+          <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-secondary)", letterSpacing: "1px", textTransform: "uppercase", marginBottom: "20px" }}>Route</div>
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: "11px", color: "var(--text-secondary)", letterSpacing: "1px", textTransform: "uppercase", marginBottom: "6px" }}>Pickup</div>
+              <div style={{ fontSize: "20px", fontWeight: "800", color: P }}>{load.pickupCity}</div>
+              <div style={{ fontSize: "13px", color: "var(--text-secondary)" }}>{load.pickupCountry}</div>
             </div>
-          </div>
-          <div style={{ textAlign: "right" as const }}>
-            <div style={{ fontSize: "32px", fontWeight: "800", color: "#1a2744", letterSpacing: "-1px" }}>${load.offeredPrice}</div>
-            <div style={{ fontSize: "13px", color: "#9e9890" }}>{load.currency}</div>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px" }}>
+              <div style={{ width: "48px", height: "2px", background: A }} />
+              <div style={{ fontSize: "16px" }}>🚛</div>
+              <div style={{ width: "48px", height: "2px", background: A }} />
+            </div>
+            <div style={{ flex: 1, textAlign: "right" }}>
+              <div style={{ fontSize: "11px", color: "var(--text-secondary)", letterSpacing: "1px", textTransform: "uppercase", marginBottom: "6px" }}>Delivery</div>
+              <div style={{ fontSize: "20px", fontWeight: "800", color: P }}>{load.deliveryCity}</div>
+              <div style={{ fontSize: "13px", color: "var(--text-secondary)" }}>{load.deliveryCountry}</div>
+            </div>
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: "24px" }}>
-
-          {/* Left */}
-          <div style={{ display: "flex", flexDirection: "column" as const, gap: "16px" }}>
-
-            {/* Route */}
-            <div style={{ background: "#fff", borderRadius: "16px", padding: "24px", border: "1px solid rgba(26,39,68,0.06)" }}>
-              <h3 style={{ fontSize: "13px", fontWeight: "700", color: "#9e9890", letterSpacing: "1px", textTransform: "uppercase" as const, margin: "0 0 20px" }}>Route</h3>
-              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: "11px", color: "#9e9890", letterSpacing: "1px", textTransform: "uppercase" as const, marginBottom: "6px" }}>Pickup</div>
-                  <div style={{ fontSize: "18px", fontWeight: "800", color: "#1a2744" }}>{load.pickupCity}</div>
-                  <div style={{ fontSize: "13px", color: "#9e9890" }}>{load.pickupCountry}</div>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "center", gap: "4px" }}>
-                  <div style={{ width: "40px", height: "2px", background: "#c8901e" }} />
-                  
-                  <div style={{ width: "40px", height: "2px", background: "#c8901e" }} />
-                </div>
-                <div style={{ flex: 1, textAlign: "right" as const }}>
-                  <div style={{ fontSize: "11px", color: "#9e9890", letterSpacing: "1px", textTransform: "uppercase" as const, marginBottom: "6px" }}>Delivery</div>
-                  <div style={{ fontSize: "18px", fontWeight: "800", color: "#1a2744" }}>{load.deliveryCity}</div>
-                  <div style={{ fontSize: "13px", color: "#9e9890" }}>{load.deliveryCountry}</div>
-                </div>
+        {/* Details card */}
+        <div style={{ background: "var(--surface)", borderRadius: "16px", padding: "24px", border: "1px solid var(--border)" }}>
+          <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-secondary)", letterSpacing: "1px", textTransform: "uppercase", marginBottom: "16px" }}>Load Details</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+            {[
+              ["Weight", `${load.weightTons} tons`],
+              ["Truck Type", load.truckTypeNeeded?.replace(/_/g, " ")],
+              ["Scheduled", load.scheduledDate ? new Date(load.scheduledDate).toLocaleDateString() : "Flexible"],
+              ["Currency", load.currency],
+            ].map(([label, value]) => (
+              <div key={label} style={{ background: "var(--bg)", borderRadius: "10px", padding: "14px" }}>
+                <div style={{ fontSize: "11px", color: "var(--text-secondary)", letterSpacing: "1px", textTransform: "uppercase", marginBottom: "6px" }}>{label}</div>
+                <div style={{ fontSize: "15px", fontWeight: "700", color: P }}>{value}</div>
               </div>
+            ))}
+          </div>
+          {load.description && (
+            <div style={{ marginTop: "12px", padding: "14px", background: "var(--bg)", borderRadius: "10px" }}>
+              <div style={{ fontSize: "11px", color: "var(--text-secondary)", letterSpacing: "1px", textTransform: "uppercase", marginBottom: "6px" }}>Description</div>
+              <div style={{ fontSize: "14px", color: "var(--text)", lineHeight: "1.6" }}>{load.description}</div>
             </div>
+          )}
+        </div>
 
-            {/* Details */}
-            <div style={{ background: "#fff", borderRadius: "16px", padding: "24px", border: "1px solid rgba(26,39,68,0.06)" }}>
-              <h3 style={{ fontSize: "13px", fontWeight: "700", color: "#9e9890", letterSpacing: "1px", textTransform: "uppercase" as const, margin: "0 0 20px" }}>Load Details</h3>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                {[
-                  ["Weight", `${load.weightTons} tons`],
-                  ["Truck Type", load.truckTypeNeeded?.replace(/_/g, " ")],
-                  ["Schedule", load.scheduledDate ? new Date(load.scheduledDate).toLocaleDateString() : "Flexible"],
-                  ["Currency", load.currency],
-                ].map(([label, value]) => (
-                  <div key={label} style={{ background: "#faf8f4", borderRadius: "10px", padding: "14px" }}>
-                    <div style={{ fontSize: "11px", color: "#9e9890", letterSpacing: "1px", textTransform: "uppercase" as const, marginBottom: "6px" }}>{label}</div>
-                    <div style={{ fontSize: "15px", fontWeight: "700", color: "#1a2744" }}>{value}</div>
-                  </div>
-                ))}
+        {/* ── BIDS PANEL (cargo sender only) ── */}
+        {user?.role === "CARGO_SENDER" && (
+          <div style={{ background: "var(--surface)", borderRadius: "16px", border: "1px solid var(--border)", overflow: "hidden" }}>
+            <div style={{ padding: "18px 24px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ fontSize: "14px", fontWeight: "700", color: P }}>
+                Bids <span style={{ color: "var(--text-secondary)", fontWeight: "400" }}>({bids.length})</span>
               </div>
-              {load.description && (
-                <div style={{ marginTop: "16px", padding: "14px", background: "#faf8f4", borderRadius: "10px" }}>
-                  <div style={{ fontSize: "11px", color: "#9e9890", letterSpacing: "1px", textTransform: "uppercase" as const, marginBottom: "6px" }}>Description</div>
-                  <div style={{ fontSize: "14px", color: "#1a2744", lineHeight: "1.6" }}>{load.description}</div>
-                </div>
+              {pendingBids.length > 0 && (
+                <span style={{ fontSize: "12px", fontWeight: "700", color: A, background: `rgba(232,160,32,0.1)`, padding: "3px 10px", borderRadius: "99px" }}>
+                  {pendingBids.length} pending
+                </span>
               )}
             </div>
-
-            {/* Bookings — cargo sender only */}
-            {user?.role === "CARGO_SENDER" && (
-              <div style={{ background: "#fff", borderRadius: "16px", border: "1px solid rgba(26,39,68,0.06)", overflow: "hidden" }}>
-                <div style={{ padding: "20px 24px", borderBottom: "1px solid #f0ede6" }}>
-                  <h3 style={{ fontSize: "13px", fontWeight: "700", color: "#9e9890", letterSpacing: "1px", textTransform: "uppercase" as const, margin: 0 }}>
-                    Applications ({bookings.length})
-                  </h3>
-                </div>
-                {bookings.length === 0 ? (
-                  <div style={{ padding: "40px 24px", textAlign: "center" as const }}>
-                    
-                    <p style={{ color: "#9e9890", fontSize: "14px", margin: 0 }}>No applications yet</p>
-                  </div>
-                ) : bookings.map((booking: any) => (
-                  <div key={booking.id} style={{ padding: "18px 24px", borderBottom: "1px solid #faf8f4", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <div>
-                      <div style={{ fontSize: "15px", fontWeight: "700", color: "#1a2744", marginBottom: "4px" }}>
-                        {booking.truck?.plateNumber} · {booking.truck?.truckType?.replace(/_/g, " ")}
-                      </div>
-                      <div style={{ fontSize: "13px", color: "#9e9890" }}>
-                        {booking.owner?.fullName} · {booking.owner?.phone}
-                      </div>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                      <span style={{ fontSize: "16px", fontWeight: "800", color: "#1a2744" }}>${booking.agreedPrice}</span>
-                      <span style={{ fontSize: "12px", fontWeight: "600", padding: "4px 10px", borderRadius: "20px", background: statusColor[booking.status]?.bg, color: statusColor[booking.status]?.color, border: `1px solid ${statusColor[booking.status]?.border}` }}>
-                        {booking.status}
-                      </span>
-                      {booking.status === "PENDING" && (
-                        <div style={{ display: "flex", gap: "8px" }}>
-                          <button onClick={() => handleReject(booking.id)} disabled={actionLoading === booking.id} style={{ padding: "7px 14px", borderRadius: "7px", border: "1px solid #e8e3d8", background: "#fff", color: "#9e9890", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>
-                            Reject
-                          </button>
-                          <button onClick={() => handleAccept(booking.id)} disabled={actionLoading === booking.id} style={{ padding: "7px 14px", borderRadius: "7px", border: "none", background: "#1a2744", color: "#f0ebe0", fontSize: "13px", fontWeight: "700", cursor: "pointer" }}>
-                            {actionLoading === booking.id ? "..." : "Accept"}
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
+            {bids.length === 0 ? (
+              <div style={{ padding: "48px 24px", textAlign: "center" }}>
+                <div style={{ fontSize: "32px", marginBottom: "12px" }}>📭</div>
+                <div style={{ fontSize: "14px", color: "var(--text-secondary)" }}>No bids yet. Share your load to attract truck owners.</div>
               </div>
-            )}
-          </div>
-
-          {/* Right sidebar */}
-          <div style={{ display: "flex", flexDirection: "column" as const, gap: "16px" }}>
-            {load.sender && (
-              <div style={{ background: "#fff", borderRadius: "16px", padding: "24px", border: "1px solid rgba(26,39,68,0.06)" }}>
-                <h3 style={{ fontSize: "13px", fontWeight: "700", color: "#9e9890", letterSpacing: "1px", textTransform: "uppercase" as const, margin: "0 0 16px" }}>Posted By</h3>
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <div style={{ width: "44px", height: "44px", borderRadius: "50%", background: "#1a2744", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", fontWeight: "800", color: "#f0ebe0" }}>
-                    {load.sender.fullName?.charAt(0)}
-                  </div>
+            ) : bids.map((bid: any, i: number) => (
+              <div key={bid.id} style={{ padding: "18px 24px", borderBottom: i < bids.length - 1 ? "1px solid var(--bg)" : "none" }}>
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
                   <div>
-                    <div style={{ fontSize: "15px", fontWeight: "700", color: "#1a2744" }}>{load.sender.fullName}</div>
-                    <div style={{ fontSize: "13px", color: "#9e9890" }}>{load.sender.phone}</div>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+                      <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: `rgba(27,58,45,0.1)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "15px", fontWeight: "800", color: P, flexShrink: 0 }}>
+                        {bid.truckOwner?.fullName?.charAt(0)}
+                      </div>
+                      <div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                          <span style={{ fontSize: "14px", fontWeight: "700", color: P }}>{bid.truckOwner?.fullName}</span>
+                          {bid.truckOwner?.isVerified && <span style={{ fontSize: "10px", fontWeight: "700", color: "#16A34A", background: "#F0FDF4", padding: "2px 6px", borderRadius: "99px", border: "1px solid #BBF7D0" }}>✓ Verified</span>}
+                          {bid.truckOwner?.averageRating > 0 && (
+                            <span style={{ fontSize: "10px", color: "#92400E", fontWeight: "600" }}>★ {Number(bid.truckOwner.averageRating).toFixed(1)}</span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: "12px", color: "var(--text-secondary)" }}>{bid.truckOwner?.phone}</div>
+                      </div>
+                    </div>
+                    {bid.truck && (
+                      <div style={{ fontSize: "12px", color: "var(--text-secondary)", background: "var(--bg)", borderRadius: "7px", padding: "6px 10px", display: "inline-flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
+                        <span>🚛</span>
+                        <span style={{ fontWeight: "600", color: P }}>{bid.truck.plateNumber}</span>
+                        <span>·</span>
+                        <span>{bid.truck.truckType?.replace(/_/g, " ")}</span>
+                        <span>·</span>
+                        <span>{bid.truck.capacityTons}t</span>
+                      </div>
+                    )}
+                    {bid.message && (
+                      <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginTop: "6px", fontStyle: "italic" }}>"{bid.message}"</div>
+                    )}
+                    <div style={{ fontSize: "11px", color: "var(--text-secondary)", marginTop: "6px" }}>{new Date(bid.createdAt).toLocaleDateString()}</div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ fontSize: "22px", fontWeight: "800", color: P, letterSpacing: "-0.5px" }}>${bid.price}</div>
+                      <StatusBadge status={bid.status} />
+                    </div>
+                    {bid.status === "PENDING" && load.status === "OPEN" && (
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <button onClick={() => handleRejectBid(bid.id)} disabled={actionLoading === bid.id}
+                          style={{ padding: "8px 16px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-secondary)", fontSize: "13px", fontWeight: "600", cursor: "pointer", minHeight: "36px" }}>
+                          Reject
+                        </button>
+                        <button onClick={() => handleAcceptBid(bid.id)} disabled={actionLoading === bid.id}
+                          style={{ padding: "8px 16px", borderRadius: "8px", border: "none", background: P, color: "#fff", fontSize: "13px", fontWeight: "700", cursor: "pointer", minHeight: "36px" }}>
+                          {actionLoading === bid.id ? "..." : "Accept"}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
-            )}
+            ))}
+          </div>
+        )}
 
-            <div style={{ background: "#1a2744", borderRadius: "16px", padding: "24px" }}>
-              <div style={{ fontSize: "11px", color: "rgba(240,235,224,0.4)", letterSpacing: "1px", textTransform: "uppercase" as const, marginBottom: "8px" }}>Offered Price</div>
-              <div style={{ fontSize: "36px", fontWeight: "800", color: "#f0ebe0", letterSpacing: "-1px", marginBottom: "4px" }}>${load.offeredPrice}</div>
-              <div style={{ fontSize: "13px", color: "#c8901e" }}>{load.currency}</div>
+        {/* ── BOOKINGS PANEL (cargo sender only) ── */}
+        {user?.role === "CARGO_SENDER" && bookings.length > 0 && (
+          <div style={{ background: "var(--surface)", borderRadius: "16px", border: "1px solid var(--border)", overflow: "hidden" }}>
+            <div style={{ padding: "18px 24px", borderBottom: "1px solid var(--border)" }}>
+              <div style={{ fontSize: "14px", fontWeight: "700", color: P }}>
+                Bookings <span style={{ color: "var(--text-secondary)", fontWeight: "400" }}>({bookings.length})</span>
+              </div>
             </div>
-
-            <div style={{ background: "#fff", borderRadius: "16px", padding: "20px 24px", border: "1px solid rgba(26,39,68,0.06)" }}>
-              <div style={{ fontSize: "11px", color: "#9e9890", letterSpacing: "1px", textTransform: "uppercase" as const, marginBottom: "12px" }}>Timeline</div>
-              <div style={{ display: "flex", flexDirection: "column" as const, gap: "10px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ fontSize: "13px", color: "#9e9890" }}>Posted</span>
-                  <span style={{ fontSize: "13px", fontWeight: "600", color: "#1a2744" }}>{new Date(load.createdAt).toLocaleDateString()}</span>
-                </div>
-                {load.scheduledDate && (
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ fontSize: "13px", color: "#9e9890" }}>Scheduled</span>
-                    <span style={{ fontSize: "13px", fontWeight: "600", color: "#1a2744" }}>{new Date(load.scheduledDate).toLocaleDateString()}</span>
+            {bookings.map((booking: any, i: number) => (
+              <div key={booking.id} style={{ padding: "16px 24px", borderBottom: i < bookings.length - 1 ? "1px solid var(--bg)" : "none", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
+                <div>
+                  <div style={{ fontSize: "14px", fontWeight: "600", color: P }}>
+                    {booking.truck?.plateNumber} · {booking.truck?.truckType?.replace(/_/g, " ")}
                   </div>
-                )}
+                  <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "2px" }}>
+                    {booking.owner?.fullName} · {booking.owner?.phone}
+                  </div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <span style={{ fontSize: "18px", fontWeight: "800", color: P }}>${booking.agreedPrice}</span>
+                  <StatusBadge status={booking.status} />
+                  {booking.status === "PENDING" && (
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <button onClick={() => handleRejectBooking(booking.id)} disabled={actionLoading === booking.id}
+                        style={{ padding: "7px 14px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-secondary)", fontSize: "12px", fontWeight: "600", cursor: "pointer" }}>
+                        Reject
+                      </button>
+                      <button onClick={() => handleAcceptBooking(booking.id)} disabled={actionLoading === booking.id}
+                        style={{ padding: "7px 14px", borderRadius: "8px", border: "none", background: P, color: "#fff", fontSize: "12px", fontWeight: "700", cursor: "pointer" }}>
+                        {actionLoading === booking.id ? "..." : "Accept"}
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
+            ))}
+          </div>
+        )}
+
+        {/* Posted by */}
+        {load.sender && (
+          <div style={{ background: "var(--surface)", borderRadius: "16px", padding: "20px 24px", border: "1px solid var(--border)", display: "flex", alignItems: "center", gap: "14px" }}>
+            <div style={{ width: "44px", height: "44px", borderRadius: "10px", background: `rgba(27,58,45,0.1)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", fontWeight: "800", color: P, flexShrink: 0 }}>
+              {load.sender.fullName?.charAt(0)}
+            </div>
+            <div>
+              <div style={{ fontSize: "11px", color: "var(--text-secondary)", letterSpacing: "1px", textTransform: "uppercase", marginBottom: "4px" }}>Posted By</div>
+              <div style={{ fontSize: "15px", fontWeight: "700", color: P }}>{load.sender.fullName}</div>
+              <div style={{ fontSize: "13px", color: "var(--text-secondary)" }}>{load.sender.phone}</div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -46,3 +46,34 @@ export const useAuthStore = create<AuthStore>((set) => ({
     window.location.href = "/auth/login";
   },
 }));
+
+interface GateStore {
+  showGate: boolean;
+  openGate: () => void;
+  closeGate: () => void;
+}
+export const useGateStore = create<GateStore>((set) => ({
+  showGate: false,
+  openGate: () => set({ showGate: true }),
+  closeGate: () => set({ showGate: false }),
+}));
+
+interface SettingsStore {
+  language: "en" | "am" | "so";
+  theme: "light" | "dark";
+  setLanguage: (lang: "en" | "am" | "so") => void;
+  setTheme: (theme: "light" | "dark") => void;
+}
+export const useSettingsStore = create<SettingsStore>((set) => ({
+  language: typeof window !== "undefined" ? (localStorage.getItem("language") as any) || "en" : "en",
+  theme: typeof window !== "undefined" ? (localStorage.getItem("theme") as any) || "light" : "light",
+  setLanguage: (language) => {
+    localStorage.setItem("language", language);
+    set({ language });
+  },
+  setTheme: (theme) => {
+    localStorage.setItem("theme", theme);
+    document.documentElement.setAttribute("data-theme", theme);
+    set({ theme });
+  },
+}));

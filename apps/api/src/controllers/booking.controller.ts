@@ -2,6 +2,8 @@ import { Response } from "express";
 import prisma from "../utils/prisma";
 import { AuthRequest } from "../middleware/auth.middleware";
 import { notify } from "../utils/notify";
+import { sendSMS } from "../utils/sms";
+import { getIO } from "../utils/socket";
 
 export const createBooking = async (req: AuthRequest, res: Response) => {
   try {
@@ -144,7 +146,8 @@ export const getBookingById = async (req: AuthRequest, res: Response) => {
       },
     });
     if (!booking) return res.status(404).json({ message: "Booking not found" });
-    if (booking.ownerId !== req.user!.userId && booking.senderId !== req.user!.userId) {
+    const uid = req.user!.userId;
+    if (booking.ownerId !== uid && booking.senderId !== uid && (booking as any).driverId !== uid) {
       return res.status(403).json({ message: "Access denied" });
     }
     return res.status(200).json({ booking });
@@ -170,8 +173,8 @@ export const startJourney = async (req: AuthRequest, res: Response) => {
     if (!isOwner && !isDriver) return res.status(403).json({ message: "Not your booking" });
     if (booking.status !== "ACCEPTED") return res.status(400).json({ message: "Booking must be accepted first" });
 
-    // Only update load status to IN_TRANSIT, keep booking as ACCEPTED for tracking
-    await prisma.load.update({
+    // Update load status to IN_TRANSIT
+    const updatedLoad = await prisma.load.update({
       where: { id: booking.loadId },
       data: { status: "IN_TRANSIT" },
     });
@@ -180,7 +183,13 @@ export const startJourney = async (req: AuthRequest, res: Response) => {
     const { notify } = await import("../utils/notify");
     await notify(booking.load.senderId, "LOAD_PICKED_UP", "Cargo On The Way", "Your cargo is now in transit. You can track it live.");
 
-    return res.status(200).json({ message: "Journey started", booking });
+    // SMS cargo sender
+    const sender = await prisma.user.findUnique({ where: { id: booking.load.senderId }, select: { phone: true } });
+    if (sender?.phone) {
+      await sendSMS(sender.phone, `SahidFreight: Your cargo "${booking.load.title}" is now in transit. Track it in your dashboard.`);
+    }
+
+    return res.status(200).json({ message: "Journey started", booking: { ...booking, load: updatedLoad } });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Something went wrong" });
@@ -216,6 +225,12 @@ export const markDelivered = async (req: AuthRequest, res: Response) => {
     // Notify cargo sender
     const { notify } = await import("../utils/notify");
     await notify(booking.load.senderId, "LOAD_DELIVERED", "Cargo Delivered!", "Your cargo has been delivered successfully.");
+
+    // SMS cargo sender
+    const senderDelivered = await prisma.user.findUnique({ where: { id: booking.load.senderId }, select: { phone: true } });
+    if (senderDelivered?.phone) {
+      await sendSMS(senderDelivered.phone, `SahidFreight: Your cargo "${booking.load.title}" has been delivered! Rate your experience in the app.`);
+    }
 
     return res.status(200).json({ message: "Marked as delivered", booking: updated });
   } catch (error) {
@@ -259,6 +274,107 @@ export const assignDriver = async (req: AuthRequest, res: Response) => {
 };
 
 // ─────────────────────────────────────────
+// RATE A BOOKING (sender rates owner, owner rates sender)
+// ─────────────────────────────────────────
+export const rateBooking = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { rating, comment } = req.body;
+    const uid = req.user!.userId;
+
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ message: "Rating must be between 1 and 5" });
+    }
+
+    const booking = await prisma.booking.findUnique({
+      where: { id },
+      include: { load: true },
+    });
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
+    if (booking.status !== "COMPLETED") return res.status(400).json({ message: "Can only rate completed bookings" });
+
+    const isSender = booking.senderId === uid;
+    const isOwner  = booking.ownerId  === uid;
+    if (!isSender && !isOwner) return res.status(403).json({ message: "Not part of this booking" });
+
+    if (isSender && booking.senderRatedAt) return res.status(400).json({ message: "You already rated this booking" });
+    if (isOwner  && booking.ownerRatedAt)  return res.status(400).json({ message: "You already rated this booking" });
+
+    // Which user is being rated?
+    const ratedUserId = isSender ? booking.ownerId : booking.senderId;
+
+    // Update booking with the rating
+    const updateData: any = isSender
+      ? { senderRating: rating, senderComment: comment?.trim() || null, senderRatedAt: new Date() }
+      : { ownerRating:  rating, ownerComment:  comment?.trim() || null, ownerRatedAt:  new Date() };
+
+    await prisma.booking.update({ where: { id }, data: updateData });
+
+    // Recalculate averageRating for the rated user
+    const ratedUser = await prisma.user.findUnique({ where: { id: ratedUserId } });
+    if (ratedUser) {
+      const prev  = ratedUser.totalRatings;
+      const prevAvg = ratedUser.averageRating ?? 0;
+      const newTotal = prev + 1;
+      const newAvg   = (prevAvg * prev + rating) / newTotal;
+      await prisma.user.update({
+        where: { id: ratedUserId },
+        data: { averageRating: parseFloat(newAvg.toFixed(2)), totalRatings: newTotal },
+      });
+    }
+
+    // Notify the rated user
+    const { notify } = await import("../utils/notify");
+    await notify(ratedUserId, "NEW_REVIEW", "New Rating Received", `You received a ${rating}-star rating for load: ${booking.load.title}`);
+
+    return res.status(200).json({ message: "Rating submitted" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+// ─────────────────────────────────────────
+// UPDATE BOOKING LOCATION (driver or truck owner while IN_TRANSIT)
+// ─────────────────────────────────────────
+export const updateBookingLocation = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { lat, lng } = req.body;
+
+    if (lat === undefined || lng === undefined) {
+      return res.status(400).json({ message: "lat and lng are required" });
+    }
+
+    const booking = await prisma.booking.findUnique({ where: { id } });
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
+
+    const uid = req.user!.userId;
+    const userRole = req.user!.role;
+    if (booking.ownerId !== uid && booking.driverId !== uid && userRole !== "DRIVER") {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    await prisma.truckLocation.create({
+      data: { truckId: booking.truckId, lat: Number(lat), lng: Number(lng) },
+    });
+
+    // Broadcast to anyone watching this booking on the tracking page
+    getIO()?.to(`tracking_${id}`).emit("location_updated", {
+      lat: Number(lat),
+      lng: Number(lng),
+      speed: 0,
+      timestamp: new Date().toISOString(),
+    });
+
+    return res.status(200).json({ message: "Location updated" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+// ─────────────────────────────────────────
 // GET MY BOOKINGS AS DRIVER
 // ─────────────────────────────────────────
 export const getMyBookingsAsDriver = async (req: AuthRequest, res: Response) => {
@@ -266,7 +382,7 @@ export const getMyBookingsAsDriver = async (req: AuthRequest, res: Response) => 
     const bookings = await prisma.booking.findMany({
       where: { driverId: req.user!.userId },
       include: {
-        load: { select: { id: true, title: true, pickupCity: true, deliveryCity: true, pickupLat: true, pickupLng: true, deliveryLat: true, deliveryLng: true, status: true } },
+        load: { select: { id: true, title: true, pickupCity: true, deliveryCity: true, pickupLat: true, pickupLng: true, deliveryLat: true, deliveryLng: true, status: true, weightTons: true } },
         truck: { select: { plateNumber: true, truckType: true } },
         owner: { select: { fullName: true, phone: true } },
       },
@@ -276,5 +392,27 @@ export const getMyBookingsAsDriver = async (req: AuthRequest, res: Response) => 
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+// ─────────────────────────────────────────
+// GET MY BOOKINGS AS SENDER (accepted/in-transit/delivered)
+// ─────────────────────────────────────────
+export const getMySenderBookings = async (req: AuthRequest, res: Response) => {
+  try {
+    const bookings = await prisma.booking.findMany({
+      where: { senderId: req.user!.userId },
+      include: {
+        load: { select: { id: true, title: true, pickupCity: true, deliveryCity: true, status: true } },
+        truck: { select: { plateNumber: true, truckType: true } },
+        owner: { select: { fullName: true, phone: true } },
+        payment: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    return res.status(200).json({ bookings });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Something went wrong' });
   }
 };

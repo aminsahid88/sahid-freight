@@ -1,26 +1,22 @@
 import AfricasTalking from "africastalking";
-import dotenv from "dotenv";
-import path from "path";
-
-dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 const at = AfricasTalking({
-  apiKey: process.env.AT_API_KEY!,
-  username: process.env.AT_USERNAME!,
+  apiKey:   process.env.AT_API_KEY   || "",
+  username: process.env.AT_USERNAME  || "sandbox",
 });
 
 const sms = at.SMS;
 
 export const sendSMS = async (phone: string, message: string): Promise<void> => {
   try {
-    const result = await sms.send({
-      to: [phone],
+    const normalised = phone.startsWith("+") ? phone : `+${phone}`;
+    await sms.send({
+      to:      [normalised],
       message,
-      from: "AFRICASTALKING",
+      from:    process.env.AT_SENDER_ID || undefined,
     });
-    console.log(`✅ SMS result:`, JSON.stringify(result, null, 2));
-  } catch (error) {
-    console.error("❌ SMS error:", error);
-    throw error;
+  } catch (err) {
+    // SMS failure must never crash the request
+    console.error("[SMS] Failed to send to", phone, err);
   }
 };
