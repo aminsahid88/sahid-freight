@@ -2,48 +2,50 @@ import { Router, Response } from "express";
 import { protect, fleetManagerOnly } from "../middleware/auth.middleware";
 import { AuthRequest } from "../middleware/auth.middleware";
 import prisma from "../utils/prisma";
-import bcrypt from "bcryptjs";
 
 const router = Router();
 
-// Invite/create a driver (truck owner only)
+// Invite an existing user as a driver (truck owner only)
 router.post("/invite", protect, fleetManagerOnly, async (req: AuthRequest, res: Response) => {
   try {
-    const { fullName, phone, password, licenseNumber } = req.body;
-    if (!fullName || !phone || !password) return res.status(400).json({ message: "fullName, phone and password required" });
+    const { phone } = req.body;
+    if (!phone) return res.status(400).json({ message: "Phone number is required" });
 
-    const existing = await prisma.user.findUnique({ where: { phone } });
-    if (existing) return res.status(400).json({ message: "Phone number already registered" });
+    const user = await prisma.user.findUnique({ where: { phone } });
+    if (!user) {
+      return res.status(404).json({ message: "No Sahid Freight account found with this phone number. Ask the driver to register first." });
+    }
 
-    const hashed = await bcrypt.hash(password, 10);
-    const driver = await prisma.user.create({
-      data: {
-        fullName,
-        phone,
-        passwordHash: hashed,
-        role: "DRIVER",
-        status: "ACTIVE",
-        isVerified: true,
-        invitedById: req.user!.userId,
-        country: req.body.country || "ETHIOPIA",
-        city: req.body.city || "",
-        ...(licenseNumber && { licenseNumber }),
-      },
+    if (user.role !== "DRIVER") {
+      return res.status(400).json({ message: "This user is not registered as a driver. They need to register with the Driver role first." });
+    }
+
+    if ((user as any).invitedById && (user as any).invitedById !== req.user!.userId) {
+      return res.status(400).json({ message: "This driver is already assigned to another fleet." });
+    }
+
+    if ((user as any).invitedById === req.user!.userId) {
+      return res.status(400).json({ message: "This driver is already in your fleet." });
+    }
+
+    const driver = await prisma.user.update({
+      where: { id: user.id },
+      data: { invitedById: req.user!.userId },
     });
 
-    return res.status(201).json({
-      message: "Driver created successfully",
+    return res.status(200).json({
+      message: `${driver.fullName || 'Driver'} has been added to your fleet.`,
       driver: {
         id: driver.id,
         fullName: driver.fullName,
         phone: driver.phone,
-        licenseNumber: driver.licenseNumber,
+        licenseNumber: (driver as any).licenseNumber,
         role: driver.role,
       },
     });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Something went wrong" });
+    console.error("inviteDriver failed:", error);
+    return res.status(500).json({ message: "Failed to invite driver. Please try again." });
   }
 });
 
