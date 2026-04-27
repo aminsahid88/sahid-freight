@@ -14,8 +14,6 @@ PODS:
   - EXImageLoader (5.0.0):
     - ExpoModulesCore
     - React-Core
-  - EXNotifications (0.29.14):
-    - ExpoModulesCore
   - Expo (52.0.49):
     - ExpoModulesCore
   - ExpoAdapterGoogleSignIn (13.3.1):
@@ -31,8 +29,6 @@ PODS:
     - ZXingObjC/OneD
     - ZXingObjC/PDF417
   - ExpoCrypto (14.0.2):
-    - ExpoModulesCore
-  - ExpoDevice (7.0.3):
     - ExpoModulesCore
   - ExpoDocumentPicker (13.0.3):
     - ExpoModulesCore
@@ -1852,14 +1848,12 @@ DEPENDENCIES:
   - EXApplication (from `../../../node_modules/expo-application/ios`)
   - EXConstants (from `../../../node_modules/expo-constants/ios`)
   - EXImageLoader (from `../../../node_modules/expo-image-loader/ios`)
-  - EXNotifications (from `../../../node_modules/expo-notifications/ios`)
   - Expo (from `../../../node_modules/expo`)
   - "ExpoAdapterGoogleSignIn (from `../../../node_modules/@react-native-google-signin/google-signin/expo/ios`)"
   - ExpoAppleAuthentication (from `../../../node_modules/expo-apple-authentication/ios`)
   - ExpoAsset (from `../../../node_modules/expo-asset/ios`)
   - ExpoCamera (from `../../../node_modules/expo-camera/ios`)
   - ExpoCrypto (from `../../../node_modules/expo-crypto/ios`)
-  - ExpoDevice (from `../../../node_modules/expo-device/ios`)
   - ExpoDocumentPicker (from `../../../node_modules/expo-document-picker/ios`)
   - ExpoFileSystem (from `../../../node_modules/expo-file-system/ios`)
   - ExpoFont (from `../../../node_modules/expo-font/ios`)
@@ -1976,8 +1970,6 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/expo-constants/ios"
   EXImageLoader:
     :path: "../../../node_modules/expo-image-loader/ios"
-  EXNotifications:
-    :path: "../../../node_modules/expo-notifications/ios"
   Expo:
     :path: "../../../node_modules/expo"
   ExpoAdapterGoogleSignIn:
@@ -1990,8 +1982,6 @@ EXTERNAL SOURCES:
     :path: "../../../node_modules/expo-camera/ios"
   ExpoCrypto:
     :path: "../../../node_modules/expo-crypto/ios"
-  ExpoDevice:
-    :path: "../../../node_modules/expo-device/ios"
   ExpoDocumentPicker:
     :path: "../../../node_modules/expo-document-picker/ios"
   ExpoFileSystem:
@@ -2169,14 +2159,12 @@ SPEC CHECKSUMS:
   EXApplication: 4c72f6017a14a65e338c5e74fca418f35141e819
   EXConstants: fcfc75800824ac2d5c592b5bc74130bad17b146b
   EXImageLoader: e5da974e25b13585c196b658a440720c075482d5
-  EXNotifications: 9d3d17e52c95f377750d4a2ae553a716313dd4aa
   Expo: 4bb70893882e6382b41d1e910d7226c6a1b85f0a
   ExpoAdapterGoogleSignIn: 2d18762fc21b37216b3afdf39ad4aea5352f22e9
   ExpoAppleAuthentication: 4d2e0c88a4463229760f1fbb9a937a810efb6863
   ExpoAsset: 48386d40d53a8c1738929b3ed509bcad595b5516
   ExpoCamera: 0a3e78de7b1ca8c438ee6784fa6f22c5b1b36966
   ExpoCrypto: e97e864c8d7b9ce4a000bca45dddb93544a1b2b4
-  ExpoDevice: d36ab4186b6799a28fd449bb9a1c77455f23fd1a
   ExpoDocumentPicker: 6d3d499cf15b692688a804f42927d0f35de5ebaa
   ExpoFileSystem: 42d363d3b96f9afab980dcef60d5657a4443c655
   ExpoFont: f354e926f8feae5e831ec8087f36652b44a0b188
