@@ -20,6 +20,14 @@ function withFirebasePodfile(config) {
         );
       }
 
+      // Add use_frameworks! :linkage => :dynamic for Firebase Swift pods
+      if (!podfile.includes("use_frameworks! :linkage => :dynamic")) {
+        podfile = podfile.replace(
+          /use_modular_headers!/,
+          "use_modular_headers!\n  use_frameworks! :linkage => :dynamic"
+        );
+      }
+
       fs.writeFileSync(podfilePath, podfile);
       return cfg;
     },

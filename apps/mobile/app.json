@@ -62,7 +62,7 @@
       [
         "@react-native-firebase/app",
         {
-          "ios_use_frameworks": "static"
+          "ios_use_frameworks": "dynamic"
         }
       ],
       "./plugins/withFirebasePodfile"
