@@ -17,6 +17,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.sahidfreight.app",
       "buildNumber": "1",
+      "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Sahid Freight uses your location to track deliveries and show your position to cargo senders.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Sahid Freight uses your location in the background to continuously track active deliveries.",
@@ -64,7 +65,14 @@
         {
           "iosUrlScheme": "com.googleusercontent.apps.YOUR_IOS_CLIENT_ID"
         }
-      ]
+      ],
+      [
+        "@react-native-firebase/app",
+        {
+          "ios_use_frameworks": "static"
+        }
+      ],
+      "./plugins/withFirebasePodfile"
     ],
     "scheme": "sahidfreight",
     "extra": {

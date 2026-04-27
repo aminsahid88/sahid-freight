@@ -10,5 +10,8 @@
     "dev:api": "npm run dev --workspace=apps/api",
     "dev:web": "npm run dev --workspace=apps/web",
     "db:migrate": "npm run migrate --workspace=packages/db"
+  },
+  "dependencies": {
+    "ajv": "^8.20.0"
   }
 }
