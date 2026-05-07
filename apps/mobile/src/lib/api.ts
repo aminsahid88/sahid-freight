@@ -1,31 +1,41 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { API_URL } from "../constants";
+import axios from "axios";
+import * as SecureStore from "expo-secure-store";
 
-export async function apiRequest<T = any>(
-  path: string,
-  options: RequestInit = {}
-): Promise<T> {
-  const token = await AsyncStorage.getItem("accessToken");
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    ...(options.headers as Record<string, string>),
-  };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
+const BASE_URL = "https://sahid-freight-production.up.railway.app";
 
-  const res = await fetch(`${API_URL}${path}`, { ...options, headers });
-  const data = await res.json();
+const api = axios.create({
+  baseURL: BASE_URL,
+  timeout: 15000,
+});
 
-  if (!res.ok) {
-    throw new Error(data.message || "Request failed");
+// Attach token to every request
+api.interceptors.request.use(async (config) => {
+  const token = await SecureStore.getItemAsync("accessToken");
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+// Refresh token on 401
+api.interceptors.response.use(
+  (res) => res,
+  async (error) => {
+    const original = error.config;
+    if (error.response?.status === 401 && !original._retry) {
+      original._retry = true;
+      try {
+        const refresh = await SecureStore.getItemAsync("refreshToken");
+        const res = await axios.post(`${BASE_URL}/auth/refresh`, { refreshToken: refresh });
+        const newToken = res.data.accessToken;
+        await SecureStore.setItemAsync("accessToken", newToken);
+        original.headers.Authorization = `Bearer ${newToken}`;
+        return api(original);
+      } catch {
+        await SecureStore.deleteItemAsync("accessToken");
+        await SecureStore.deleteItemAsync("refreshToken");
+      }
+    }
+    return Promise.reject(error);
   }
-  return data;
-}
+);
 
-export const api = {
-  get: <T = any>(path: string) => apiRequest<T>(path, { method: "GET" }),
-  post: <T = any>(path: string, body: any) =>
-    apiRequest<T>(path, { method: "POST", body: JSON.stringify(body) }),
-  patch: <T = any>(path: string, body: any) =>
-    apiRequest<T>(path, { method: "PATCH", body: JSON.stringify(body) }),
-  delete: <T = any>(path: string) => apiRequest<T>(path, { method: "DELETE" }),
-};
+export default api;

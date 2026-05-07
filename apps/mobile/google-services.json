@@ -1,22 +1,28 @@
 {
   "project_info": {
-    "project_number": "PLACEHOLDER",
+    "project_number": "92967956807",
     "project_id": "sahidfreight",
-    "storage_bucket": "sahidfreight.appspot.com"
+    "storage_bucket": "sahidfreight.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "PLACEHOLDER",
+        "mobilesdk_app_id": "1:92967956807:android:6e8c0bbfc0a44c8abe9c62",
         "android_client_info": {
           "package_name": "com.sahidfreight.app"
         }
       },
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "PLACEHOLDER"
+          "current_key": "AIzaSyDL3seugS_8UkXrJsREx36IY9cSH9xppWs"
         }
-      ]
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
     }
   ],
   "configuration_version": "1"

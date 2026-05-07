@@ -4,8 +4,6 @@
   <dict>
     <key>CADisableMinimumFrameDurationOnPhone</key>
     <true/>
-    <key>CFBundleAllowMixedLocalizations</key>
-    <true/>
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
     <key>CFBundleDisplayName</key>
@@ -36,7 +34,7 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
-          <string>com.googleusercontent.apps.YOUR_IOS_CLIENT_ID</string>
+          <string>app-1-92967956807-ios-e6deba652cc83647be9c62</string>
         </array>
       </dict>
     </array>
@@ -57,6 +55,8 @@
     <string>Sahid Freight uses your camera to take photos of truck documents and cargo.</string>
     <key>NSContactsUsageDescription</key>
     <string>Sahid Freight does not access your contacts.</string>
+    <key>NSFaceIDUsageDescription</key>
+    <string>Allow $(PRODUCT_NAME) to access your Face ID biometric data.</string>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
     <string>Sahid Freight uses your location in the background to continuously track active deliveries.</string>
     <key>NSLocationAlwaysUsageDescription</key>
@@ -67,12 +67,10 @@
     <string>Allow $(PRODUCT_NAME) to access your microphone</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>Sahid Freight accesses your photos to upload truck registration and cargo documents.</string>
-    <key>NSUserActivityTypes</key>
-    <array>
-      <string>$(PRODUCT_BUNDLE_IDENTIFIER).expo.index_route</string>
-    </array>
     <key>NSUserTrackingUsageDescription</key>
     <string>We use tracking to improve app performance and show relevant content.</string>
+    <key>RCTNewArchEnabled</key>
+    <true/>
     <key>UILaunchStoryboardName</key>
     <string>SplashScreen</string>
     <key>UIRequiredDeviceCapabilities</key>
@@ -96,7 +94,7 @@
       <string>UIInterfaceOrientationLandscapeRight</string>
     </array>
     <key>UIUserInterfaceStyle</key>
-    <string>Light</string>
+    <string>Dark</string>
     <key>UIViewControllerBasedStatusBarAppearance</key>
     <false/>
   </dict>
