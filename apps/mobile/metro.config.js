@@ -14,8 +14,6 @@ config.resolver.nodeModulesPaths = [
   path.resolve(monorepoRoot, "node_modules"),
 ];
 
-config.resolver.disableHierarchicalLookup = true;
-
 // Force single react copy across the entire bundle.
 // Resolve dynamically so it works whether react is hoisted to root or in mobile workspace.
 const reactDir = path.dirname(require.resolve("react/package.json", {
