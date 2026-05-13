@@ -16,16 +16,19 @@ config.resolver.nodeModulesPaths = [
 
 config.resolver.disableHierarchicalLookup = true;
 
-// Force single react copy across the entire bundle
-const reactPath = path.resolve(projectRoot, "node_modules/react");
+// Force single react copy across the entire bundle.
+// Resolve dynamically so it works whether react is hoisted to root or in mobile workspace.
+const reactDir = path.dirname(require.resolve("react/package.json", {
+  paths: [projectRoot, monorepoRoot],
+}));
 const originalResolveRequest = config.resolver.resolveRequest;
 config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (moduleName === "react" || moduleName.startsWith("react/")) {
     const subpath = moduleName.replace(/^react/, "");
     return {
       filePath: subpath
-        ? path.join(reactPath, subpath)
-        : require.resolve(reactPath),
+        ? require.resolve(path.join(reactDir, subpath))
+        : require.resolve(reactDir),
       type: "sourceFile",
     };
   }
