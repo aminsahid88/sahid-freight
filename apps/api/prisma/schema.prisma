@@ -22,6 +22,7 @@ enum UserStatus {
   DOCUMENTS_SUBMITTED
   ACTIVE
   SUSPENDED
+  BANNED
   PENDING_VERIFICATION
 }
 
@@ -448,6 +449,10 @@ model VerificationDocument {
   fileName            String
   fileSize            Int
   mimeType            String
+  status              VerificationStatus @default(PENDING)
+  rejectionReason     String?
+  reviewedBy          String?
+  reviewedAt          DateTime?
   uploadedAt          DateTime           @default(now())
 
   senderProfileId     String?

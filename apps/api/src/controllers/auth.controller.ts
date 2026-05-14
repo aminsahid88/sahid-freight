@@ -337,6 +337,32 @@ export const setRole = async (req: Request, res: Response) => {
   }
 };
 
+// ── ADMIN LOGIN (email + password, separate from mobile) ─────────────────
+export const adminLogin = async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) return res.status(400).json({ message: "Email and password required" });
+
+    const user = await prisma.user.findFirst({ where: { email, role: "ADMIN" } });
+    if (!user) return res.status(401).json({ message: "Invalid email or password" });
+    if (!user.passwordHash) return res.status(401).json({ message: "No password set for this account" });
+
+    const valid = await bcrypt.compare(password, user.passwordHash);
+    if (!valid) return res.status(401).json({ message: "Invalid email or password" });
+
+    const { accessToken, refreshToken } = await issueTokens(user.id, user.role);
+
+    return res.status(200).json({
+      message: "Admin login successful",
+      accessToken, refreshToken,
+      user: userPayload(user),
+    });
+  } catch (error) {
+    console.error("admin login failed:", error);
+    return res.status(500).json({ message: "Failed to log in" });
+  }
+};
+
 // Legacy exports kept for backward compat with routes that reference them
 export const sendOtp = async (_req: Request, res: Response) => {
   return res.status(410).json({ message: "OTP is now handled by Firebase. Please update your app." });
