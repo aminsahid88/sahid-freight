@@ -19,13 +19,22 @@ export function SlideButton({ label, color = theme.warning, onConfirm, disabled 
   const [loading, setLoading] = useState(false);
   const x = useRef(new Animated.Value(0)).current;
 
+  // Refs so PanResponder always reads current values (avoids stale closures)
+  const disabledRef = useRef(disabled);
+  disabledRef.current = disabled;
+  const confirmedRef = useRef(false);
+  const loadingRef = useRef(false);
+
   const maxTravel = () => trackWidth.current - THUMB_SIZE - INSET * 2;
 
+  const canSlide = () => !disabledRef.current && !confirmedRef.current && !loadingRef.current;
+
   const panResponder = useRef(PanResponder.create({
-    onStartShouldSetPanResponder: () => !disabled && !confirmed && !loading,
-    onStartShouldSetPanResponderCapture: () => !disabled && !confirmed && !loading,
-    onMoveShouldSetPanResponder: () => !disabled && !confirmed && !loading,
-    onMoveShouldSetPanResponderCapture: (_, gs) => !disabled && !confirmed && !loading && Math.abs(gs.dx) > 5,
+    onStartShouldSetPanResponder: () => canSlide(),
+    onStartShouldSetPanResponderCapture: () => canSlide(),
+    onMoveShouldSetPanResponder: () => canSlide(),
+    onMoveShouldSetPanResponderCapture: (_, gs) => canSlide() && Math.abs(gs.dx) > 5,
+    onPanResponderTerminationRequest: () => false,
     onPanResponderMove: (_, gs) => {
       const max = maxTravel();
       if (max > 0) x.setValue(Math.max(0, Math.min(gs.dx, max)));
@@ -34,10 +43,14 @@ export function SlideButton({ label, color = theme.warning, onConfirm, disabled 
       const max = maxTravel();
       if (max > 0 && gs.dx / max >= 0.85) {
         Animated.spring(x, { toValue: max, useNativeDriver: false, bounciness: 0 }).start(async () => {
+          confirmedRef.current = true;
+          loadingRef.current = true;
           setConfirmed(true);
           setLoading(true);
-          if (__DEV__) console.log('[SlideButton] onComplete fired');
-          try { await onConfirm(); } finally { setLoading(false); }
+          try { await onConfirm(); } finally {
+            loadingRef.current = false;
+            setLoading(false);
+          }
         });
       } else {
         Animated.spring(x, { toValue: 0, useNativeDriver: false }).start();
