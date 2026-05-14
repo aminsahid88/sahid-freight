@@ -10,19 +10,19 @@ const { width } = Dimensions.get('window');
 
 const SLIDES = [
   {
-    emoji: '🌍',
-    title: 'MOVE CARGO\nACROSS THE HORN',
-    sub: 'Connect with verified truck owners across Ethiopia, Somalia and Djibouti.',
+    emoji: '\u{1F30D}',
+    title: 'Move cargo across\nthe Horn of Africa',
+    sub: 'Connect with verified truck owners across Ethiopia, Somalia and Djibouti. Fast, reliable, transparent.',
   },
   {
-    emoji: '💰',
-    title: 'GET THE\nBEST PRICE',
-    sub: 'Post your load and receive competitive bids. Choose the best deal.',
+    emoji: '\u{1F69B}',
+    title: 'For truck owners',
+    sub: 'Bid on loads. Manage your fleet. Track your drivers. Get paid on time.',
   },
   {
-    emoji: '📍',
-    title: 'TRACK IN\nREAL TIME',
-    sub: 'Watch your cargo move live on the map. Always know where your shipment is.',
+    emoji: '\u{1F4E6}',
+    title: 'For cargo senders',
+    sub: 'Post loads. Get competitive bids. Track shipments in real time. Verified drivers only.',
   },
 ];
 
@@ -50,6 +50,11 @@ export default function OnboardingScreen({ onDone }: { onDone: () => void }) {
     <View style={styles.root}>
       <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
 
+      {/* Skip button */}
+      <TouchableOpacity style={styles.skipBtn} onPress={markSeenAndGo}>
+        <Text style={styles.skipText}>Skip</Text>
+      </TouchableOpacity>
+
       <FlatList
         ref={listRef}
         data={SLIDES}
@@ -71,15 +76,15 @@ export default function OnboardingScreen({ onDone }: { onDone: () => void }) {
             {i === SLIDES.length - 1 ? (
               <View style={styles.finalBtns}>
                 <TouchableOpacity style={styles.startBtn} onPress={markSeenAndGo}>
-                  <Text style={styles.startBtnText}>GET STARTED</Text>
+                  <Text style={styles.startBtnText}>Get Started</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.loginLink} onPress={markSeenAndGo}>
-                  <Text style={styles.loginLinkText}>I already have an account →</Text>
+                  <Text style={styles.loginLinkText}>I already have an account</Text>
                 </TouchableOpacity>
               </View>
             ) : (
               <TouchableOpacity style={styles.nextBtn} onPress={next}>
-                <Text style={styles.nextBtnText}>NEXT →</Text>
+                <Text style={styles.nextBtnText}>Next</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -104,6 +109,8 @@ export default function OnboardingScreen({ onDone }: { onDone: () => void }) {
 
 const styles = StyleSheet.create({
   root:          { flex: 1, backgroundColor: theme.bg },
+  skipBtn:       { position: 'absolute', top: 56, right: 24, zIndex: 10, paddingVertical: 6, paddingHorizontal: 12 },
+  skipText:      { fontSize: 14, color: theme.textMuted, fontWeight: '500' },
   slide:         { width, flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 36, paddingBottom: 120 },
   emoji:         { fontSize: 80, marginBottom: 36 },
   titleWrap:     { alignItems: 'center', marginBottom: 20 },
@@ -111,12 +118,12 @@ const styles = StyleSheet.create({
   titleUnderline: { height: 3, width: 60, backgroundColor: theme.accent, borderRadius: 999, marginTop: 12 },
   sub:           { fontSize: 15, color: theme.textMuted, textAlign: 'center', lineHeight: 24, marginBottom: 48 },
   finalBtns:     { width: '100%', gap: 16 },
-  startBtn:      { backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
-  startBtnText:  { color: theme.darkGreen, fontSize: 13, fontWeight: '500', letterSpacing: 0.9 },
+  startBtn:      { backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 15, alignItems: 'center' },
+  startBtnText:  { color: theme.darkGreen, fontSize: 15, fontWeight: '600' },
   loginLink:     { alignItems: 'center', paddingVertical: 8 },
   loginLinkText: { color: theme.accent, fontSize: 14, fontWeight: '500' },
-  nextBtn:       { borderWidth: 0.5, borderColor: 'rgba(151,196,89,0.35)', borderRadius: 12, paddingVertical: 13, paddingHorizontal: 40, alignItems: 'center' },
-  nextBtnText:   { color: theme.accent, fontSize: 13, fontWeight: '500', letterSpacing: 0.9 },
+  nextBtn:       { borderWidth: 0.5, borderColor: 'rgba(151,196,89,0.35)', borderRadius: 12, paddingVertical: 15, paddingHorizontal: 40, alignItems: 'center' },
+  nextBtnText:   { color: theme.accent, fontSize: 15, fontWeight: '600' },
   dots:          { position: 'absolute', bottom: 52, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', gap: 8 },
   dot:           { borderRadius: 999 },
   dotActive:     { width: 20, height: 8, backgroundColor: theme.text },
