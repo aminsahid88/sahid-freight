@@ -128,5 +128,5 @@ const styles = StyleSheet.create({
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 24, marginBottom: 12 },
   sectionLabel:  { fontSize: 11, fontWeight: '500', color: theme.textMuted, textTransform: 'uppercase', letterSpacing: 0.9, marginTop: 24, marginBottom: 12 },
   seeAll:        { fontSize: 13, color: theme.accent, fontWeight: '500' },
-  statsRow:      { flexDirection: 'row', marginHorizontal: -4 },
+  statsRow:      { flexDirection: 'row', gap: 8, marginBottom: 4 },
 });

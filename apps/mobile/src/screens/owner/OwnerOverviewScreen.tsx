@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 20, marginBottom: 10 },
   sectionLabel:  { fontSize: 11, fontWeight: '500', color: theme.textMuted, textTransform: 'uppercase', letterSpacing: 0.9, marginTop: 20, marginBottom: 10 },
   seeAll:        { fontSize: 13, color: theme.accent, fontWeight: '500' },
-  statsRow:      { flexDirection: 'row', marginHorizontal: -4 },
+  statsRow:      { flexDirection: 'row', gap: 8, marginBottom: 4 },
   pendingBanner: { backgroundColor: 'rgba(239,159,39,0.08)', borderRadius: 12, padding: 14, borderWidth: 0.5, borderColor: 'rgba(239,159,39,0.35)', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 },
   pendingText:   { fontSize: 13, color: theme.warning, fontWeight: '500', flex: 1 },
   pendingLink:   { fontSize: 13, color: theme.warning, fontWeight: '500', marginLeft: 10 },
