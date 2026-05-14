@@ -120,23 +120,35 @@ export const createLoad = async (req: AuthRequest, res: Response) => {
 // ─────────────────────────────────────────
 export const getLoads = async (req: AuthRequest, res: Response) => {
   try {
-    const { country, truckType, pickupCity, deliveryCity } = req.query;
+    const { country, truckType, pickupCity, deliveryCity, minWeight, maxWeight, sort } = req.query;
+
+    const where: any = {
+      status: "OPEN",
+      ...(country && { pickupCountry: country as any }),
+      ...(truckType && { truckTypeNeeded: truckType as any }),
+      ...(pickupCity && { pickupCity: { contains: pickupCity as string, mode: "insensitive" } }),
+      ...(deliveryCity && { deliveryCity: { contains: deliveryCity as string, mode: "insensitive" } }),
+    };
+    if (minWeight || maxWeight) {
+      where.weightTons = {};
+      if (minWeight) where.weightTons.gte = Number(minWeight);
+      if (maxWeight) where.weightTons.lte = Number(maxWeight);
+    }
+
+    let orderBy: any = { createdAt: "desc" };
+    if (sort === "price_desc") orderBy = { offeredPrice: "desc" };
+    else if (sort === "price_asc") orderBy = { offeredPrice: "asc" };
+    else if (sort === "departing_soonest") orderBy = { scheduledDate: "asc" };
 
     const loads = await prisma.load.findMany({
-      where: {
-        status: "OPEN",
-        ...(country && { pickupCountry: country as any }),
-        ...(truckType && { truckTypeNeeded: truckType as any }),
-        ...(pickupCity && { pickupCity: { contains: pickupCity as string, mode: "insensitive" } }),
-        ...(deliveryCity && { deliveryCity: { contains: deliveryCity as string, mode: "insensitive" } }),
-      },
+      where,
       include: {
         sender: {
           select: { id: true, fullName: true, phone: true, isVerified: true },
         },
         _count: { select: { bids: true } },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy,
     });
 
     return res.status(200).json({ loads });
