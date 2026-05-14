@@ -1,87 +1,128 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity, Image,
-  StatusBar, Alert, ActivityIndicator,
+  StatusBar, Alert, ActivityIndicator, RefreshControl,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import api from '../../lib/api';
 import { theme } from '../../theme';
-import { formatApiError } from '../../lib/errors';
 import { useAuthStore } from '../../store/auth';
 
-const DOCS = [
-  { key: 'id_front', label: 'National ID or passport', required: true },
-  { key: 'selfie', label: 'Selfie holding your ID', required: true },
-];
+// Per-role required document types
+const ROLE_DOCS: Record<string, { type: string; label: string; required: boolean }[]> = {
+  CARGO_SENDER: [
+    { type: 'NATIONAL_ID', label: 'National ID or Passport', required: true },
+    { type: 'TRADE_LICENSE', label: 'Business / Trade License', required: false },
+  ],
+  TRUCK_OWNER: [
+    { type: 'NATIONAL_ID', label: 'National ID or Passport', required: true },
+    { type: 'TRADE_LICENSE', label: 'Business / Trade License', required: false },
+  ],
+  DRIVER: [
+    { type: 'NATIONAL_ID', label: 'National ID or Passport', required: true },
+    { type: 'DRIVERS_LICENSE', label: "Driver's License", required: true },
+    { type: 'PROFILE_PHOTO', label: 'Selfie / Profile Photo', required: true },
+  ],
+};
+
+const PROFILE_TYPE_MAP: Record<string, string> = {
+  CARGO_SENDER: 'SENDER',
+  TRUCK_OWNER: 'TRUCK_OWNER',
+  DRIVER: 'TRUCK_OWNER', // drivers are linked through truck owner flow
+};
+
+const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
+  PENDING:  { label: 'Under review', color: theme.warning,  bg: 'rgba(239,159,39,0.08)' },
+  APPROVED: { label: 'Approved',     color: theme.accent,   bg: 'rgba(151,196,89,0.08)' },
+  REJECTED: { label: 'Rejected',     color: theme.danger,   bg: 'rgba(226,75,74,0.08)' },
+};
 
 export default function VerificationScreen({ navigation }: any) {
-  const { setAuth } = useAuthStore();
-  const [photos, setPhotos] = useState<Record<string, string>>({});
-  const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const { user } = useAuthStore();
+  const [docs, setDocs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [uploading, setUploading] = useState<string | null>(null);
 
-  const pickPhoto = async (key: string) => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') { Alert.alert('Permission needed', 'Please allow photo library access.'); return; }
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
-    if (!result.canceled && result.assets?.[0]) {
-      setPhotos(prev => ({ ...prev, [key]: result.assets[0].uri }));
+  const role = user?.role || 'CARGO_SENDER';
+  const requiredDocs = ROLE_DOCS[role] || ROLE_DOCS.CARGO_SENDER;
+  const profileType = PROFILE_TYPE_MAP[role] || 'SENDER';
+
+  const fetchDocs = useCallback(async () => {
+    try {
+      const res = await api.get('/uploads', { params: { profileType } });
+      setDocs(res.data?.documents || []);
+    } catch (e) {
+      console.warn('Failed to fetch documents', e);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
+  }, [profileType]);
+
+  useEffect(() => { fetchDocs(); }, [fetchDocs]);
+
+  const onRefresh = () => { setRefreshing(true); fetchDocs(); };
+
+  const getDocStatus = (docType: string) => {
+    const found = docs.find((d: any) => d.documentType === docType);
+    if (!found) return null;
+    return found;
   };
 
-  const handleSubmit = async () => {
-    const missing = DOCS.filter(d => d.required && !photos[d.key]);
-    if (missing.length > 0) {
-      Alert.alert('Missing documents', `Please upload: ${missing.map(d => d.label).join(', ')}`);
+  const pickAndUpload = async (docType: string) => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Please allow photo library access to upload documents.');
       return;
     }
 
-    setSubmitting(true);
-    try {
-      // TODO: POST /users/me/verification multipart
-      const formData = new FormData();
-      Object.entries(photos).forEach(([key, uri]) => {
-        const filename = uri.split('/').pop() || `${key}.jpg`;
-        const match = /\.(\w+)$/.exec(filename);
-        const type = match ? `image/${match[1]}` : 'image/jpeg';
-        formData.append(key, { uri, name: filename, type } as any);
-      });
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 0.7,
+    });
 
-      await api.post('/users/me/verification', formData, {
+    if (result.canceled || !result.assets?.[0]) return;
+
+    const asset = result.assets[0];
+    const filename = asset.uri.split('/').pop() || `${docType}.jpg`;
+    const match = /\.(\w+)$/.exec(filename);
+    const mimeType = match ? `image/${match[1]}` : 'image/jpeg';
+
+    setUploading(docType);
+    try {
+      const formData = new FormData();
+      formData.append('file', { uri: asset.uri, name: filename, type: mimeType } as any);
+      formData.append('documentType', docType);
+      formData.append('profileType', profileType);
+
+      await api.post('/uploads', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      setSubmitted(true);
-
-      // Update local user state
-      try {
-        const res = await api.get('/users/me');
-        const u = res.data?.user || res.data;
-        await setAuth(u, null);
-      } catch {}
+      await fetchDocs();
+      Alert.alert('Uploaded', 'Document submitted for review.');
     } catch (e: any) {
-      Alert.alert('Upload failed', formatApiError(e, 'Could not submit verification. The server may not support this yet.'));
+      Alert.alert('Upload failed', e?.response?.data?.message || 'Could not upload document. Please try again.');
     } finally {
-      setSubmitting(false);
+      setUploading(null);
     }
   };
 
-  if (submitted) {
-    return (
-      <ScreenWrapper>
-        <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
-        <View style={styles.successWrap}>
-          <Text style={{ fontSize: 48, marginBottom: 16 }}>✅</Text>
-          <Text style={styles.successTitle}>Verification submitted</Text>
-          <Text style={styles.successSub}>Your documents are under review. This usually takes 1-2 business days.</Text>
-          <TouchableOpacity style={styles.successBtn} onPress={() => navigation.goBack()}>
-            <Text style={styles.successBtnText}>Back to settings</Text>
-          </TouchableOpacity>
-        </View>
-      </ScreenWrapper>
-    );
-  }
+  const allRequiredUploaded = requiredDocs
+    .filter(d => d.required)
+    .every(d => {
+      const existing = getDocStatus(d.type);
+      return existing && existing.status !== 'REJECTED';
+    });
+
+  const allApproved = requiredDocs
+    .filter(d => d.required)
+    .every(d => {
+      const existing = getDocStatus(d.type);
+      return existing?.status === 'APPROVED';
+    });
 
   return (
     <ScreenWrapper>
@@ -89,56 +130,103 @@ export default function VerificationScreen({ navigation }: any) {
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>‹ Back</Text>
+          <Text style={styles.backText}>{'\u2039'} Back</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Verify your account</Text>
+        <Text style={styles.headerTitle}>Verification</Text>
         <View style={{ width: 56 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.subtitle}>
-          Upload the required documents to verify your identity. This helps build trust on the platform.
-        </Text>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.accent} />}
+      >
+        {/* Status banner */}
+        {allApproved ? (
+          <View style={[styles.banner, { backgroundColor: 'rgba(151,196,89,0.08)', borderColor: 'rgba(151,196,89,0.25)' }]}>
+            <Text style={[styles.bannerText, { color: theme.accent }]}>
+              All documents approved. Your account is fully verified.
+            </Text>
+          </View>
+        ) : allRequiredUploaded ? (
+          <View style={[styles.banner, { backgroundColor: 'rgba(55,138,221,0.08)', borderColor: 'rgba(55,138,221,0.25)' }]}>
+            <Text style={[styles.bannerText, { color: theme.blue }]}>
+              Documents submitted and under review. This usually takes 1-2 business days.
+            </Text>
+          </View>
+        ) : (
+          <View style={[styles.banner, { backgroundColor: 'rgba(239,159,39,0.08)', borderColor: 'rgba(239,159,39,0.25)' }]}>
+            <Text style={[styles.bannerText, { color: theme.warning }]}>
+              Upload the required documents to verify your identity and start using all features.
+            </Text>
+          </View>
+        )}
 
-        {DOCS.map(doc => {
-          const uri = photos[doc.key];
-          return (
-            <TouchableOpacity key={doc.key} style={styles.docRow} onPress={() => pickPhoto(doc.key)}>
-              {uri ? (
-                <Image source={{ uri }} style={styles.docThumb} />
-              ) : (
-                <View style={styles.docPlaceholder}>
-                  <Text style={{ fontSize: 24 }}>📄</Text>
+        <Text style={styles.sectionLabel}>REQUIRED DOCUMENTS</Text>
+
+        {loading ? (
+          <ActivityIndicator color={theme.accent} style={{ marginTop: 24 }} />
+        ) : (
+          requiredDocs.map(doc => {
+            const existing = getDocStatus(doc.type);
+            const statusInfo = existing ? STATUS_CONFIG[existing.status] || STATUS_CONFIG.PENDING : null;
+            const canUpload = !existing || existing.status === 'REJECTED';
+            const isUploading = uploading === doc.type;
+
+            return (
+              <View key={doc.type} style={styles.docCard}>
+                <View style={styles.docCardTop}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.docLabel}>
+                      {doc.label}{doc.required ? ' *' : ''}
+                    </Text>
+                    {statusInfo ? (
+                      <View style={[styles.statusBadge, { backgroundColor: statusInfo.bg }]}>
+                        <Text style={[styles.statusText, { color: statusInfo.color }]}>{statusInfo.label}</Text>
+                      </View>
+                    ) : (
+                      <Text style={styles.docHint}>Not uploaded</Text>
+                    )}
+                    {existing?.status === 'REJECTED' && existing?.rejectionReason && (
+                      <Text style={styles.rejectReason}>Reason: {existing.rejectionReason}</Text>
+                    )}
+                  </View>
+
+                  {canUpload && (
+                    <TouchableOpacity
+                      style={[styles.uploadBtn, isUploading && { opacity: 0.5 }]}
+                      onPress={() => pickAndUpload(doc.type)}
+                      disabled={isUploading}
+                    >
+                      {isUploading ? (
+                        <ActivityIndicator color={theme.darkGreen} size="small" />
+                      ) : (
+                        <Text style={styles.uploadBtnText}>
+                          {existing?.status === 'REJECTED' ? 'Re-upload' : 'Upload'}
+                        </Text>
+                      )}
+                    </TouchableOpacity>
+                  )}
+
+                  {existing?.status === 'APPROVED' && (
+                    <View style={styles.approvedBadge}>
+                      <Text style={{ color: theme.accent, fontSize: 16 }}>{'\u2713'}</Text>
+                    </View>
+                  )}
+
+                  {existing?.status === 'PENDING' && (
+                    <View style={styles.pendingIcon}>
+                      <Text style={{ color: theme.warning, fontSize: 14 }}>{'\u23F3'}</Text>
+                    </View>
+                  )}
                 </View>
-              )}
-              <View style={{ flex: 1 }}>
-                <Text style={styles.docLabel}>{doc.label}{doc.required ? ' *' : ''}</Text>
-                <Text style={styles.docHint}>{uri ? 'Tap to change' : 'Tap to upload'}</Text>
               </View>
-              {uri && (
-                <TouchableOpacity onPress={() => setPhotos(prev => { const n = { ...prev }; delete n[doc.key]; return n; })}>
-                  <Text style={styles.docRemove}>✕</Text>
-                </TouchableOpacity>
-              )}
-            </TouchableOpacity>
-          );
-        })}
+            );
+          })
+        )}
 
-        <View style={{ height: 80 }} />
+        <View style={{ height: 40 }} />
       </ScrollView>
-
-      <View style={styles.bottomBar}>
-        <TouchableOpacity
-          style={[styles.submitBtn, (submitting || Object.keys(photos).length < DOCS.filter(d => d.required).length) && { opacity: 0.5 }]}
-          onPress={handleSubmit}
-          disabled={submitting || Object.keys(photos).length < DOCS.filter(d => d.required).length}
-        >
-          {submitting
-            ? <ActivityIndicator color={theme.darkGreen} />
-            : <Text style={styles.submitText}>Submit for review</Text>
-          }
-        </TouchableOpacity>
-      </View>
     </ScreenWrapper>
   );
 }
@@ -148,19 +236,18 @@ const styles = StyleSheet.create({
   backText:       { fontSize: 15, color: theme.accent, fontWeight: '500' },
   headerTitle:    { fontSize: 15, fontWeight: '500', color: theme.text },
   content:        { padding: 16 },
-  subtitle:       { fontSize: 13, color: theme.textMuted, lineHeight: 20, marginBottom: 20, fontWeight: '400' },
-  docRow:         { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.surface, borderRadius: 12, padding: 14, marginBottom: 10, gap: 14 },
-  docThumb:       { width: 56, height: 56, borderRadius: 10 },
-  docPlaceholder: { width: 56, height: 56, borderRadius: 10, backgroundColor: theme.surface2, alignItems: 'center', justifyContent: 'center' },
-  docLabel:       { fontSize: 14, fontWeight: '500', color: theme.text, marginBottom: 2 },
-  docHint:        { fontSize: 13, color: theme.textMuted, fontWeight: '400' },
-  docRemove:      { fontSize: 16, color: theme.danger, padding: 4 },
-  bottomBar:      { padding: 16, paddingBottom: 24, borderTopWidth: 0.5, borderTopColor: theme.border, backgroundColor: theme.bg },
-  submitBtn:      { backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
-  submitText:     { color: theme.darkGreen, fontSize: 13, fontWeight: '500' },
-  successWrap:    { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 },
-  successTitle:   { fontSize: 22, fontWeight: '500', color: theme.text, marginBottom: 8 },
-  successSub:     { fontSize: 13, color: theme.textMuted, textAlign: 'center', lineHeight: 20, marginBottom: 24 },
-  successBtn:     { backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 13, paddingHorizontal: 32 },
-  successBtnText: { color: theme.darkGreen, fontSize: 13, fontWeight: '500' },
+  banner:         { borderRadius: 12, padding: 14, borderWidth: 0.5, marginBottom: 20 },
+  bannerText:     { fontSize: 13, lineHeight: 18, fontWeight: '400' },
+  sectionLabel:   { fontSize: 11, fontWeight: '500', color: theme.textMuted, textTransform: 'uppercase', letterSpacing: 0.9, marginBottom: 12 },
+  docCard:        { backgroundColor: theme.surface, borderRadius: 12, padding: 16, marginBottom: 10 },
+  docCardTop:     { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  docLabel:       { fontSize: 14, fontWeight: '500', color: theme.text, marginBottom: 4 },
+  docHint:        { fontSize: 12, color: theme.textMuted, fontWeight: '400' },
+  statusBadge:    { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, marginTop: 2 },
+  statusText:     { fontSize: 11, fontWeight: '600' },
+  rejectReason:   { fontSize: 11, color: theme.danger, marginTop: 4, fontWeight: '400', lineHeight: 16 },
+  uploadBtn:      { backgroundColor: theme.accent, borderRadius: 10, paddingVertical: 8, paddingHorizontal: 16, minWidth: 80, alignItems: 'center' },
+  uploadBtnText:  { color: theme.darkGreen, fontSize: 13, fontWeight: '600' },
+  approvedBadge:  { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(151,196,89,0.12)', alignItems: 'center', justifyContent: 'center' },
+  pendingIcon:    { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(239,159,39,0.08)', alignItems: 'center', justifyContent: 'center' },
 });
