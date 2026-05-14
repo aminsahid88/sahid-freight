@@ -12,8 +12,10 @@ import { SkeletonList } from '../../components/LoadingSkeleton';
 import { EmptyState } from '../../components/EmptyState';
 import { StarRating } from '../../components/StarRating';
 import { formatApiError } from '../../lib/errors';
+import { useAuthStore } from '../../store/auth';
 
 export default function LoadDetailScreen({ route, navigation }: any) {
+  const { user } = useAuthStore();
   const { loadId } = route.params;
   const [load, setLoad] = useState<any>(null);
   const [bids, setBids] = useState<any[]>([]);
@@ -42,6 +44,17 @@ export default function LoadDetailScreen({ route, navigation }: any) {
   const onRefresh = () => { setRefreshing(true); fetch(); };
 
   const handleAccept = async (bidId: string) => {
+    if (!user?.isVerified) {
+      Alert.alert(
+        'Complete your verification',
+        'You need to upload all required documents and have them approved before you can accept a bid.',
+        [
+          { text: 'Go to Verification', onPress: () => navigation.navigate('Verification') },
+          { text: 'Cancel', style: 'cancel' },
+        ],
+      );
+      return;
+    }
     setActionLoading(bidId + '-accept');
     try {
       await api.patch(`/bids/${bidId}/accept`);

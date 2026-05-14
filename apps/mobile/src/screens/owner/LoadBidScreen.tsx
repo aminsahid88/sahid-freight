@@ -10,8 +10,10 @@ import { StatusBadge } from '../../components/StatusBadge';
 import { SkeletonList } from '../../components/LoadingSkeleton';
 import { theme } from '../../theme';
 import { formatPrice } from '../../lib/constants';
+import { useAuthStore } from '../../store/auth';
 
 export default function LoadBidScreen({ route, navigation }: any) {
+  const { user } = useAuthStore();
   const { loadId } = route.params;
   const [load, setLoad] = useState<any>(null);
   const [trucks, setTrucks] = useState<any[]>([]);
@@ -49,6 +51,26 @@ export default function LoadBidScreen({ route, navigation }: any) {
   const onRefresh = () => { setRefreshing(true); fetch(); };
 
   const handleSubmit = async () => {
+    if (!user?.isVerified) {
+      Alert.alert(
+        'Complete your verification',
+        'You need to upload all required documents and have them approved before you can place a bid.',
+        [
+          { text: 'Go to Verification', onPress: () => navigation.navigate('Verification') },
+          { text: 'Cancel', style: 'cancel' },
+        ],
+      );
+      return;
+    }
+    const truck = trucks.find((t: any) => t.id === selectedTruck);
+    if (truck && !truck.isVerified) {
+      Alert.alert(
+        'Truck not verified',
+        "This truck's documents need verification before it can be used for bidding.",
+        [{ text: 'OK' }],
+      );
+      return;
+    }
     if (!selectedTruck) { Alert.alert('Select Truck', 'Please select a truck to bid with.'); return; }
     if (!bidPrice || isNaN(parseFloat(bidPrice))) { Alert.alert('Enter Price', 'Please enter a valid bid price.'); return; }
 

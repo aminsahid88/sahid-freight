@@ -96,6 +96,27 @@ export default function DriverActiveScreen({ navigation }: any) {
   const onRefresh = () => { setRefreshing(true); fetchBookings(); };
 
   const handleStart = async (bookingId: string) => {
+    if (!user?.isVerified) {
+      Alert.alert(
+        'Complete your verification',
+        'You need to upload all required documents and have them approved before you can start a journey.',
+        [
+          { text: 'Go to Verification', onPress: () => navigation.navigate('Verification') },
+          { text: 'Cancel', style: 'cancel' },
+        ],
+      );
+      return;
+    }
+    // Check truck verification
+    const booking = bookings.find(b => b.id === bookingId);
+    if (booking?.truck && !booking.truck.isVerified) {
+      Alert.alert(
+        'Truck not verified',
+        "This truck's documents need verification before it can be used.",
+        [{ text: 'OK' }],
+      );
+      return;
+    }
     if (__DEV__) console.log('[DriverActive] handleStart called, bookingId:', bookingId);
     setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'IN_TRANSIT' } : b));
     try {
