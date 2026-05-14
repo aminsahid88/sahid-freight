@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, Image,
   ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Alert, StatusBar,
@@ -8,7 +8,6 @@ import { useAuthStore } from "../../store/auth";
 import api from "../../lib/api";
 import { formatApiError } from "../../lib/errors";
 import { theme } from "../../theme";
-import * as SecureStore from "expo-secure-store";
 
 const COUNTRIES = [
   { code: "+251", country: "Ethiopia", flag: "\u{1F1EA}\u{1F1F9}" },
@@ -24,12 +23,19 @@ export default function LoginScreen({ navigation }: any) {
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
+  const [errors, setErrors] = useState<{ phone?: string; password?: string }>({});
+
+  const passwordRef = useRef<TextInput>(null);
 
   const handleLogin = async () => {
-    if (!phone || !password) {
-      Alert.alert("Error", "Please fill in all fields");
+    const newErrors: typeof errors = {};
+    if (!phone.trim()) newErrors.phone = "Phone number is required";
+    if (!password) newErrors.password = "Password is required";
+    if (Object.keys(newErrors).length) {
+      setErrors(newErrors);
       return;
     }
+    setErrors({});
     setLoading(true);
     try {
       const fullPhone = `${COUNTRIES[countryIdx].code}${phone.replace(/^0+/, "")}`;
@@ -52,73 +58,83 @@ export default function LoginScreen({ navigation }: any) {
           <View style={styles.logoSection}>
             <Image source={require('../../../assets/logo.png')} style={styles.logoImage} />
             <Text style={styles.brandName}>SAHID FREIGHT</Text>
-            <Text style={styles.brandTagline}>MOVE CARGO ACROSS THE HORN</Text>
+            <Text style={styles.brandTagline}>Move cargo across the Horn of Africa</Text>
           </View>
 
-          {/* Phone input */}
-          <Text style={styles.label}>PHONE NUMBER</Text>
-          <View style={styles.phoneRow}>
-            <TouchableOpacity style={styles.dialBtn} onPress={() => setShowPicker(!showPicker)}>
-              <Text style={styles.dialText}>{COUNTRIES[countryIdx].flag} {COUNTRIES[countryIdx].code}</Text>
-              <Text style={{ color: theme.textMuted, fontSize: 11 }}>{"\u25BC"}</Text>
-            </TouchableOpacity>
-            <TextInput
-              style={styles.phoneInput}
-              placeholder="912345678"
-              placeholderTextColor={theme.textMuted}
-              keyboardType="phone-pad"
-              value={phone}
-              onChangeText={setPhone}
-            />
-          </View>
+          {/* Card */}
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Sign in to get started</Text>
 
-          {showPicker && (
-            <View style={styles.dropdown}>
-              {COUNTRIES.map((c, i) => (
-                <TouchableOpacity
-                  key={c.code}
-                  style={styles.dropdownOption}
-                  onPress={() => { setCountryIdx(i); setShowPicker(false); }}
-                >
-                  <Text style={styles.dropdownText}>{c.flag} {c.country} ({c.code})</Text>
-                </TouchableOpacity>
-              ))}
+            {/* Phone input */}
+            <Text style={styles.label}>PHONE NUMBER</Text>
+            <View style={[styles.phoneRow, errors.phone ? styles.inputError : undefined]}>
+              <TouchableOpacity style={styles.dialBtn} onPress={() => setShowPicker(!showPicker)}>
+                <Text style={styles.dialText}>{COUNTRIES[countryIdx].flag} {COUNTRIES[countryIdx].code}</Text>
+                <Text style={{ color: theme.textMuted, fontSize: 11 }}>{"\u25BC"}</Text>
+              </TouchableOpacity>
+              <TextInput
+                style={styles.phoneInput}
+                placeholder="912345678"
+                placeholderTextColor={theme.textMuted}
+                keyboardType="phone-pad"
+                value={phone}
+                onChangeText={t => { setPhone(t); if (errors.phone) setErrors(e => ({ ...e, phone: undefined })); }}
+                returnKeyType="next"
+                onSubmitEditing={() => passwordRef.current?.focus()}
+              />
             </View>
-          )}
+            {errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
 
-          {/* Password */}
-          <Text style={[styles.label, { marginTop: 20 }]}>PASSWORD</Text>
-          <View style={styles.pwRow}>
-            <TextInput
-              style={styles.pwInput}
-              placeholder="Enter your password"
-              placeholderTextColor={theme.textMuted}
-              secureTextEntry={!showPw}
-              value={password}
-              onChangeText={setPassword}
-            />
-            <TouchableOpacity onPress={() => setShowPw(!showPw)} style={styles.eyeBtn}>
-              <Text style={{ fontSize: 16 }}>{showPw ? "\u{1F648}" : "\u{1F441}"}</Text>
+            {showPicker && (
+              <View style={styles.dropdown}>
+                {COUNTRIES.map((c, i) => (
+                  <TouchableOpacity
+                    key={c.code}
+                    style={styles.dropdownOption}
+                    onPress={() => { setCountryIdx(i); setShowPicker(false); }}
+                  >
+                    <Text style={styles.dropdownText}>{c.flag} {c.country} ({c.code})</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+
+            {/* Password */}
+            <Text style={[styles.label, { marginTop: 20 }]}>PASSWORD</Text>
+            <View style={[styles.pwRow, errors.password ? styles.inputError : undefined]}>
+              <TextInput
+                ref={passwordRef}
+                style={styles.pwInput}
+                placeholder="Enter your password"
+                placeholderTextColor={theme.textMuted}
+                secureTextEntry={!showPw}
+                value={password}
+                onChangeText={t => { setPassword(t); if (errors.password) setErrors(e => ({ ...e, password: undefined })); }}
+                returnKeyType="done"
+                onSubmitEditing={handleLogin}
+              />
+              <TouchableOpacity onPress={() => setShowPw(!showPw)} style={styles.eyeBtn}>
+                <Text style={{ fontSize: 16 }}>{showPw ? "\u{1F648}" : "\u{1F441}"}</Text>
+              </TouchableOpacity>
+            </View>
+            {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+
+            {/* Forgot password */}
+            <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")} style={styles.forgotRow}>
+              <Text style={styles.forgotText}>Forgot password?</Text>
+            </TouchableOpacity>
+
+            {/* Login button */}
+            <TouchableOpacity
+              style={[styles.btn, loading && styles.btnDisabled]}
+              onPress={handleLogin}
+              disabled={loading}
+            >
+              {loading
+                ? <ActivityIndicator color={theme.darkGreen} />
+                : <Text style={styles.btnText}>Sign In</Text>}
             </TouchableOpacity>
           </View>
-
-          {/* Forgot password */}
-          <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")} style={styles.forgotRow}>
-            <Text style={styles.forgotText}>Forgot password?</Text>
-          </TouchableOpacity>
-
-          {/* Login button */}
-          <TouchableOpacity
-            style={[styles.btn, loading && styles.btnDisabled]}
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            {loading
-              ? <ActivityIndicator color={theme.darkGreen} />
-              : <Text style={styles.btnText}>Sign In</Text>}
-          </TouchableOpacity>
-
-          <View style={styles.divider} />
 
           {/* Register link */}
           <View style={styles.footer}>
@@ -137,27 +153,30 @@ export default function LoginScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   root:          { flex: 1 },
   scroll:        { flexGrow: 1, justifyContent: "center", padding: 24 },
-  logoSection:   { alignItems: "center", marginBottom: 48 },
-  logoImage:     { width: 80, height: 80, borderRadius: 20, marginBottom: 16 },
+  logoSection:   { alignItems: "center", marginBottom: 36 },
+  logoImage:     { width: 90, height: 90, borderRadius: 22, marginBottom: 16 },
   brandName:     { fontSize: 22, fontWeight: "500", color: theme.text, letterSpacing: -0.5, marginBottom: 6 },
-  brandTagline:  { fontSize: 11, color: theme.textMuted, letterSpacing: 0.9, fontWeight: "500", textTransform: "uppercase" },
+  brandTagline:  { fontSize: 13, color: theme.textMuted, fontWeight: "400", textAlign: "center" },
+  card:          { backgroundColor: theme.surface, borderRadius: 16, padding: 20, marginBottom: 24, borderWidth: 0.5, borderColor: theme.border },
+  cardTitle:     { fontSize: 15, fontWeight: "500", color: theme.text, marginBottom: 24, textAlign: "center" },
   label:         { fontSize: 11, fontWeight: "500", color: theme.textMuted, textTransform: "uppercase", letterSpacing: 0.9, marginBottom: 10 },
-  phoneRow:      { flexDirection: "row", borderWidth: 0.5, borderColor: theme.border, borderRadius: 12, overflow: "hidden", backgroundColor: theme.surface, height: 52 },
+  phoneRow:      { flexDirection: "row", borderWidth: 0.5, borderColor: theme.border, borderRadius: 12, overflow: "hidden", backgroundColor: theme.bg, height: 52 },
   dialBtn:       { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 12, borderRightWidth: 0.5, borderRightColor: theme.border },
   dialText:      { fontSize: 14, color: theme.text, fontWeight: "400" },
   phoneInput:    { flex: 1, fontSize: 15, color: theme.text, paddingHorizontal: 14, fontWeight: "400" },
   dropdown:      { backgroundColor: theme.surface, borderWidth: 0.5, borderColor: theme.border, borderRadius: 12, marginTop: 4, overflow: "hidden" },
   dropdownOption:{ paddingVertical: 13, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: theme.border },
   dropdownText:  { fontSize: 14, color: theme.text },
-  pwRow:         { flexDirection: "row", borderWidth: 0.5, borderColor: theme.border, borderRadius: 12, overflow: "hidden", alignItems: "center", backgroundColor: theme.surface, height: 52 },
+  pwRow:         { flexDirection: "row", borderWidth: 0.5, borderColor: theme.border, borderRadius: 12, overflow: "hidden", alignItems: "center", backgroundColor: theme.bg, height: 52 },
   pwInput:       { flex: 1, fontSize: 15, color: theme.text, paddingHorizontal: 14, fontWeight: "400" },
   eyeBtn:        { paddingHorizontal: 14 },
+  inputError:    { borderColor: theme.danger, borderWidth: 1 },
+  errorText:     { fontSize: 12, color: theme.danger, marginTop: 4, fontWeight: "400" },
   forgotRow:     { alignSelf: "flex-end", marginTop: 12 },
   forgotText:    { fontSize: 13, color: theme.accent, fontWeight: "400" },
-  btn:           { backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 13, alignItems: "center", marginTop: 28 },
+  btn:           { backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 15, alignItems: "center", marginTop: 24 },
   btnDisabled:   { opacity: 0.7 },
-  btnText:       { color: theme.darkGreen, fontSize: 13, fontWeight: "500" },
-  divider:       { height: 1, backgroundColor: theme.border, marginVertical: 24 },
+  btnText:       { color: theme.darkGreen, fontSize: 15, fontWeight: "600" },
   footer:        { flexDirection: "row", justifyContent: "center" },
   footerText:    { fontSize: 13, color: theme.textMuted },
   link:          { fontSize: 13, color: theme.accent, fontWeight: "500" },

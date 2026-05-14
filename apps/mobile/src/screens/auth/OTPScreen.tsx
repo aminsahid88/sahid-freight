@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import {
-  View, Text, TouchableOpacity, StyleSheet,
+  View, Text, TouchableOpacity, StyleSheet, Image,
   ActivityIndicator, Alert, StatusBar,
 } from "react-native";
 import ScreenWrapper from "../../components/ScreenWrapper";
@@ -66,20 +66,21 @@ export default function OTPScreen({ route, navigation }: any) {
       <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
       <View style={styles.root}>
 
-        <View style={styles.logoCircle}>
-          <Text style={styles.logoEmoji}>{"\u{1F69B}"}</Text>
-        </View>
+        <Image source={require('../../../assets/logo.png')} style={styles.logoImage} />
 
         <Text style={styles.title}>Verify your number</Text>
         <Text style={styles.subtitle}>
-          Enter the code sent to{"\n"}{phone || "your phone"}
+          We sent a 6-digit code to{"\n"}
+          <Text style={styles.phoneHighlight}>{phone || "your phone"}</Text>
         </Text>
 
-        <OtpInput length={6} onComplete={handleVerify} />
+        <View style={styles.card}>
+          <OtpInput length={6} onComplete={handleVerify} />
 
-        {loading && (
-          <ActivityIndicator color={theme.accent} style={{ marginTop: 24 }} />
-        )}
+          {loading && (
+            <ActivityIndicator color={theme.accent} style={{ marginTop: 24 }} />
+          )}
+        </View>
 
         {/* Resend */}
         <View style={styles.resendRow}>
@@ -94,7 +95,7 @@ export default function OTPScreen({ route, navigation }: any) {
           )}
         </View>
 
-        <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginTop: 20 }}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Text style={styles.back}>{"\u2190"} Back</Text>
         </TouchableOpacity>
 
@@ -104,13 +105,15 @@ export default function OTPScreen({ route, navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  root:        { flex: 1, alignItems: "center", justifyContent: "center", padding: 32 },
-  logoCircle:  { width: 80, height: 80, borderRadius: 24, backgroundColor: theme.accentDim, alignItems: "center", justifyContent: "center", marginBottom: 28 },
-  logoEmoji:   { fontSize: 36 },
-  title:       { fontSize: 22, fontWeight: "500", color: theme.text, marginBottom: 8 },
-  subtitle:    { fontSize: 14, color: theme.textMuted, textAlign: "center", marginBottom: 40, lineHeight: 22 },
-  resendRow:   { marginTop: 28, alignItems: "center" },
-  resendMuted: { fontSize: 13, color: theme.textMuted, fontWeight: "400" },
-  resendLink:  { fontSize: 13, color: theme.accent, fontWeight: "500" },
-  back:        { color: theme.textMuted, fontSize: 14 },
+  root:           { flex: 1, alignItems: "center", justifyContent: "center", padding: 32 },
+  logoImage:      { width: 70, height: 70, borderRadius: 18, marginBottom: 28 },
+  title:          { fontSize: 22, fontWeight: "500", color: theme.text, marginBottom: 8 },
+  subtitle:       { fontSize: 14, color: theme.textMuted, textAlign: "center", marginBottom: 36, lineHeight: 22 },
+  phoneHighlight: { color: theme.text, fontWeight: "500" },
+  card:           { backgroundColor: theme.surface, borderRadius: 16, padding: 24, width: "100%", borderWidth: 0.5, borderColor: theme.border, alignItems: "center" },
+  resendRow:      { marginTop: 28, alignItems: "center" },
+  resendMuted:    { fontSize: 13, color: theme.textMuted, fontWeight: "400" },
+  resendLink:     { fontSize: 13, color: theme.accent, fontWeight: "500" },
+  backBtn:        { marginTop: 20 },
+  back:           { color: theme.textMuted, fontSize: 14 },
 });
