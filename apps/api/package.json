@@ -32,6 +32,9 @@
     "twilio": "^5.12.2",
     "uuid": "^13.0.0"
   },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  },
   "devDependencies": {
     "@types/africastalking": "^0.6.2",
     "@types/bcryptjs": "^2.4.6",
