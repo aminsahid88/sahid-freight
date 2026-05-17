@@ -188,7 +188,7 @@ export default function PaymentScreen({ route, navigation }: any) {
                 <Text style={[styles.methodAmount, { color: theme.accent }]}>ETB</Text>
               </View>
               <TouchableOpacity
-                style={[styles.methodBtn, { borderColor: 'rgba(151,196,89,0.4)', backgroundColor: theme.accentDim }]}
+                style={[styles.methodBtn, { borderColor: theme.accentBorder, backgroundColor: theme.accentDim }]}
                 onPress={() => initiatePayment('CHAPA')}
                 disabled={actionLoading}
               >
@@ -219,7 +219,7 @@ export default function PaymentScreen({ route, navigation }: any) {
               </View>
               {!showWaafiInput ? (
                 <TouchableOpacity
-                  style={[styles.methodBtn, { borderColor: 'rgba(55,138,221,0.4)', backgroundColor: 'rgba(55,138,221,0.1)' }]}
+                  style={[styles.methodBtn, { borderColor: theme.blue, backgroundColor: theme.blueDim }]}
                   onPress={() => setShowWaafiInput(true)}
                   disabled={actionLoading}
                 >
@@ -304,14 +304,14 @@ const styles = StyleSheet.create({
   summaryPrice:     { fontSize: 22, fontWeight: '500', color: theme.text },
   summaryCurrency:  { fontSize: 14, fontWeight: '400', color: theme.textMuted },
   statusBanner:     { borderRadius: 10, padding: 12, marginBottom: 12, alignItems: 'center' },
-  statusSuccess:    { backgroundColor: theme.accentDim, borderWidth: 0.5, borderColor: 'rgba(151,196,89,0.35)' },
-  statusError:      { backgroundColor: 'rgba(226,75,74,0.1)', borderWidth: 0.5, borderColor: 'rgba(226,75,74,0.35)' },
-  statusInfo:       { backgroundColor: 'rgba(239,159,39,0.1)', borderWidth: 0.5, borderColor: 'rgba(239,159,39,0.35)' },
+  statusSuccess:    { backgroundColor: theme.accentDim, borderWidth: 0.5, borderColor: theme.accentBorder },
+  statusError:      { backgroundColor: theme.dangerDim, borderWidth: 0.5, borderColor: theme.danger },
+  statusInfo:       { backgroundColor: theme.warningDim, borderWidth: 0.5, borderColor: theme.warning },
   statusBannerText: { fontSize: 13, fontWeight: '500', color: theme.text },
   msgBanner:        { borderRadius: 10, padding: 12, marginBottom: 12 },
-  msgSuccess:       { backgroundColor: theme.accentDim, borderWidth: 0.5, borderColor: 'rgba(151,196,89,0.35)' },
-  msgError:         { backgroundColor: 'rgba(226,75,74,0.1)', borderWidth: 0.5, borderColor: 'rgba(226,75,74,0.35)' },
-  msgInfo:          { backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 0.5, borderColor: theme.border },
+  msgSuccess:       { backgroundColor: theme.accentDim, borderWidth: 0.5, borderColor: theme.accentBorder },
+  msgError:         { backgroundColor: theme.dangerDim, borderWidth: 0.5, borderColor: theme.danger },
+  msgInfo:          { backgroundColor: theme.surface2, borderWidth: 0.5, borderColor: theme.border },
   msgText:          { fontSize: 13, color: theme.text, lineHeight: 18 },
   methodCard:       { backgroundColor: theme.surface, borderRadius: 14, padding: 16, marginBottom: 12 },
   methodHeader:     { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14 },

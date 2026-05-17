@@ -121,9 +121,9 @@ const rowS = StyleSheet.create({
 const tlS = StyleSheet.create({
   step:      { flexDirection: 'row', alignItems: 'flex-start' },
   dotCol:    { width: 20, alignItems: 'center', marginRight: 10 },
-  dot:       { width: 10, height: 10, borderRadius: 5, backgroundColor: 'rgba(255,255,255,0.12)', marginTop: 2 },
+  dot:       { width: 10, height: 10, borderRadius: 5, backgroundColor: theme.border, marginTop: 2 },
   dotDone:   { backgroundColor: theme.accent },
-  line:      { width: 2, flex: 1, minHeight: 24, backgroundColor: 'rgba(255,255,255,0.06)', marginVertical: 2 },
+  line:      { width: 2, flex: 1, minHeight: 24, backgroundColor: theme.surface2, marginVertical: 2 },
   lineDone:  { backgroundColor: theme.accentDim },
   label:     { fontSize: 13, color: theme.textMuted, fontWeight: '400', paddingBottom: 12 },
   labelDone: { color: theme.text, fontWeight: '500' },

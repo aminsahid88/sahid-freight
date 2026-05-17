@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { statusColors } from '../theme';
+import { statusColors, theme } from '../theme';
 
 export function StatusBadge({ status }: { status: string }) {
-  const s = statusColors[status] || { bg: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.35)' };
+  const s = statusColors[status] || { bg: theme.surface2, color: theme.textMuted };
   const label = status?.replace(/_/g, ' ') || '—';
   return (
     <View style={[styles.badge, { backgroundColor: s.bg }]}>

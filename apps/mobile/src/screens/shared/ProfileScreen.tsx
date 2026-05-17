@@ -231,7 +231,7 @@ export default function ProfileScreen({ navigation }: any) {
               <View style={{ alignItems: 'flex-end', gap: 4 }}>
                 <View style={[
                   styles.verBadge,
-                  { backgroundColor: user?.isVerified ? theme.accentDim : 'rgba(239,159,39,0.1)' },
+                  { backgroundColor: user?.isVerified ? theme.accentDim : theme.warningDim },
                 ]}>
                   <Text style={{ fontSize: 11, fontWeight: '500', color: user?.isVerified ? theme.accent : theme.warning }}>
                     {user?.isVerified ? '✓ Verified' : '⏳ Verify now'}
@@ -393,11 +393,11 @@ const styles = StyleSheet.create({
   saveBtnText:   { color: theme.darkGreen, fontSize: 13, fontWeight: '500' },
   verBadge:      { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
   langRow:       { flexDirection: 'row', gap: 6 },
-  langBtn:       { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5, backgroundColor: 'rgba(255,255,255,0.06)' },
+  langBtn:       { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5, backgroundColor: theme.surface2 },
   langBtnActive: { backgroundColor: theme.accent },
   langText:      { fontSize: 11, fontWeight: '500', color: theme.textMuted },
   langTextActive: { color: theme.darkGreen },
-  logoutBtn:     { backgroundColor: 'rgba(226,75,74,0.08)', borderRadius: 10, padding: 14, alignItems: 'center', margin: 12, marginBottom: 6, borderWidth: 0.5, borderColor: 'rgba(226,75,74,0.35)' },
+  logoutBtn:     { backgroundColor: theme.dangerDim, borderRadius: 10, padding: 14, alignItems: 'center', margin: 12, marginBottom: 6, borderWidth: 0.5, borderColor: theme.danger },
   logoutText:    { color: theme.danger, fontSize: 15, fontWeight: '500' },
   deleteBtn:     { padding: 14, alignItems: 'center', marginHorizontal: 12 },
   deleteText:    { color: theme.danger, fontSize: 14, fontWeight: '500' },
@@ -409,7 +409,7 @@ const sRow = StyleSheet.create({
   label:      { fontSize: 15, color: theme.text, fontWeight: '400' },
   value:      { fontSize: 14, color: theme.textMuted },
   chevron:    { fontSize: 18, color: theme.textMuted },
-  comingSoon: { backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 },
+  comingSoon: { backgroundColor: theme.surface2, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 3 },
   comingSoonText: { fontSize: 11, color: theme.textMuted, fontWeight: '400' },
   inputWrap:  { paddingVertical: 10, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: theme.border },
   inputLabel: { fontSize: 11, color: theme.textMuted, fontWeight: '500', textTransform: 'uppercase', letterSpacing: 0.9, marginBottom: 4 },

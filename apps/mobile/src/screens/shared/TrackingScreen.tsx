@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
 
   // Route placeholder (replaces MapView)
   mapPlaceholder:      { margin: 16, marginBottom: 0, backgroundColor: theme.surface, borderRadius: 14, overflow: 'hidden' },
-  mapPlaceholderInner: { paddingVertical: 28, paddingHorizontal: 20, alignItems: 'center', gap: 10, backgroundColor: 'rgba(151,196,89,0.04)' },
+  mapPlaceholderInner: { paddingVertical: 28, paddingHorizontal: 20, alignItems: 'center', gap: 10, backgroundColor: theme.accentDim },
   mapIcon:             { fontSize: 32 },
   mapRouteText:        { fontSize: 15, fontWeight: '600', color: theme.text, textAlign: 'center' },
   liveChip:            { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(11,15,14,0.85)', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5, marginTop: 4 },

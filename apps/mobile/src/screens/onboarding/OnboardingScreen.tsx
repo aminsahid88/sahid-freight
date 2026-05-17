@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   startBtnText:  { color: theme.darkGreen, fontSize: 15, fontWeight: '600' },
   loginLink:     { alignItems: 'center', paddingVertical: 8 },
   loginLinkText: { color: theme.accent, fontSize: 14, fontWeight: '500' },
-  nextBtn:       { borderWidth: 0.5, borderColor: 'rgba(151,196,89,0.35)', borderRadius: 12, paddingVertical: 15, paddingHorizontal: 40, alignItems: 'center' },
+  nextBtn:       { borderWidth: 0.5, borderColor: theme.accentBorder, borderRadius: 12, paddingVertical: 15, paddingHorizontal: 40, alignItems: 'center' },
   nextBtnText:   { color: theme.accent, fontSize: 15, fontWeight: '600' },
   dots:          { position: 'absolute', bottom: 52, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', gap: 8 },
   dot:           { borderRadius: 999 },

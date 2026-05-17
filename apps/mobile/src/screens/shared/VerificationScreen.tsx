@@ -33,9 +33,9 @@ const PROFILE_TYPE_MAP: Record<string, string> = {
 };
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  PENDING:  { label: 'Under review', color: theme.warning,  bg: 'rgba(239,159,39,0.08)' },
-  APPROVED: { label: 'Approved',     color: theme.accent,   bg: 'rgba(151,196,89,0.08)' },
-  REJECTED: { label: 'Rejected',     color: theme.danger,   bg: 'rgba(226,75,74,0.08)' },
+  PENDING:  { label: 'Under review', color: theme.warning,  bg: theme.warningDim },
+  APPROVED: { label: 'Approved',     color: theme.accent,   bg: theme.accentDim },
+  REJECTED: { label: 'Rejected',     color: theme.danger,   bg: theme.dangerDim },
 };
 
 export default function VerificationScreen({ navigation }: any) {
@@ -143,19 +143,19 @@ export default function VerificationScreen({ navigation }: any) {
       >
         {/* Status banner */}
         {allApproved ? (
-          <View style={[styles.banner, { backgroundColor: 'rgba(151,196,89,0.08)', borderColor: 'rgba(151,196,89,0.25)' }]}>
+          <View style={[styles.banner, { backgroundColor: theme.accentDim, borderColor: theme.accentBorder }]}>
             <Text style={[styles.bannerText, { color: theme.accent }]}>
               All documents approved. Your account is fully verified.
             </Text>
           </View>
         ) : allRequiredUploaded ? (
-          <View style={[styles.banner, { backgroundColor: 'rgba(55,138,221,0.08)', borderColor: 'rgba(55,138,221,0.25)' }]}>
+          <View style={[styles.banner, { backgroundColor: theme.blueDim, borderColor: theme.blue }]}>
             <Text style={[styles.bannerText, { color: theme.blue }]}>
               Documents submitted and under review. This usually takes 1-2 business days.
             </Text>
           </View>
         ) : (
-          <View style={[styles.banner, { backgroundColor: 'rgba(239,159,39,0.08)', borderColor: 'rgba(239,159,39,0.25)' }]}>
+          <View style={[styles.banner, { backgroundColor: theme.warningDim, borderColor: theme.warning }]}>
             <Text style={[styles.bannerText, { color: theme.warning }]}>
               Upload the required documents to verify your identity and start using all features.
             </Text>
@@ -248,6 +248,6 @@ const styles = StyleSheet.create({
   rejectReason:   { fontSize: 11, color: theme.danger, marginTop: 4, fontWeight: '400', lineHeight: 16 },
   uploadBtn:      { backgroundColor: theme.accent, borderRadius: 10, paddingVertical: 8, paddingHorizontal: 16, minWidth: 80, alignItems: 'center' },
   uploadBtnText:  { color: theme.darkGreen, fontSize: 13, fontWeight: '600' },
-  approvedBadge:  { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(151,196,89,0.12)', alignItems: 'center', justifyContent: 'center' },
-  pendingIcon:    { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(239,159,39,0.08)', alignItems: 'center', justifyContent: 'center' },
+  approvedBadge:  { width: 32, height: 32, borderRadius: 16, backgroundColor: theme.accentDim, alignItems: 'center', justifyContent: 'center' },
+  pendingIcon:    { width: 32, height: 32, borderRadius: 16, backgroundColor: theme.warningDim, alignItems: 'center', justifyContent: 'center' },
 });
