@@ -259,7 +259,7 @@ const styles = StyleSheet.create({
   filterLabel:    { fontSize: 13, color: theme.textMuted, fontWeight: '500' },
   filterWrap:     { height: 44, justifyContent: 'center', marginBottom: 4 },
   filterRow:      { paddingHorizontal: 16, gap: 8, alignItems: 'center' },
-  chip:           { height: 36, borderRadius: 999, paddingHorizontal: 16, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.06)' },
+  chip:           { height: 36, borderRadius: 999, paddingHorizontal: 16, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.surface2 },
   chipActive:     { backgroundColor: theme.accent },
   chipText:       { fontSize: 13, fontWeight: '500', color: theme.textMuted },
   chipTextActive: { color: theme.darkGreen, fontWeight: '500' },
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
 
   // Sort modal
   modalBackdrop:   { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)' },
-  sortSheet:       { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#0B0F0E', borderTopLeftRadius: 14, borderTopRightRadius: 14, padding: 16, paddingBottom: 32 },
+  sortSheet:       { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: theme.surface, borderTopLeftRadius: 14, borderTopRightRadius: 14, padding: 16, paddingBottom: 32 },
   sheetTitle:      { fontSize: 15, fontWeight: '500', color: theme.text, marginBottom: 12 },
   sortOption:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14, borderBottomWidth: 0.5, borderBottomColor: theme.border },
   sortOptionActive:{ },
@@ -275,8 +275,8 @@ const styles = StyleSheet.create({
   checkmark:       { fontSize: 16, color: theme.accent, fontWeight: '600' },
 
   // Filter modal
-  filterSheet:        { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: '#0B0F0E', borderTopLeftRadius: 14, borderTopRightRadius: 14, padding: 16, paddingBottom: 32 },
-  sheetHandle:        { width: 36, height: 4, backgroundColor: 'rgba(255,255,255,0.15)', borderRadius: 2, alignSelf: 'center', marginBottom: 16 },
+  filterSheet:        { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: theme.surface, borderTopLeftRadius: 14, borderTopRightRadius: 14, padding: 16, paddingBottom: 32 },
+  sheetHandle:        { width: 36, height: 4, backgroundColor: theme.border, borderRadius: 2, alignSelf: 'center', marginBottom: 16 },
   filterSectionLabel: { fontSize: 11, fontWeight: '500', color: theme.textMuted, textTransform: 'uppercase', letterSpacing: 0.9, marginBottom: 10 },
   weightRow:          { flexDirection: 'row', alignItems: 'center', gap: 10 },
   weightInput:        { flex: 1, backgroundColor: theme.surface, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, fontSize: 14, color: theme.text, borderWidth: 0.5, borderColor: theme.border },

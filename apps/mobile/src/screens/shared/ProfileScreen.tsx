@@ -45,7 +45,7 @@ function SectionCard({ title, children }: any) {
 
 export default function ProfileScreen({ navigation }: any) {
   const { user, logout, setAuth } = useAuthStore();
-  const { isDark, toggleTheme } = useThemeStore();
+  const { isDark, setMode } = useThemeStore();
   const [refreshing, setRefreshing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
@@ -295,7 +295,7 @@ export default function ProfileScreen({ navigation }: any) {
             rightEl={
               <Switch
                 value={isDark}
-                onValueChange={toggleTheme}
+                onValueChange={(v) => setMode(v ? 'dark' : 'light')}
                 trackColor={{ false: theme.border, true: theme.accent }}
                 thumbColor={theme.bg}
               />

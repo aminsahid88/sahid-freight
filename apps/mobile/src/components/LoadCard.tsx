@@ -54,6 +54,6 @@ const styles = StyleSheet.create({
   pillText: { fontSize: 11, color: theme.textMuted, fontWeight: '400' },
   price:    { fontSize: 15, fontWeight: '500', color: theme.accent },
   currency: { fontSize: 11, fontWeight: '400', color: theme.textMuted },
-  bidBadge: { backgroundColor: 'rgba(239,159,39,0.12)', borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 },
-  bidText:  { fontSize: 10, fontWeight: '500', color: '#EF9F27' },
+  bidBadge: { backgroundColor: theme.warningDim, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 3 },
+  bidText:  { fontSize: 10, fontWeight: '500', color: theme.warning },
 });

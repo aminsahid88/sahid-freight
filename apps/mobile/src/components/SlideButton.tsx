@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   arrow: {
-    color: '#173404',
+    color: theme.bg,
     fontSize: 22,
     fontWeight: '500',
   },
