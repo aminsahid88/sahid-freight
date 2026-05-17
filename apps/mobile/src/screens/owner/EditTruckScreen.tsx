@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
   field:          { marginBottom: 16 },
   fieldLabel:     { fontSize: 11, fontWeight: '500', color: theme.textMuted, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.9 },
   input:          { backgroundColor: theme.surface, color: theme.text, borderRadius: 12, paddingHorizontal: 14, height: 52, fontSize: 15 },
-  chip:           { borderRadius: 999, paddingHorizontal: 16, height: 36, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.06)' },
+  chip:           { borderRadius: 999, paddingHorizontal: 16, height: 36, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.surface2 },
   chipActive:     { backgroundColor: theme.accent },
   chipText:       { fontSize: 13, fontWeight: '500', color: theme.textMuted },
   chipTextActive: { color: theme.darkGreen },

@@ -164,6 +164,6 @@ const styles = StyleSheet.create({
   actions:        { flexDirection: 'row', gap: 8, marginTop: 12, paddingTop: 12, borderTopWidth: 0.5, borderTopColor: theme.border },
   editBtn:        { flex: 1, backgroundColor: theme.surface2, borderRadius: 10, paddingVertical: 9, alignItems: 'center' },
   editBtnText:    { fontSize: 13, color: theme.text, fontWeight: '500' },
-  deleteBtn:      { flex: 1, backgroundColor: 'rgba(226,75,74,0.08)', borderRadius: 10, paddingVertical: 9, alignItems: 'center', borderWidth: 0.5, borderColor: 'rgba(226,75,74,0.35)' },
+  deleteBtn:      { flex: 1, backgroundColor: theme.dangerDim, borderRadius: 10, paddingVertical: 9, alignItems: 'center', borderWidth: 0.5, borderColor: theme.danger },
   deleteBtnText:  { fontSize: 13, color: theme.danger, fontWeight: '500' },
 });

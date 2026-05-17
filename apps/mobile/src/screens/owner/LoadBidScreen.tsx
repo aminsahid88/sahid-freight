@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
   pillText:       { fontSize: 11, color: theme.textMuted, fontWeight: '500' },
   loadPrice:      { fontSize: 13, fontWeight: '500', color: theme.accent },
   sectionLabel:   { fontSize: 11, fontWeight: '500', color: theme.textMuted, textTransform: 'uppercase', letterSpacing: 0.9, marginBottom: 10 },
-  noTruck:        { backgroundColor: 'rgba(239,159,39,0.08)', borderRadius: 12, padding: 16, borderWidth: 0.5, borderColor: 'rgba(239,159,39,0.35)', marginBottom: 16, alignItems: 'center' },
+  noTruck:        { backgroundColor: theme.warningDim, borderRadius: 12, padding: 16, borderWidth: 0.5, borderColor: theme.warning, marginBottom: 16, alignItems: 'center' },
   noTruckText:    { fontSize: 13, color: theme.warning, textAlign: 'center', marginBottom: 8 },
   noTruckLink:    { fontSize: 13, color: theme.accent, fontWeight: '500' },
   truckCard:      { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.surface, borderRadius: 14, padding: 14, marginBottom: 10, gap: 12 },
