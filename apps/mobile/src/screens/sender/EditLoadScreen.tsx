@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   fieldWrap:      { marginBottom: 16 },
   fieldLabel:     { fontSize: 11, fontWeight: '500', color: theme.textMuted, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.9 },
   fieldInput:     { backgroundColor: theme.inputBg, color: theme.inputText, borderWidth: 0.5, borderColor: theme.inputBorder, borderRadius: 12, paddingHorizontal: 14, height: 52, fontSize: 15, fontWeight: '400' },
-  chip:           { height: 36, paddingHorizontal: 16, borderRadius: 999, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.06)' },
+  chip:           { height: 36, paddingHorizontal: 16, borderRadius: 999, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.surface2 },
   chipActive:     { backgroundColor: theme.accent },
   chipText:       { fontSize: 13, fontWeight: '500', color: theme.textMuted },
   chipTextActive: { color: theme.darkGreen },
