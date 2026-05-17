@@ -19,7 +19,7 @@ export const getStats = async (_req: AuthRequest, res: Response) => {
       prisma.booking.count(),
       prisma.user.count({ where: { status: "PENDING_VERIFICATION" } }),
       prisma.load.count({ where: { status: "OPEN" } }),
-      prisma.verificationDocument.count({ where: { status: "PENDING" } }),
+      prisma.verificationDocument.count({ where: { status: "PENDING" } }).catch(() => 0),
     ]);
 
     return res.status(200).json({
