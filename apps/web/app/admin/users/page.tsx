@@ -28,7 +28,7 @@ const ROLES = ["ALL", "CARGO_SENDER", "TRUCK_OWNER", "DRIVER", "ADMIN"] as const
 
 const ROLE_COLOR: Record<string, string> = {
   CARGO_SENDER: "#2563eb",
-  TRUCK_OWNER: "#E8A020",
+  TRUCK_OWNER: "#F97316",
   DRIVER: "#7c3aed",
   ADMIN: "#dc2626",
 };

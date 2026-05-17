@@ -15,7 +15,7 @@ interface Stats {
 
 const CARDS: { key: keyof Stats; label: string; color: string }[] = [
   { key: "totalUsers", label: "Total Users", color: "#2563eb" },
-  { key: "totalTrucks", label: "Total Trucks", color: "#E8A020" },
+  { key: "totalTrucks", label: "Total Trucks", color: "#F97316" },
   { key: "totalLoads", label: "Total Loads", color: "#7c3aed" },
   { key: "totalBookings", label: "Total Bookings", color: "#16a34a" },
   { key: "pendingVerifications", label: "Pending Verifications", color: "#dc2626" },
@@ -133,7 +133,7 @@ export default function AdminDashboard() {
               <div className="flex items-center gap-3">
                 <div
                   className="w-10 h-10 rounded-lg flex items-center justify-center text-lg font-bold"
-                  style={{ background: "#E8A020", color: "#fff" }}
+                  style={{ background: "#F97316", color: "#fff" }}
                 >
                   {stats.pendingVerifications}
                 </div>

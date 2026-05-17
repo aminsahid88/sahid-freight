@@ -33,20 +33,20 @@ export default function AdminLoginPage() {
   return (
     <div className="min-h-screen flex" style={{ fontFamily: "var(--font-inter, Inter, system-ui, sans-serif)" }}>
       {/* Left panel */}
-      <div className="hidden lg:flex w-[52%] relative overflow-hidden flex-col p-14" style={{ background: "#1B3A2D" }}>
-        <div className="absolute inset-0" style={{ backgroundImage: "radial-gradient(circle at 80% 20%, rgba(240,220,170,0.06) 0%, transparent 50%), radial-gradient(circle at 20% 80%, rgba(200,144,30,0.08) 0%, transparent 50%)" }} />
+      <div className="hidden lg:flex w-[52%] relative overflow-hidden flex-col p-14" style={{ background: "#0F172A" }}>
+        <div className="absolute inset-0" style={{ backgroundImage: "radial-gradient(circle at 80% 20%, rgba(59,130,246,0.06) 0%, transparent 50%), radial-gradient(circle at 20% 80%, rgba(249,115,22,0.08) 0%, transparent 50%)" }} />
         <div className="relative z-10 flex items-center gap-3">
           <img src="/logo.svg" alt="Sahid Freight" className="w-10 h-10 object-contain" />
           <div>
             <div className="text-xl font-extrabold text-white tracking-tight">Sahid Freight</div>
-            <div className="text-[10px] text-[#E8A020] tracking-[2px] -mt-0.5">ADMIN CONSOLE</div>
+            <div className="text-[10px] text-[#3B82F6] tracking-[2px] -mt-0.5">ADMIN CONSOLE</div>
           </div>
         </div>
         <div className="flex-1 flex flex-col justify-center relative z-10">
-          <div className="w-12 h-[3px] bg-[#E8A020] rounded mb-8" />
+          <div className="w-12 h-[3px] bg-[#3B82F6] rounded mb-8" />
           <h1 className="text-5xl font-extrabold text-white leading-tight tracking-tight mb-6">
             Admin<br />
-            <span className="text-[#E8A020]">Console</span>
+            <span className="text-[#3B82F6]">Console</span>
           </h1>
           <p className="text-white/30 text-base leading-relaxed max-w-[360px]">
             Manage users, verify documents, monitor loads and bookings across the Sahid Freight platform.
@@ -65,7 +65,7 @@ export default function AdminLoginPage() {
             <img src="/logo.svg" alt="Sahid Freight" className="w-9 h-9 object-contain" />
             <div>
               <div className="text-lg font-extrabold" style={{ color: "var(--primary)" }}>Sahid Freight</div>
-              <div className="text-[10px] text-[#E8A020] tracking-[2px]">ADMIN</div>
+              <div className="text-[10px] text-[#3B82F6] tracking-[2px]">ADMIN</div>
             </div>
           </div>
 
