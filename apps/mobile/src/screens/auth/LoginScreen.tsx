@@ -50,27 +50,27 @@ export default function LoginScreen({ navigation }: any) {
 
   return (
     <ScreenWrapper backgroundColor={theme.bg}>
-      <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+      <StatusBar barStyle="dark-content" backgroundColor={theme.bg} />
       <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
 
           {/* Logo */}
           <View style={styles.logoSection}>
             <Image source={require('../../../assets/logo.png')} style={styles.logoImage} />
-            <Text style={styles.brandName}>SAHID FREIGHT</Text>
+            <Text style={styles.brandName}>Sahid Freight</Text>
             <Text style={styles.brandTagline}>Move cargo across the Horn of Africa</Text>
           </View>
 
           {/* Card */}
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Sign in to get started</Text>
+            <Text style={styles.cardTitle}>Sign in to your account</Text>
 
             {/* Phone input */}
-            <Text style={styles.label}>PHONE NUMBER</Text>
+            <Text style={styles.label}>Phone number</Text>
             <View style={[styles.phoneRow, errors.phone ? styles.inputError : undefined]}>
-              <TouchableOpacity style={styles.dialBtn} onPress={() => setShowPicker(!showPicker)}>
-                <Text style={styles.dialText}>{COUNTRIES[countryIdx].flag} {COUNTRIES[countryIdx].code}</Text>
-                <Text style={{ color: theme.textMuted, fontSize: 11 }}>{"\u25BC"}</Text>
+              <TouchableOpacity style={styles.countryChip} onPress={() => setShowPicker(!showPicker)}>
+                <Text style={styles.chipText}>{COUNTRIES[countryIdx].flag} {COUNTRIES[countryIdx].code}</Text>
+                <Text style={styles.chipArrow}>{"\u25BC"}</Text>
               </TouchableOpacity>
               <TextInput
                 style={styles.phoneInput}
@@ -90,7 +90,10 @@ export default function LoginScreen({ navigation }: any) {
                 {COUNTRIES.map((c, i) => (
                   <TouchableOpacity
                     key={c.code}
-                    style={styles.dropdownOption}
+                    style={[
+                      styles.dropdownOption,
+                      i === COUNTRIES.length - 1 && { borderBottomWidth: 0 },
+                    ]}
                     onPress={() => { setCountryIdx(i); setShowPicker(false); }}
                   >
                     <Text style={styles.dropdownText}>{c.flag} {c.country} ({c.code})</Text>
@@ -100,7 +103,7 @@ export default function LoginScreen({ navigation }: any) {
             )}
 
             {/* Password */}
-            <Text style={[styles.label, { marginTop: 20 }]}>PASSWORD</Text>
+            <Text style={styles.labelSpaced}>Password</Text>
             <View style={[styles.pwRow, errors.password ? styles.inputError : undefined]}>
               <TextInput
                 ref={passwordRef}
@@ -114,7 +117,7 @@ export default function LoginScreen({ navigation }: any) {
                 onSubmitEditing={handleLogin}
               />
               <TouchableOpacity onPress={() => setShowPw(!showPw)} style={styles.eyeBtn}>
-                <Text style={{ fontSize: 16 }}>{showPw ? "\u{1F648}" : "\u{1F441}"}</Text>
+                <Text style={styles.eyeIcon}>{showPw ? "\u{1F648}" : "\u{1F441}"}</Text>
               </TouchableOpacity>
             </View>
             {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
@@ -129,9 +132,10 @@ export default function LoginScreen({ navigation }: any) {
               style={[styles.btn, loading && styles.btnDisabled]}
               onPress={handleLogin}
               disabled={loading}
+              activeOpacity={0.8}
             >
               {loading
-                ? <ActivityIndicator color={theme.darkGreen} />
+                ? <ActivityIndicator color="#FFFFFF" />
                 : <Text style={styles.btnText}>Sign In</Text>}
             </TouchableOpacity>
           </View>
@@ -151,33 +155,210 @@ export default function LoginScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  root:          { flex: 1 },
-  scroll:        { flexGrow: 1, justifyContent: "center", padding: 24 },
-  logoSection:   { alignItems: "center", marginBottom: 36 },
-  logoImage:     { width: 90, height: 90, borderRadius: 22, marginBottom: 16 },
-  brandName:     { fontSize: 22, fontWeight: "500", color: theme.text, letterSpacing: -0.5, marginBottom: 6 },
-  brandTagline:  { fontSize: 13, color: theme.textMuted, fontWeight: "400", textAlign: "center" },
-  card:          { backgroundColor: theme.surface, borderRadius: 16, padding: 20, marginBottom: 24, borderWidth: 0.5, borderColor: theme.border },
-  cardTitle:     { fontSize: 15, fontWeight: "500", color: theme.text, marginBottom: 24, textAlign: "center" },
-  label:         { fontSize: 11, fontWeight: "500", color: theme.textMuted, textTransform: "uppercase", letterSpacing: 0.9, marginBottom: 10 },
-  phoneRow:      { flexDirection: "row", borderWidth: 0.5, borderColor: theme.border, borderRadius: 12, overflow: "hidden", backgroundColor: theme.bg, height: 52 },
-  dialBtn:       { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 12, borderRightWidth: 0.5, borderRightColor: theme.border },
-  dialText:      { fontSize: 14, color: theme.text, fontWeight: "400" },
-  phoneInput:    { flex: 1, fontSize: 15, color: theme.text, paddingHorizontal: 14, fontWeight: "400" },
-  dropdown:      { backgroundColor: theme.surface, borderWidth: 0.5, borderColor: theme.border, borderRadius: 12, marginTop: 4, overflow: "hidden" },
-  dropdownOption:{ paddingVertical: 13, paddingHorizontal: 16, borderBottomWidth: 1, borderBottomColor: theme.border },
-  dropdownText:  { fontSize: 14, color: theme.text },
-  pwRow:         { flexDirection: "row", borderWidth: 0.5, borderColor: theme.border, borderRadius: 12, overflow: "hidden", alignItems: "center", backgroundColor: theme.bg, height: 52 },
-  pwInput:       { flex: 1, fontSize: 15, color: theme.text, paddingHorizontal: 14, fontWeight: "400" },
-  eyeBtn:        { paddingHorizontal: 14 },
-  inputError:    { borderColor: theme.danger, borderWidth: 1 },
-  errorText:     { fontSize: 12, color: theme.danger, marginTop: 4, fontWeight: "400" },
-  forgotRow:     { alignSelf: "flex-end", marginTop: 12 },
-  forgotText:    { fontSize: 13, color: theme.accent, fontWeight: "400" },
-  btn:           { backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 15, alignItems: "center", marginTop: 24 },
-  btnDisabled:   { opacity: 0.7 },
-  btnText:       { color: theme.darkGreen, fontSize: 15, fontWeight: "600" },
-  footer:        { flexDirection: "row", justifyContent: "center" },
-  footerText:    { fontSize: 13, color: theme.textMuted },
-  link:          { fontSize: 13, color: theme.accent, fontWeight: "500" },
+  root: {
+    flex: 1,
+  },
+  scroll: {
+    flexGrow: 1,
+    justifyContent: "center",
+    paddingHorizontal: 24,
+    paddingVertical: 32,
+  },
+
+  /* Logo section */
+  logoSection: {
+    alignItems: "center",
+    marginBottom: 40,
+  },
+  logoImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 24,
+    marginBottom: 16,
+  },
+  brandName: {
+    fontSize: 26,
+    fontWeight: "700",
+    color: theme.text,
+    letterSpacing: -0.5,
+    marginBottom: 6,
+  },
+  brandTagline: {
+    fontSize: 14,
+    color: theme.textSecondary,
+    fontWeight: "400",
+    textAlign: "center",
+    lineHeight: 20,
+  },
+
+  /* Card */
+  card: {
+    backgroundColor: theme.surface,
+    borderRadius: 16,
+    padding: 24,
+    marginBottom: 28,
+    borderWidth: 1,
+    borderColor: theme.border,
+  },
+  cardTitle: {
+    fontSize: 17,
+    fontWeight: "600",
+    color: theme.text,
+    marginBottom: 24,
+    textAlign: "center",
+  },
+
+  /* Labels */
+  label: {
+    fontSize: 13,
+    fontWeight: "500",
+    color: theme.textSecondary,
+    marginBottom: 8,
+  },
+  labelSpaced: {
+    fontSize: 13,
+    fontWeight: "500",
+    color: theme.textSecondary,
+    marginBottom: 8,
+    marginTop: 20,
+  },
+
+  /* Phone row */
+  phoneRow: {
+    flexDirection: "row",
+    borderWidth: 1,
+    borderColor: theme.inputBorder,
+    borderRadius: 12,
+    overflow: "hidden",
+    backgroundColor: theme.bg,
+    height: 50,
+  },
+  countryChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 12,
+    backgroundColor: theme.surface2,
+    borderRightWidth: 1,
+    borderRightColor: theme.inputBorder,
+  },
+  chipText: {
+    fontSize: 14,
+    color: theme.text,
+    fontWeight: "500",
+  },
+  chipArrow: {
+    color: theme.textMuted,
+    fontSize: 10,
+  },
+  phoneInput: {
+    flex: 1,
+    fontSize: 15,
+    color: theme.inputText,
+    paddingHorizontal: 14,
+    fontWeight: "400",
+  },
+
+  /* Dropdown */
+  dropdown: {
+    backgroundColor: theme.bg,
+    borderWidth: 1,
+    borderColor: theme.border,
+    borderRadius: 12,
+    marginTop: 6,
+    overflow: "hidden",
+  },
+  dropdownOption: {
+    paddingVertical: 13,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.border,
+  },
+  dropdownText: {
+    fontSize: 14,
+    color: theme.text,
+  },
+
+  /* Password row */
+  pwRow: {
+    flexDirection: "row",
+    borderWidth: 1,
+    borderColor: theme.inputBorder,
+    borderRadius: 12,
+    overflow: "hidden",
+    alignItems: "center",
+    backgroundColor: theme.bg,
+    height: 50,
+  },
+  pwInput: {
+    flex: 1,
+    fontSize: 15,
+    color: theme.inputText,
+    paddingHorizontal: 14,
+    fontWeight: "400",
+  },
+  eyeBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  eyeIcon: {
+    fontSize: 18,
+  },
+
+  /* Errors */
+  inputError: {
+    borderColor: theme.danger,
+    borderWidth: 1.5,
+  },
+  errorText: {
+    fontSize: 12,
+    color: theme.danger,
+    marginTop: 4,
+    fontWeight: "400",
+  },
+
+  /* Forgot password */
+  forgotRow: {
+    alignSelf: "flex-end",
+    marginTop: 12,
+  },
+  forgotText: {
+    fontSize: 13,
+    color: theme.accent,
+    fontWeight: "500",
+  },
+
+  /* Sign In button */
+  btn: {
+    backgroundColor: theme.accent,
+    borderRadius: 12,
+    height: 50,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 24,
+  },
+  btnDisabled: {
+    opacity: 0.7,
+  },
+  btnText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+
+  /* Footer */
+  footer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  footerText: {
+    fontSize: 14,
+    color: theme.textMuted,
+  },
+  link: {
+    fontSize: 14,
+    color: theme.accent,
+    fontWeight: "600",
+  },
 });
