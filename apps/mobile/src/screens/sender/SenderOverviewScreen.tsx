@@ -50,7 +50,7 @@ export default function SenderOverviewScreen({ navigation }: any) {
 
   return (
     <ScreenWrapper>
-      <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+      <StatusBar barStyle="dark-content" backgroundColor={theme.bg} />
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.content}
@@ -63,11 +63,12 @@ export default function SenderOverviewScreen({ navigation }: any) {
             <Text style={styles.greeting}>Good day,</Text>
             <Text style={styles.name}>{user?.companyName || user?.fullName || 'Sender'}</Text>
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <View style={styles.headerRight}>
             <NotificationBell navigation={navigation} />
             <TouchableOpacity
               style={styles.newBtn}
               onPress={() => navigation.navigate('PostLoad')}
+              activeOpacity={0.8}
             >
               <Text style={styles.newBtnText}>+ Post Load</Text>
             </TouchableOpacity>
@@ -76,18 +77,20 @@ export default function SenderOverviewScreen({ navigation }: any) {
 
         {/* OVERVIEW */}
         <Text style={styles.sectionLabel}>OVERVIEW</Text>
-        <View style={styles.statsRow}>
-          <StatCard label="Total Loads" value={stats.total} emoji="📦" color={theme.accent} />
-          <StatCard label="Open" value={stats.open} emoji="🟢" color={theme.accent} />
-        </View>
-        <View style={styles.statsRow}>
-          <StatCard label="In Transit" value={stats.inTransit} emoji="🚛" color={theme.warning} />
-          <StatCard label="Delivered" value={stats.delivered} emoji="✅" color={theme.blue} />
+        <View style={styles.statsGrid}>
+          <View style={styles.statsRow}>
+            <StatCard label="Total Loads" value={stats.total} emoji="📦" color={theme.accent} />
+            <StatCard label="Open" value={stats.open} emoji="🟢" color={theme.success} />
+          </View>
+          <View style={styles.statsRow}>
+            <StatCard label="In Transit" value={stats.inTransit} emoji="🚛" color={theme.warning} />
+            <StatCard label="Delivered" value={stats.delivered} emoji="✅" color={theme.blue} />
+          </View>
         </View>
 
         {/* RECENT LOADS */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionLabel}>RECENT LOADS</Text>
+          <Text style={styles.sectionLabelInline}>RECENT LOADS</Text>
           <TouchableOpacity onPress={() => navigation.navigate('MyLoads')}>
             <Text style={styles.seeAll}>See all</Text>
           </TouchableOpacity>
@@ -118,15 +121,85 @@ export default function SenderOverviewScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  scroll:        { flex: 1, backgroundColor: theme.bg },
-  content:       { padding: 16, paddingBottom: 32 },
-  header:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 },
-  greeting:      { fontSize: 13, color: theme.textMuted },
-  name:          { fontSize: 22, fontWeight: '500', color: theme.text },
-  newBtn:        { backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 13, paddingHorizontal: 16 },
-  newBtnText:    { color: theme.darkGreen, fontSize: 13, fontWeight: '500' },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 24, marginBottom: 12 },
-  sectionLabel:  { fontSize: 11, fontWeight: '500', color: theme.textMuted, textTransform: 'uppercase', letterSpacing: 0.9, marginTop: 24, marginBottom: 12 },
-  seeAll:        { fontSize: 13, color: theme.accent, fontWeight: '500' },
-  statsRow:      { flexDirection: 'row', gap: 8, marginBottom: 4 },
+  scroll: {
+    flex: 1,
+    backgroundColor: theme.bg,
+  },
+  content: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 28,
+  },
+  greeting: {
+    fontSize: 14,
+    color: theme.textMuted,
+    marginBottom: 2,
+  },
+  name: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: theme.text,
+    letterSpacing: -0.3,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  newBtn: {
+    backgroundColor: theme.accent,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    shadowColor: theme.accent,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  newBtnText: {
+    color: theme.accentText,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  sectionLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: theme.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 14,
+  },
+  statsGrid: {
+    gap: 10,
+    marginBottom: 8,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 28,
+    marginBottom: 14,
+  },
+  sectionLabelInline: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: theme.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  seeAll: {
+    fontSize: 13,
+    color: theme.accent,
+    fontWeight: '600',
+  },
 });
