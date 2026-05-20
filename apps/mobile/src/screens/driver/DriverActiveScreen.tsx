@@ -160,29 +160,37 @@ export default function DriverActiveScreen({ navigation }: any) {
 
   const canAct = user?.role === 'DRIVER';
 
+  const initials = (user?.fullName || 'D')
+    .split(' ')
+    .map((w: string) => w[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+
   if (loading) {
     return <ScreenWrapper><SkeletonList count={3} /></ScreenWrapper>;
   }
 
   return (
     <ScreenWrapper>
-      <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
+      <StatusBar barStyle="dark-content" backgroundColor={theme.bg} />
+
+      {/* Header */}
       <View style={styles.header}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <View style={styles.headerLeft}>
           <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {(user?.fullName || 'D').split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase()}
-            </Text>
+            <Text style={styles.avatarText}>{initials}</Text>
           </View>
           <View>
-            <Text style={styles.greeting}>Driver</Text>
-            <Text style={styles.title}>{user?.fullName || 'Driver'}</Text>
+            <Text style={styles.driverLabel}>Driver</Text>
+            <Text style={styles.driverName}>{user?.fullName || 'Driver'}</Text>
           </View>
         </View>
         <NotificationBell navigation={navigation} />
       </View>
 
       <ScrollView
+        style={styles.scrollView}
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.accent} />}
         showsVerticalScrollIndicator={false}
@@ -225,28 +233,32 @@ export default function DriverActiveScreen({ navigation }: any) {
 
             {/* Primary booking card */}
             <View style={styles.card}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <Text style={styles.loadTitle}>{primary.load?.title}</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <View style={styles.cardTopRow}>
+                <Text style={styles.loadTitle} numberOfLines={2}>{primary.load?.title}</Text>
+                <View style={styles.cardTopActions}>
                   {primary.load?.deliveryCity && (
                     <TouchableOpacity
                       style={styles.navBtn}
                       onPress={() => openNavigation(primary.load.deliveryCity)}
+                      activeOpacity={0.7}
                     >
-                      <Text style={styles.navBtnText}>🧭</Text>
+                      <Text style={styles.navBtnEmoji}>🧭</Text>
                     </TouchableOpacity>
                   )}
                   <StatusBadge status={primary.status} />
                 </View>
               </View>
               <Text style={styles.route}>{primary.load?.pickupCity} → {primary.load?.deliveryCity}</Text>
+
               <View style={styles.divider} />
+
               <Row label="Truck" value={primary.truck?.plateNumber} />
               <Row label="Cargo weight" value={`${primary.load?.weightTons}t`} />
               <Row label="Your pay" value={formatPrice(primary.agreedPrice, primary.load?.currency)} bold />
               {primary.load?.description && (
                 <Row label="Notes" value={primary.load.description} />
               )}
+
               {(primary.sender?.phone || primary.load?.sender?.phone) && (
                 <View style={styles.callSection}>
                   <Text style={styles.senderLabel}>
@@ -255,8 +267,9 @@ export default function DriverActiveScreen({ navigation }: any) {
                   <TouchableOpacity
                     style={styles.callBtn}
                     onPress={() => Linking.openURL('tel:' + (primary.sender?.phone || primary.load?.sender?.phone))}
+                    activeOpacity={0.7}
                   >
-                    <Text style={styles.callBtnText}>📞 Call sender</Text>
+                    <Text style={styles.callBtnText}>📞  Call sender</Text>
                   </TouchableOpacity>
                 </View>
               )}
@@ -268,7 +281,7 @@ export default function DriverActiveScreen({ navigation }: any) {
                 <Text style={styles.permWarnText}>
                   Location permission denied. Enable it in settings to share your live position.
                 </Text>
-                <TouchableOpacity onPress={requestLocationPermission}>
+                <TouchableOpacity onPress={requestLocationPermission} activeOpacity={0.7}>
                   <Text style={styles.permWarnLink}>Grant permission</Text>
                 </TouchableOpacity>
               </View>
@@ -292,6 +305,7 @@ export default function DriverActiveScreen({ navigation }: any) {
                 <Text style={styles.actionHint}>Cargo is on the road. Update status as you go.</Text>
                 <TouchableOpacity
                   style={styles.deliverBtn}
+                  activeOpacity={0.8}
                   onPress={() => {
                     Alert.alert(
                       'Confirm delivery',
@@ -316,7 +330,7 @@ export default function DriverActiveScreen({ navigation }: any) {
             <Text style={styles.sectionLabel}>UP NEXT</Text>
             {upNext.map(b => (
               <View key={b.id} style={styles.upNextCard}>
-                <View style={{ flex: 1 }}>
+                <View style={styles.upNextInfo}>
                   <Text style={styles.upNextTitle} numberOfLines={1}>{b.load?.title}</Text>
                   <Text style={styles.upNextRoute}>{b.load?.pickupCity} → {b.load?.deliveryCity}</Text>
                 </View>
@@ -334,56 +348,330 @@ function Row({ label, value, bold }: { label: string; value: any; bold?: boolean
   return (
     <View style={rowS.row}>
       <Text style={rowS.label}>{label}</Text>
-      <Text style={[rowS.value, bold && { fontWeight: '500', color: theme.accent }]}>{value}</Text>
+      <Text style={[rowS.value, bold && rowS.boldValue]}>{value}</Text>
     </View>
   );
 }
 
 const rowS = StyleSheet.create({
-  row:   { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 9, borderBottomWidth: 0.5, borderBottomColor: theme.border },
-  label: { fontSize: 13, color: theme.textMuted },
-  value: { fontSize: 13, color: theme.text, fontWeight: '400', maxWidth: '60%', textAlign: 'right' },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 0.5,
+    borderBottomColor: theme.border,
+  },
+  label: {
+    fontSize: 13,
+    color: theme.textMuted,
+    fontWeight: '400',
+  },
+  value: {
+    fontSize: 13,
+    color: theme.text,
+    fontWeight: '400',
+    maxWidth: '60%',
+    textAlign: 'right',
+  },
+  boldValue: {
+    fontWeight: '600',
+    color: theme.accent,
+  },
 });
 
 const styles = StyleSheet.create({
-  header:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14 },
-  avatar:       { width: 40, height: 40, borderRadius: 20, backgroundColor: theme.darkGreen, alignItems: 'center', justifyContent: 'center' },
-  avatarText:   { fontSize: 14, fontWeight: '500', color: theme.lightGreen },
-  greeting:     { fontSize: 11, color: theme.textMuted, fontWeight: '400' },
-  title:        { fontSize: 15, fontWeight: '500', color: theme.text },
-  content:      { padding: 16, paddingBottom: 40 },
-  trackingCard:   { backgroundColor: theme.surface, borderRadius: 14, padding: 16, marginBottom: 16 },
-  trackingHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  trackingDot:    { width: 10, height: 10, borderRadius: 5, backgroundColor: theme.accent },
-  trackingTitle:  { fontSize: 15, fontWeight: '500', color: theme.accent },
-  trackingRoute:  { fontSize: 14, fontWeight: '400', color: theme.text, marginBottom: 10 },
-  coordRow:       { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderTopWidth: 0.5, borderTopColor: theme.border },
-  coordLabel:     { fontSize: 11, fontWeight: '500', color: theme.textMuted },
-  coordValue:     { fontSize: 11, fontWeight: '500', color: theme.text, fontVariant: ['tabular-nums'] as any },
-  trackingHint:   { fontSize: 11, color: theme.textMuted, marginTop: 8, textAlign: 'center' },
-  locatingBox:    { backgroundColor: theme.warningDim, borderRadius: 10, padding: 10, alignItems: 'center', borderWidth: 0.5, borderColor: theme.warning },
-  locatingText:   { fontSize: 13, color: theme.warning },
-  card:         { backgroundColor: theme.surface, borderRadius: 14, padding: 16, marginBottom: 16 },
-  loadTitle:    { fontSize: 15, fontWeight: '500', color: theme.text },
-  route:        { fontSize: 14, color: theme.textMuted, marginBottom: 12 },
-  divider:      { height: 0.5, backgroundColor: theme.border, marginBottom: 4 },
-  callSection:  { marginTop: 14, paddingTop: 14, borderTopWidth: 0.5, borderTopColor: theme.border },
-  senderLabel:  { fontSize: 13, color: theme.textMuted, marginBottom: 8 },
-  callBtn:      { backgroundColor: theme.accentDim, borderRadius: 10, paddingVertical: 10, paddingHorizontal: 16, alignItems: 'center' },
-  callBtnText:  { fontSize: 13, fontWeight: '500', color: theme.accent },
-  permWarn:     { backgroundColor: theme.dangerDim, borderRadius: 12, padding: 14, borderWidth: 0.5, borderColor: theme.danger, marginBottom: 16 },
-  permWarnText: { fontSize: 13, color: theme.danger, lineHeight: 18 },
-  permWarnLink: { fontSize: 13, color: theme.danger, fontWeight: '500', marginTop: 8 },
-  navBtn:       { width: 32, height: 32, borderRadius: 16, backgroundColor: theme.surface2, alignItems: 'center', justifyContent: 'center' },
-  navBtnText:   { fontSize: 16 },
-  actions:      { gap: 10, marginBottom: 16 },
-  actionHint:   { fontSize: 13, color: theme.textMuted, textAlign: 'center', lineHeight: 18, marginBottom: 4 },
-  deliverBtn:   { backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
-  deliverBtnText: { color: theme.darkGreen, fontSize: 13, fontWeight: '500' },
-  upNextSection:  { marginTop: 8 },
-  sectionLabel:   { fontSize: 11, fontWeight: '500', color: theme.textMuted, textTransform: 'uppercase', letterSpacing: 0.9, marginBottom: 10 },
-  upNextCard:     { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.surface, borderRadius: 12, padding: 14, marginBottom: 8, gap: 12 },
-  upNextTitle:    { fontSize: 14, fontWeight: '500', color: theme.text },
-  upNextRoute:    { fontSize: 13, color: theme.textMuted, marginTop: 2 },
-  upNextPrice:    { fontSize: 14, fontWeight: '500', color: theme.accent },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: theme.bg,
+    borderBottomWidth: 0.5,
+    borderBottomColor: theme.border,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: theme.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: theme.accent,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  avatarText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: theme.accentText,
+  },
+  driverLabel: {
+    fontSize: 11,
+    color: theme.textMuted,
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  driverName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: theme.text,
+    marginTop: 1,
+  },
+  scrollView: {
+    flex: 1,
+    backgroundColor: theme.bg,
+  },
+  content: {
+    padding: 20,
+    paddingBottom: 40,
+  },
+  trackingCard: {
+    backgroundColor: theme.blueDim,
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: theme.accentBorder,
+  },
+  trackingHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 10,
+  },
+  trackingDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: theme.accent,
+  },
+  trackingTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: theme.accent,
+  },
+  trackingRoute: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: theme.text,
+    marginBottom: 12,
+  },
+  coordRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderTopWidth: 0.5,
+    borderTopColor: theme.accentBorder,
+  },
+  coordLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: theme.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  coordValue: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: theme.text,
+    fontVariant: ['tabular-nums'] as any,
+  },
+  trackingHint: {
+    fontSize: 11,
+    color: theme.textMuted,
+    marginTop: 10,
+    textAlign: 'center',
+    lineHeight: 16,
+  },
+  locatingBox: {
+    backgroundColor: theme.warningDim,
+    borderRadius: 12,
+    padding: 12,
+    alignItems: 'center',
+    borderWidth: 0.5,
+    borderColor: theme.warning,
+  },
+  locatingText: {
+    fontSize: 13,
+    color: theme.warning,
+    fontWeight: '500',
+  },
+  card: {
+    backgroundColor: theme.bg,
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: theme.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  cardTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 6,
+  },
+  cardTopActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  loadTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: theme.text,
+    flex: 1,
+    marginRight: 12,
+  },
+  route: {
+    fontSize: 14,
+    color: theme.textSecondary,
+    marginBottom: 14,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: theme.border,
+    marginBottom: 4,
+  },
+  callSection: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: theme.border,
+  },
+  senderLabel: {
+    fontSize: 13,
+    color: theme.textMuted,
+    marginBottom: 10,
+    fontWeight: '400',
+  },
+  callBtn: {
+    backgroundColor: theme.accentDim,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: theme.accentBorder,
+  },
+  callBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.accent,
+  },
+  permWarn: {
+    backgroundColor: theme.dangerDim,
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: theme.danger,
+    marginBottom: 16,
+  },
+  permWarnText: {
+    fontSize: 13,
+    color: theme.danger,
+    lineHeight: 19,
+  },
+  permWarnLink: {
+    fontSize: 13,
+    color: theme.danger,
+    fontWeight: '600',
+    marginTop: 10,
+    textDecorationLine: 'underline',
+  },
+  navBtn: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: theme.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: theme.border,
+  },
+  navBtnEmoji: {
+    fontSize: 16,
+  },
+  actions: {
+    gap: 12,
+    marginBottom: 16,
+  },
+  actionHint: {
+    fontSize: 13,
+    color: theme.textMuted,
+    textAlign: 'center',
+    lineHeight: 19,
+    marginBottom: 4,
+  },
+  deliverBtn: {
+    backgroundColor: theme.accent,
+    borderRadius: 14,
+    paddingVertical: 15,
+    alignItems: 'center',
+    shadowColor: theme.accent,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  deliverBtnText: {
+    color: theme.accentText,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  upNextSection: {
+    marginTop: 12,
+  },
+  sectionLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: theme.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 12,
+  },
+  upNextCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: theme.bg,
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 10,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: theme.border,
+  },
+  upNextInfo: {
+    flex: 1,
+  },
+  upNextTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: theme.text,
+  },
+  upNextRoute: {
+    fontSize: 13,
+    color: theme.textMuted,
+    marginTop: 3,
+  },
+  upNextPrice: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: theme.accent,
+  },
 });
