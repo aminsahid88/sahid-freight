@@ -143,6 +143,8 @@ export const getBookingById = async (req: AuthRequest, res: Response) => {
         truck: true,
         owner: { select: { id: true, fullName: true, phone: true } },
         sender: { select: { id: true, fullName: true, phone: true } },
+        driver: { select: { id: true, fullName: true, phone: true } },
+        payment: true,
       },
     });
     if (!booking) return res.status(404).json({ message: "Booking not found" });
@@ -218,6 +220,9 @@ export const markDelivered = async (req: AuthRequest, res: Response) => {
     const isOwner2 = booking.ownerId === req.user!.userId;
     const isDriver2 = (booking as any).driverId === req.user!.userId;
     if (!isOwner2 && !isDriver2) return res.status(403).json({ message: "Not your booking" });
+    if (booking.status !== "IN_TRANSIT") {
+      return res.status(400).json({ message: "Booking must be in transit before it can be marked delivered." });
+    }
 
     const updated = await prisma.booking.update({
       where: { id },
