@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  View, Text, StyleSheet, FlatList,
+  View, Text, StyleSheet, FlatList, TouchableOpacity,
   RefreshControl, StatusBar,
 } from 'react-native';
 import ScreenWrapper from '../../components/ScreenWrapper';
@@ -11,7 +11,7 @@ import { SkeletonList } from '../../components/LoadingSkeleton';
 import { EmptyState } from '../../components/EmptyState';
 import { formatPrice } from '../../lib/constants';
 
-export default function DriverHistoryScreen() {
+export default function DriverHistoryScreen({ navigation }: any) {
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -57,7 +57,11 @@ export default function DriverHistoryScreen() {
           contentContainerStyle={styles.list}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.accent} />}
           renderItem={({ item }) => (
-            <View style={styles.card}>
+            <TouchableOpacity
+              style={styles.card}
+              onPress={() => navigation.navigate('BookingDetail', { bookingId: item.id })}
+              activeOpacity={0.75}
+            >
               <View style={styles.cardTop}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.cardTitle} numberOfLines={1}>{item.load?.title || 'Load'}</Text>
@@ -70,7 +74,7 @@ export default function DriverHistoryScreen() {
                 <Text style={styles.cardTruck}>{item.truck?.plateNumber}</Text>
                 <Text style={styles.cardPrice}>{formatPrice(item.agreedPrice, item.currency)}</Text>
               </View>
-            </View>
+            </TouchableOpacity>
           )}
         />
       )}

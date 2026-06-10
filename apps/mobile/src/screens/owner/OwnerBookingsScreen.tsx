@@ -106,7 +106,7 @@ export default function OwnerBookingsScreen({ navigation, route }: any) {
             const isExpanded = expanded === item.id;
             return (
               <View style={styles.card}>
-                <TouchableOpacity onPress={() => setExpanded(isExpanded ? null : item.id)} activeOpacity={0.8}>
+                <TouchableOpacity onPress={() => navigation.navigate('BookingDetail', { bookingId: item.id })} activeOpacity={0.8}>
                   <View style={styles.cardTop}>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.loadTitle} numberOfLines={1}>{item.load?.title}</Text>

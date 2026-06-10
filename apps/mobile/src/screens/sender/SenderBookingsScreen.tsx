@@ -74,7 +74,11 @@ export default function SenderBookingsScreen({ navigation }: any) {
               const pmt = item.payment;
               const isPaid = pmt?.status === 'COMPLETED';
               return (
-                <View style={styles.card}>
+                <TouchableOpacity
+                  style={styles.card}
+                  onPress={() => navigation.navigate('BookingDetail', { bookingId: item.id })}
+                  activeOpacity={0.75}
+                >
                   <View style={styles.cardHeader}>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.cardTitle} numberOfLines={1}>{item.load?.title}</Text>
@@ -106,7 +110,7 @@ export default function SenderBookingsScreen({ navigation }: any) {
                       <Text style={styles.trackBtnText}>📍 Track Shipment</Text>
                     </TouchableOpacity>
                   )}
-                </View>
+                </TouchableOpacity>
               );
             }
             return (

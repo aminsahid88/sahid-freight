@@ -329,13 +329,18 @@ export default function DriverActiveScreen({ navigation }: any) {
           <View style={styles.upNextSection}>
             <Text style={styles.sectionLabel}>UP NEXT</Text>
             {upNext.map(b => (
-              <View key={b.id} style={styles.upNextCard}>
+              <TouchableOpacity
+                key={b.id}
+                style={styles.upNextCard}
+                onPress={() => navigation.navigate('BookingDetail', { bookingId: b.id })}
+                activeOpacity={0.75}
+              >
                 <View style={styles.upNextInfo}>
                   <Text style={styles.upNextTitle} numberOfLines={1}>{b.load?.title}</Text>
                   <Text style={styles.upNextRoute}>{b.load?.pickupCity} → {b.load?.deliveryCity}</Text>
                 </View>
                 <Text style={styles.upNextPrice}>{formatPrice(b.agreedPrice, b.load?.currency)}</Text>
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
         )}
