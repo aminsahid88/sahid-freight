@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#030b05"
+      "backgroundColor": "#0A1F44"
     },
     "ios": {
       "supportsTablet": true,
@@ -28,8 +28,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#030b05"
+        "foregroundImage": "./assets/adaptive-icon-foreground.png",
+        "backgroundColor": "#0A1F44"
       },
       "package": "com.sahidfreight.app",
       "versionCode": 1,

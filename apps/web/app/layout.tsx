@@ -10,9 +10,15 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   icons: {
-    icon: "/sahidfreight-icon.png",
-    apple: "/sahidfreight-icon.png",
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon.ico" },
+    ],
+    apple: "/apple-touch-icon.png",
   },
+  manifest: "/site.webmanifest",
   title: "Sahid Freight — Move Cargo. Connect East Africa.",
   description: "The fastest way to connect cargo senders with trusted truck owners across Ethiopia, Somalia, and Djibouti.",
 };
@@ -21,6 +27,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  themeColor: "#0A1F44",
 };
 
 export default function RootLayout({

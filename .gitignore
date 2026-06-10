@@ -13,3 +13,7 @@ build/
 
 # Firebase Admin SDK service account — must be loaded from env, never committed
 apps/api/src/utils/firebase-service-account.json
+
+# Pre-brandpack asset backups — kept locally, not tracked
+apps/mobile/assets/_backup_pre_brandpack/
+apps/web/public/_backup_pre_brandpack/
