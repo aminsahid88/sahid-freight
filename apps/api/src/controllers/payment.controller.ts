@@ -276,8 +276,33 @@ export const getPaymentByBooking = async (req: AuthRequest, res: Response) => {
 };
 
 // ── POST /payments/webhook/chapa (public) ────────────────────────────────────
+// Verifies the Chapa-Signature header against the raw request body using
+// CHAPA_WEBHOOK_SECRET. Without a valid signature the payload is rejected.
 export const chapaWebhook = async (req: any, res: Response) => {
   try {
+    const secret = process.env.CHAPA_WEBHOOK_SECRET;
+    if (!secret) {
+      console.error('Chapa webhook: CHAPA_WEBHOOK_SECRET not configured');
+      return res.status(500).json({ message: 'Webhook not configured' });
+    }
+
+    const rawBody: Buffer | undefined = req.rawBody;
+    if (!rawBody) {
+      return res.status(400).json({ message: 'Missing body' });
+    }
+
+    const headerSig = (req.headers['chapa-signature'] || req.headers['x-chapa-signature']) as string | undefined;
+    if (!headerSig) {
+      return res.status(401).json({ message: 'Missing signature' });
+    }
+
+    const expected = crypto.createHmac('sha256', secret).update(rawBody).digest('hex');
+    const sigBuf = Buffer.from(headerSig, 'utf8');
+    const expBuf = Buffer.from(expected, 'utf8');
+    if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
+      return res.status(401).json({ message: 'Invalid signature' });
+    }
+
     const { trx_ref, status } = req.body;
     if (!trx_ref) return res.status(400).json({ message: 'Missing trx_ref' });
 

@@ -1,7 +1,8 @@
 import { Router, Request, Response, NextFunction } from "express";
 import multer from "multer";
 import { uploadDocument, getMyDocuments } from "../controllers/upload.controller";
-import { protect } from "../middleware/auth.middleware";
+import { protect, AuthRequest } from "../middleware/auth.middleware";
+import prisma from "../utils/prisma";
 
 const storage = multer.memoryStorage();
 const upload = multer({
@@ -28,13 +29,33 @@ router.get("/", protect, getMyDocuments);
 
 export default router;
 
-// Get presigned URL for a document
-router.get("/presign", protect, async (req: any, res: any) => {
+// Get presigned URL for a document.
+// The requested URL must belong to a verification document the user owns
+// (via senderProfile or truckOwnerProfile). Admins may presign any document.
+router.get("/presign", protect, async (req: AuthRequest, res: Response) => {
   try {
     const { getPresignedUrl } = require("../utils/s3");
     const { url } = req.query;
-    if (!url) return res.status(400).json({ message: "url is required" });
-    const presignedUrl = await getPresignedUrl(url as string, 900);
+    if (!url || typeof url !== "string") return res.status(400).json({ message: "url is required" });
+
+    const userId = req.user!.userId;
+    const isAdmin = req.user!.role === "ADMIN";
+
+    if (!isAdmin) {
+      const doc = await prisma.verificationDocument.findFirst({
+        where: {
+          fileUrl: url,
+          OR: [
+            { senderProfile: { userId } },
+            { truckOwnerProfile: { userId } },
+          ],
+        },
+        select: { id: true },
+      });
+      if (!doc) return res.status(403).json({ message: "Not authorized for this document" });
+    }
+
+    const presignedUrl = await getPresignedUrl(url, 900);
     return res.json({ url: presignedUrl });
   } catch (error) {
     console.error(error);

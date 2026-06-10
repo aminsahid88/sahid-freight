@@ -7,3 +7,9 @@ dist/
 build/
 .DS_Store
 .vercel
+
+# Expo local state (devices.json, prebuild cache, web image cache)
+.expo/
+
+# Firebase Admin SDK service account — must be loaded from env, never committed
+apps/api/src/utils/firebase-service-account.json

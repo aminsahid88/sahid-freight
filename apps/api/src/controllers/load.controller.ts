@@ -185,6 +185,11 @@ export const getLoad = async (req: AuthRequest, res: Response) => {
 
     if (!load) return res.status(404).json({ message: "Load not found" });
 
+    // DRAFT loads are private to the sender (and admins).
+    if (load.status === "DRAFT" && load.senderId !== req.user!.userId && req.user!.role !== "ADMIN") {
+      return res.status(404).json({ message: "Load not found" });
+    }
+
     return res.status(200).json({ load });
   } catch (error) {
     console.error(error);

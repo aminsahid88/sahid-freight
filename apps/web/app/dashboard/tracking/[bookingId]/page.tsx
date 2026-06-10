@@ -3,7 +3,8 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
 import api from "@/lib/api";
-import { io, Socket } from "socket.io-client";
+import { Socket } from "socket.io-client";
+import { connectAuthedSocket } from "@/lib/socket";
 
 const GOOGLE_MAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || "";
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || "https://sahid-freight-production.up.railway.app").replace("/api", "");
@@ -136,10 +137,11 @@ export default function TrackingPage() {
       strokeOpacity: 1,
     });
 
-    // Connect socket
-    const socket = io(API_URL);
+    // Connect socket (JWT attached; refreshes once on auth failure)
+    const socket = connectAuthedSocket();
     socketRef.current = socket;
-    socket.emit("join_tracking", bookingId);
+    socket.on("connect", () => socket.emit("join_tracking", bookingId));
+    socket.on("tracking_error", (e: any) => setError(e?.message || "Tracking error"));
 
     socket.on("location_updated", (data: any) => {
       setLocation(data);
