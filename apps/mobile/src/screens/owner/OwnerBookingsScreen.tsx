@@ -10,6 +10,7 @@ import { formatPrice } from '../../lib/constants';
 import { StatusBadge } from '../../components/StatusBadge';
 import { SkeletonList } from '../../components/LoadingSkeleton';
 import { EmptyState } from '../../components/EmptyState';
+import { FilterPill } from '../../components/FilterPill';
 import { NotificationBell } from '../../components/NotificationBell';
 
 const FILTERS = ['ALL', 'PENDING', 'ACCEPTED', 'IN_TRANSIT', 'COMPLETED', 'REJECTED'];
@@ -66,12 +67,11 @@ export default function OwnerBookingsScreen({ navigation, route }: any) {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filterRow}
           renderItem={({ item }) => (
-            <TouchableOpacity
-              style={[styles.chip, filter === item && styles.chipActive]}
+            <FilterPill
+              label={item.replace(/_/g, ' ')}
+              active={filter === item}
               onPress={() => setFilter(item)}
-            >
-              <Text style={[styles.chipText, filter === item && styles.chipTextActive]}>{item.replace(/_/g, ' ')}</Text>
-            </TouchableOpacity>
+            />
           )}
         />
       </View>
@@ -118,10 +118,6 @@ const styles = StyleSheet.create({
   title:          { fontSize: 22, fontWeight: '500', color: theme.text },
   filterWrap:     { height: 52, justifyContent: 'center' },
   filterRow:      { paddingHorizontal: 16, gap: 8, alignItems: 'center' },
-  chip:           { height: 36, paddingHorizontal: 16, borderRadius: 999, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.surface2 },
-  chipActive:     { backgroundColor: theme.accent },
-  chipText:       { fontSize: 13, fontWeight: '500', color: theme.textMuted },
-  chipTextActive: { color: theme.darkGreen, fontWeight: '500' },
   list:           { padding: 16, paddingTop: 4 },
   card:           { backgroundColor: theme.surface, borderRadius: 14, padding: 16, marginBottom: 10 },
   cardTop:        { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 10 },

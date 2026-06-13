@@ -9,6 +9,7 @@ import { TRUCK_TYPES, COUNTRIES } from '../../lib/constants';
 import { LoadCard } from '../../components/LoadCard';
 import { SkeletonList } from '../../components/LoadingSkeleton';
 import { EmptyState } from '../../components/EmptyState';
+import { FilterPill } from '../../components/FilterPill';
 import { NotificationBell } from '../../components/NotificationBell';
 import { theme } from '../../theme';
 
@@ -123,14 +124,11 @@ export default function AvailableLoadsScreen({ navigation }: any) {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filterRow}
           renderItem={({ item }) => (
-            <TouchableOpacity
-              style={[styles.chip, truckFilter === item && styles.chipActive]}
+            <FilterPill
+              label={item.replace(/_/g, ' ')}
+              active={truckFilter === item}
               onPress={() => setTruckFilter(item)}
-            >
-              <Text style={[styles.chipText, truckFilter === item && styles.chipTextActive]}>
-                {item.replace(/_/g, ' ')}
-              </Text>
-            </TouchableOpacity>
+            />
           )}
         />
       </View>

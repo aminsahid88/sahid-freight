@@ -11,6 +11,7 @@ import { StatusBadge } from '../../components/StatusBadge';
 import { SkeletonList } from '../../components/LoadingSkeleton';
 import { formatPrice } from '../../lib/constants';
 import { EmptyState } from '../../components/EmptyState';
+import { FilterPill } from '../../components/FilterPill';
 import { NotificationBell } from '../../components/NotificationBell';
 import { formatApiError } from '../../lib/errors';
 
@@ -155,14 +156,11 @@ export default function MyLoadsScreen({ navigation }: any) {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 16, gap: 8, alignItems: 'center' }}
           renderItem={({ item }) => (
-            <TouchableOpacity
-              style={[styles.chip, filter === item && styles.chipActive]}
+            <FilterPill
+              label={item.replace(/_/g, ' ')}
+              active={filter === item}
               onPress={() => setFilter(item)}
-            >
-              <Text style={[styles.chipText, filter === item && styles.chipTextActive]}>
-                {item.replace(/_/g, ' ')}
-              </Text>
-            </TouchableOpacity>
+            />
           )}
         />
       </View>
@@ -269,10 +267,6 @@ const styles = StyleSheet.create({
   newBtn:          { backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 13, paddingHorizontal: 16 },
   newBtnText:      { color: theme.darkGreen, fontSize: 13, fontWeight: '500' },
   filterWrap:      { height: 52, justifyContent: 'center', paddingVertical: 0 },
-  chip:            { height: 36, borderRadius: 999, paddingHorizontal: 16, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.surface2 },
-  chipActive:      { backgroundColor: theme.accent },
-  chipText:        { fontSize: 13, fontWeight: '500', color: theme.textMuted },
-  chipTextActive:  { color: theme.darkGreen },
   list:            { padding: 16, paddingTop: 8 },
   cardWrap:        { backgroundColor: theme.surface, borderRadius: 14, padding: 16, marginBottom: 10 },
   cardTop:         { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 12, gap: 8 },
