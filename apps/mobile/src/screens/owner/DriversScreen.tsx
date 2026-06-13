@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
   inviteBtnText:{ color: theme.darkGreen, fontSize: 13, fontWeight: '500' },
   list:         { padding: 16, paddingTop: 4 },
   card:         { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.surface, borderRadius: 14, padding: 16, marginBottom: 10, gap: 12 },
-  avatarBox:    { width: 44, height: 44, borderRadius: 22, backgroundColor: theme.darkGreen, alignItems: 'center', justifyContent: 'center' },
+  avatarBox:    { width: 44, height: 44, borderRadius: 22, backgroundColor: theme.surface2, alignItems: 'center', justifyContent: 'center' },
   avatarText:   { fontSize: 15, fontWeight: '500', color: theme.lightGreen },
   driverName:   { fontSize: 14, fontWeight: '500', color: theme.text },
   driverPhone:  { fontSize: 13, color: theme.textMuted, marginTop: 2 },

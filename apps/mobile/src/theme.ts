@@ -16,12 +16,18 @@ export const lightTheme = {
   textSecondary: '#475569',
   textMuted: '#94A3B8',
 
-  // Primary action (blue)
-  accent: '#2563EB',
-  accentHover: '#1D4ED8',
-  accentDim: 'rgba(37,99,235,0.08)',
-  accentBorder: 'rgba(37,99,235,0.2)',
+  // Primary action (brand blue — matches logo wave stroke)
+  accent: '#3D7BFF',
+  accentHover: '#2C5FE0',
+  accentDim: 'rgba(61,123,255,0.08)',
+  accentBorder: 'rgba(61,123,255,0.2)',
   accentText: '#FFFFFF',
+
+  // Brand surfaces
+  navy: '#0A1F44',
+  navyDeep: '#13316B',
+  teal: '#5BE3C4',
+  tint: '#E8F0FF',
 
   // Secondary / energy (orange)
   orange: '#F97316',
@@ -34,12 +40,12 @@ export const lightTheme = {
   warningDim: 'rgba(245,158,11,0.08)',
   danger: '#DC2626',
   dangerDim: 'rgba(220,38,38,0.08)',
-  blue: '#2563EB',
-  blueDim: 'rgba(37,99,235,0.08)',
+  blue: '#3D7BFF',
+  blueDim: 'rgba(61,123,255,0.08)',
 
   // Legacy aliases (keep components working during migration)
   darkGreen: '#FFFFFF',
-  lightGreen: '#2563EB',
+  lightGreen: '#3D7BFF',
 
   // Inputs
   inputBg: '#F8FAFC',
@@ -71,12 +77,18 @@ export const darkTheme = {
   textSecondary: '#CBD5E1',
   textMuted: '#94A3B8',
 
-  // Primary action (blue — brighter for dark)
-  accent: '#3B82F6',
-  accentHover: '#2563EB',
-  accentDim: 'rgba(59,130,246,0.12)',
-  accentBorder: 'rgba(59,130,246,0.25)',
+  // Primary action (brand blue — same hex as light; contrast is fine on dark slate)
+  accent: '#3D7BFF',
+  accentHover: '#2C5FE0',
+  accentDim: 'rgba(61,123,255,0.12)',
+  accentBorder: 'rgba(61,123,255,0.25)',
   accentText: '#FFFFFF',
+
+  // Brand surfaces
+  navy: '#0A1F44',
+  navyDeep: '#13316B',
+  teal: '#5BE3C4',
+  tint: 'rgba(61,123,255,0.14)',
 
   // Secondary / energy (orange)
   orange: '#FB923C',
@@ -89,12 +101,12 @@ export const darkTheme = {
   warningDim: 'rgba(251,191,36,0.1)',
   danger: '#EF4444',
   dangerDim: 'rgba(239,68,68,0.1)',
-  blue: '#3B82F6',
-  blueDim: 'rgba(59,130,246,0.1)',
+  blue: '#3D7BFF',
+  blueDim: 'rgba(61,123,255,0.1)',
 
   // Legacy aliases
-  darkGreen: '#0F172A',
-  lightGreen: '#3B82F6',
+  darkGreen: '#FFFFFF',
+  lightGreen: '#3D7BFF',
 
   // Inputs
   inputBg: '#1E293B',
@@ -116,10 +128,10 @@ export type Theme = typeof darkTheme
 
 // Status badge colors (same for both themes)
 export const statusColors: Record<string, { bg: string; color: string }> = {
-  OPEN:       { bg: 'rgba(37,99,235,0.1)',   color: '#3B82F6' },
+  OPEN:       { bg: 'rgba(61,123,255,0.1)',  color: '#3D7BFF' },
   ACCEPTED:   { bg: 'rgba(34,197,94,0.1)',   color: '#22C55E' },
   IN_TRANSIT: { bg: 'rgba(245,158,11,0.1)',  color: '#F59E0B' },
-  BOOKED:     { bg: 'rgba(37,99,235,0.1)',   color: '#3B82F6' },
+  BOOKED:     { bg: 'rgba(61,123,255,0.1)',  color: '#3D7BFF' },
   DELIVERED:  { bg: 'rgba(34,197,94,0.1)',   color: '#22C55E' },
   COMPLETED:  { bg: 'rgba(34,197,94,0.1)',   color: '#22C55E' },
   PENDING:    { bg: 'rgba(245,158,11,0.1)',  color: '#F59E0B' },
