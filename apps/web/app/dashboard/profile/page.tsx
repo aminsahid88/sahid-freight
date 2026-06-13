@@ -244,13 +244,13 @@ export default function ProfilePage() {
               </div>
             </div>
           ) : user?.status === "DOCUMENTS_SUBMITTED" ? (
-            <div style={{ display: "flex", alignItems: "center", gap: "14px", padding: "16px", background: "#EFF6FF", borderRadius: "12px", border: "1px solid #BFDBFE" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "14px", padding: "16px", background: "#E8F0FF", borderRadius: "12px", border: "1px solid #BBD0FF" }}>
               <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(37,99,235,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3D7BFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               </div>
               <div>
                 <div style={{ fontSize: "14px", fontWeight: "700", color: "#1E40AF" }}>Under Review</div>
-                <div style={{ fontSize: "12px", color: "#3B82F6", marginTop: "2px" }}>Usually approved within 24 hours</div>
+                <div style={{ fontSize: "12px", color: "#3D7BFF", marginTop: "2px" }}>Usually approved within 24 hours</div>
               </div>
             </div>
           ) : (

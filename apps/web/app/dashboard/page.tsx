@@ -9,7 +9,7 @@ const A = "var(--accent)";
 
 const statusStyle: any = {
   OPEN:       { bg: "#F0FDF4", color: "#16A34A", border: "#BBF7D0", label: "Open" },
-  BOOKED:     { bg: "#EFF6FF", color: "#2563EB", border: "#BFDBFE", label: "Booked" },
+  BOOKED:     { bg: "#E8F0FF", color: "#3D7BFF", border: "#BBD0FF", label: "Booked" },
   IN_TRANSIT: { bg: "#FFF7ED", color: "#C2791A", border: "#FED7AA", label: "In Transit" },
   DELIVERED:  { bg: "#F0FDF4", color: "#15803D", border: "#86EFAC", label: "Delivered" },
   CANCELLED:  { bg: "#FEF2F2", color: "#DC2626", border: "#FECACA", label: "Cancelled" },
@@ -127,13 +127,13 @@ export default function DashboardPage() {
         </div>
       )}
       {user && !user.isVerified && user.status === "DOCUMENTS_SUBMITTED" && (
-        <div style={{ background: "#EFF6FF", border: "1px solid #BFDBFE", borderRadius: "14px", padding: "16px 20px", display: "flex", alignItems: "center", gap: "14px", marginBottom: "24px" }}>
+        <div style={{ background: "#E8F0FF", border: "1px solid #BBD0FF", borderRadius: "14px", padding: "16px 20px", display: "flex", alignItems: "center", gap: "14px", marginBottom: "24px" }}>
           <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(37,99,235,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3D7BFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           </div>
           <div>
             <div style={{ fontSize: "14px", fontWeight: "700", color: "#1E40AF" }}>Documents Under Review</div>
-            <div style={{ fontSize: "12px", color: "#3B82F6", marginTop: "2px" }}>Our team is reviewing your submission. You'll be notified within 24 hours.</div>
+            <div style={{ fontSize: "12px", color: "#3D7BFF", marginTop: "2px" }}>Our team is reviewing your submission. You'll be notified within 24 hours.</div>
           </div>
         </div>
       )}
@@ -156,7 +156,7 @@ export default function DashboardPage() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px", marginBottom: "24px" }}>
         {(user?.role === "CARGO_SENDER" ? [
           { label: "Total Loads", value: loads.length, sub: "all time", color: P, emoji: "📦", href: "/dashboard/loads" },
-          { label: "Active", value: activeLoads, sub: "open & booked", color: "#2563EB", emoji: "🔵", href: "/dashboard/loads" },
+          { label: "Active", value: activeLoads, sub: "open & booked", color: "#3D7BFF", emoji: "🔵", href: "/dashboard/loads" },
           { label: "In Transit", value: inTransitLoads, sub: "on the move", color: "#C2791A", emoji: "🚛", href: "/dashboard/bookings" },
           { label: "Delivered", value: deliveredLoads, sub: "completed", color: "#16A34A", emoji: "✅", href: "/dashboard/bookings" },
         ] : [

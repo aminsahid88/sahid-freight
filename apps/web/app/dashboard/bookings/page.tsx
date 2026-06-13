@@ -179,7 +179,7 @@ export default function BookingsPage() {
     ACCEPTED:  { bg: "#f0fdf4", color: "#16a34a", border: "#bbf7d0" },
     REJECTED:  { bg: "#fef2f2", color: "#dc2626", border: "#fecaca" },
     CANCELLED: { bg: "#f9fafb", color: "#6b7280", border: "#e5e7eb" },
-    COMPLETED: { bg: "#eff6ff", color: "#2563eb", border: "#bfdbfe" },
+    COMPLETED: { bg: "#E8F0FF", color: "#3D7BFF", border: "#BBD0FF" },
   };
 
   const tabs = [
@@ -387,7 +387,7 @@ export default function BookingsPage() {
             </div>
 
             {/* Waafi */}
-            <div style={{ border: "1.5px solid #bfdbfe", borderRadius: "12px", padding: "16px", marginBottom: "12px" }}>
+            <div style={{ border: "1.5px solid #BBD0FF", borderRadius: "12px", padding: "16px", marginBottom: "12px" }}>
               <div style={{ fontSize: "14px", fontWeight: "700", color: "var(--primary)", marginBottom: "4px" }}>📱 Pay with Waafi</div>
               <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "12px" }}>For EVC Plus / Telesom ZAAD (USD)</div>
               <input
@@ -399,7 +399,7 @@ export default function BookingsPage() {
               <button
                 onClick={() => handleInitiatePayment(paymentModal, "WAAFI", waafiPhone)}
                 disabled={paymentLoading || !waafiPhone.trim()}
-                style={{ width: "100%", padding: "11px", borderRadius: "9px", border: "none", background: "#2563eb", color: "#fff", fontSize: "13px", fontWeight: "700", cursor: "pointer", opacity: (!waafiPhone.trim() || paymentLoading) ? 0.6 : 1 }}>
+                style={{ width: "100%", padding: "11px", borderRadius: "9px", border: "none", background: "#3D7BFF", color: "#fff", fontSize: "13px", fontWeight: "700", cursor: "pointer", opacity: (!waafiPhone.trim() || paymentLoading) ? 0.6 : 1 }}>
                 Send Payment Request
               </button>
             </div>

@@ -14,7 +14,7 @@ interface Stats {
 }
 
 const CARDS: { key: keyof Stats; label: string; color: string }[] = [
-  { key: "totalUsers", label: "Total Users", color: "#2563eb" },
+  { key: "totalUsers", label: "Total Users", color: "#3D7BFF" },
   { key: "totalTrucks", label: "Total Trucks", color: "#F97316" },
   { key: "totalLoads", label: "Total Loads", color: "#7c3aed" },
   { key: "totalBookings", label: "Total Bookings", color: "#16a34a" },
@@ -169,15 +169,15 @@ export default function AdminDashboard() {
               onClick={() => router.push("/admin/documents")}
               className="w-full text-left rounded-xl p-4 flex items-center justify-between transition-shadow hover:shadow-md"
               style={{
-                background: "#eff6ff",
-                border: "1px solid #bfdbfe",
+                background: "#E8F0FF",
+                border: "1px solid #BBD0FF",
                 cursor: "pointer",
               }}
             >
               <div className="flex items-center gap-3">
                 <div
                   className="w-10 h-10 rounded-lg flex items-center justify-center text-lg font-bold"
-                  style={{ background: "#2563eb", color: "#fff" }}
+                  style={{ background: "#3D7BFF", color: "#fff" }}
                 >
                   {stats.pendingDocuments}
                 </div>
@@ -188,7 +188,7 @@ export default function AdminDashboard() {
                   >
                     Pending Documents
                   </div>
-                  <div className="text-xs" style={{ color: "#2563eb" }}>
+                  <div className="text-xs" style={{ color: "#3D7BFF" }}>
                     Documents awaiting review
                   </div>
                 </div>
@@ -198,7 +198,7 @@ export default function AdminDashboard() {
                 height="20"
                 viewBox="0 0 24 24"
                 fill="none"
-                stroke="#2563eb"
+                stroke="#3D7BFF"
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"

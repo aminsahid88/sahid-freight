@@ -111,10 +111,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return (
       <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
         <div style={{ background: "#fff", borderRadius: "20px", padding: "36px 32px", maxWidth: "380px", width: "100%", textAlign: "center" }}>
-          <div style={{ width: "60px", height: "60px", borderRadius: "16px", background: isPending ? "#FFFBEB" : "#EFF6FF", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
+          <div style={{ width: "60px", height: "60px", borderRadius: "16px", background: isPending ? "#FFFBEB" : "#E8F0FF", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
             {isPending
               ? <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={A} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
-              : <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              : <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3D7BFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             }
           </div>
           <h3 style={{ fontSize: "18px", fontWeight: "800", color: P, margin: "0 0 10px" }}>

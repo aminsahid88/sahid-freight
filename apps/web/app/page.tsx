@@ -2,9 +2,9 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-const P = "var(--primary)";   // primary forest green
-const A = "var(--accent)";   // accent amber
-const BG = "var(--bg)";  // off-white background
+const P = "var(--navy)";     // brand navy
+const A = "var(--accent)";   // brand blue
+const BG = "var(--bg)";      // off-white background
 const SRF = "var(--surface)"; // surface white
 
 export default function LandingPage() {
@@ -27,7 +27,7 @@ export default function LandingPage() {
     <div style={{ fontFamily: "var(--font-inter, Inter, system-ui, sans-serif)", background: BG, color: "var(--text)", overflowX: "hidden", width: "100%" }}>
 
       {/* ── NAVBAR ──────────────────────────────────── */}
-      <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000, background: "rgba(27,58,45,0.97)", backdropFilter: "blur(12px)", padding: "0 24px", height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between", boxSizing: "border-box" }}>
+      <nav style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000, background: "rgba(10,31,68,0.97)", backdropFilter: "blur(12px)", padding: "0 24px", height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between", boxSizing: "border-box" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <img src="/logo.svg" alt="Sahid Freight" style={{ height: "38px", width: "38px", objectFit: "contain", borderRadius: "8px" }} />
           <span style={{ fontSize: "20px", fontWeight: "800", color: "#fff", letterSpacing: "-0.5px" }}>Sahid Freight</span>
@@ -39,16 +39,16 @@ export default function LandingPage() {
       </nav>
 
       {/* ── HERO ─────────────────────────────────────── */}
-      <section style={{ minHeight: "100vh", background: `linear-gradient(150deg, ${P} 0%, #0E2419 55%, #162E20 100%)`, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden", padding: "130px 24px 80px", boxSizing: "border-box" }}>
+      <section style={{ minHeight: "100vh", background: `linear-gradient(150deg, ${P} 0%, #13316B 55%, #0A1F44 100%)`, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden", padding: "130px 24px 80px", boxSizing: "border-box" }}>
         {/* Dot grid */}
         <div style={{ position: "absolute", inset: 0, opacity: 0.06, backgroundImage: `radial-gradient(circle, ${A} 1px, transparent 1px)`, backgroundSize: "36px 36px" }} />
         {/* Glow blobs */}
-        <div style={{ position: "absolute", top: "15%", right: "8%", width: "480px", height: "480px", background: `radial-gradient(circle, rgba(232,160,32,0.18) 0%, transparent 70%)`, borderRadius: "50%", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: "8%", left: "3%", width: "320px", height: "320px", background: `radial-gradient(circle, rgba(232,160,32,0.09) 0%, transparent 70%)`, borderRadius: "50%", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: "15%", right: "8%", width: "480px", height: "480px", background: `radial-gradient(circle, rgba(61,123,255,0.18) 0%, transparent 70%)`, borderRadius: "50%", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", bottom: "8%", left: "3%", width: "320px", height: "320px", background: `radial-gradient(circle, rgba(61,123,255,0.09) 0%, transparent 70%)`, borderRadius: "50%", pointerEvents: "none" }} />
 
         <div style={{ maxWidth: "860px", textAlign: "center", position: "relative", zIndex: 1 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(232,160,32,0.15)", border: "1px solid rgba(232,160,32,0.35)", borderRadius: "99px", padding: "6px 18px", marginBottom: "36px" }}>
-            <span style={{ width: "7px", height: "7px", background: "#4ade80", borderRadius: "50%", boxShadow: "0 0 6px #4ade80", display: "inline-block" }} />
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(61,123,255,0.15)", border: "1px solid rgba(61,123,255,0.35)", borderRadius: "99px", padding: "6px 18px", marginBottom: "36px" }}>
+            <span style={{ width: "7px", height: "7px", background: "#5BE3C4", borderRadius: "50%", boxShadow: "0 0 6px #5BE3C4", display: "inline-block" }} />
             <span style={{ color: A, fontSize: "13px", fontWeight: "600" }}>Now live in Ethiopia, Somalia & Djibouti</span>
           </div>
 
@@ -62,7 +62,7 @@ export default function LandingPage() {
           </p>
 
           <div className="hero-btns" style={{ display: "flex", gap: "14px", justifyContent: "center", flexWrap: "wrap", marginBottom: "72px" }}>
-            <button onClick={() => router.push("/auth/register")} style={{ background: A, border: "none", borderRadius: "12px", padding: "16px 40px", color: "#fff", fontSize: "16px", fontWeight: "700", cursor: "pointer", boxShadow: `0 8px 32px rgba(232,160,32,0.45)` }}
+            <button onClick={() => router.push("/auth/register")} style={{ background: A, border: "none", borderRadius: "12px", padding: "16px 40px", color: "#fff", fontSize: "16px", fontWeight: "700", cursor: "pointer", boxShadow: `0 8px 32px rgba(61,123,255,0.45)` }}
               onMouseOver={e => (e.currentTarget.style.transform = "translateY(-2px)")}
               onMouseOut={e => (e.currentTarget.style.transform = "translateY(0)")}>
               Start Shipping →
@@ -94,7 +94,7 @@ export default function LandingPage() {
       <section style={{ padding: "100px 24px", background: BG }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: "64px" }}>
-            <div style={{ display: "inline-block", background: `rgba(27,58,45,0.07)`, borderRadius: "99px", padding: "5px 16px", fontSize: "12px", fontWeight: "700", color: P, letterSpacing: "1px", textTransform: "uppercase", marginBottom: "16px" }}>How It Works</div>
+            <div style={{ display: "inline-block", background: `rgba(10,31,68,0.07)`, borderRadius: "99px", padding: "5px 16px", fontSize: "12px", fontWeight: "700", color: P, letterSpacing: "1px", textTransform: "uppercase", marginBottom: "16px" }}>How It Works</div>
             <h2 style={{ margin: "0 0 12px", fontSize: "clamp(28px, 4vw, 48px)", fontWeight: "800", color: P, letterSpacing: "-1px" }}>Simple, Fast, Reliable</h2>
             <p style={{ margin: 0, fontSize: "17px", color: "var(--text-secondary)", maxWidth: "460px", marginLeft: "auto", marginRight: "auto" }}>Logistics built for East Africa, from signup to delivery</p>
           </div>
@@ -122,7 +122,7 @@ export default function LandingPage() {
             </div>
 
             {/* Truck Owners */}
-            <div style={{ background: P, borderRadius: "20px", padding: "40px", boxShadow: "0 8px 40px rgba(27,58,45,0.25)" }}>
+            <div style={{ background: P, borderRadius: "20px", padding: "40px", boxShadow: "0 8px 40px rgba(10,31,68,0.25)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "36px" }}>
                 <span style={{ fontSize: "11px", fontWeight: "800", color: P, background: "rgba(255,255,255,0.9)", borderRadius: "6px", padding: "4px 10px", letterSpacing: "0.5px" }}>DRIVER</span>
                 <h3 style={{ margin: 0, fontSize: "20px", fontWeight: "800", color: "#fff" }}>For Truck Owners</h3>
@@ -149,7 +149,7 @@ export default function LandingPage() {
       <section style={{ padding: "100px 24px", background: SRF }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: "64px" }}>
-            <div style={{ display: "inline-block", background: `rgba(27,58,45,0.07)`, borderRadius: "99px", padding: "5px 16px", fontSize: "12px", fontWeight: "700", color: P, letterSpacing: "1px", textTransform: "uppercase", marginBottom: "16px" }}>Features</div>
+            <div style={{ display: "inline-block", background: `rgba(10,31,68,0.07)`, borderRadius: "99px", padding: "5px 16px", fontSize: "12px", fontWeight: "700", color: P, letterSpacing: "1px", textTransform: "uppercase", marginBottom: "16px" }}>Features</div>
             <h2 style={{ margin: "0 0 12px", fontSize: "clamp(28px, 4vw, 48px)", fontWeight: "800", color: P, letterSpacing: "-1px" }}>Everything You Need</h2>
             <p style={{ margin: 0, fontSize: "17px", color: "var(--text-secondary)" }}>Built specifically for East African logistics</p>
           </div>
@@ -175,20 +175,20 @@ export default function LandingPage() {
       </section>
 
       {/* ── COUNTRIES ─────────────────────────────────── */}
-      <section style={{ padding: "100px 24px", background: "#0E2419", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "radial-gradient(ellipse at 50% 0%, rgba(232,160,32,0.1) 0%, transparent 70%)" }} />
+      <section style={{ padding: "100px 24px", background: "#13316B", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: "radial-gradient(ellipse at 50% 0%, rgba(61,123,255,0.1) 0%, transparent 70%)" }} />
         <div style={{ maxWidth: "1100px", margin: "0 auto", textAlign: "center", position: "relative", zIndex: 1 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(232,160,32,0.1)", border: "1px solid rgba(232,160,32,0.2)", borderRadius: "20px", padding: "6px 18px", marginBottom: "24px" }}>
-            <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#4ade80", boxShadow: "0 0 6px #4ade80" }} />
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(61,123,255,0.1)", border: "1px solid rgba(61,123,255,0.2)", borderRadius: "20px", padding: "6px 18px", marginBottom: "24px" }}>
+            <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#5BE3C4", boxShadow: "0 0 6px #5BE3C4" }} />
             <span style={{ fontSize: "12px", color: A, letterSpacing: "1px", fontWeight: "600" }}>LIVE IN 3 COUNTRIES</span>
           </div>
           <h2 style={{ margin: "0 0 12px", fontSize: "clamp(28px, 4vw, 48px)", fontWeight: "800", color: "#fff", letterSpacing: "-1px" }}>Covering the Horn of Africa</h2>
           <p style={{ margin: "0 0 64px", fontSize: "17px", color: "rgba(255,255,255,0.45)" }}>One platform for cross-border freight across East Africa</p>
           <div className="countries-flex" style={{ display: "flex", gap: "20px", justifyContent: "center", flexWrap: "wrap" }}>
             {[
-              { flag: "🇪🇹", country: "Ethiopia", city: "Addis Ababa", desc: "Largest economy in East Africa", accent: "#078930", routes: "120+ routes" },
-              { flag: "🇸🇴", country: "Somalia", city: "Mogadishu", desc: "Strategic Horn of Africa location", accent: "#4189dd", routes: "80+ routes" },
-              { flag: "🇩🇯", country: "Djibouti", city: "Djibouti City", desc: "Gateway port to the region", accent: "#6AB2E7", routes: "40+ routes" },
+              { flag: "🇪🇹", country: "Ethiopia", city: "Addis Ababa", desc: "Largest economy in East Africa", accent: "#3D7BFF", routes: "120+ routes" },
+              { flag: "🇸🇴", country: "Somalia", city: "Mogadishu", desc: "Strategic Horn of Africa location", accent: "#3D7BFF", routes: "80+ routes" },
+              { flag: "🇩🇯", country: "Djibouti", city: "Djibouti City", desc: "Gateway port to the region", accent: "#3D7BFF", routes: "40+ routes" },
             ].map((c, i) => (
               <div key={i} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "20px", padding: "40px 32px", minWidth: "250px", flex: 1, maxWidth: "320px" }}>
                 <div style={{ fontSize: "60px", marginBottom: "20px", lineHeight: 1 }}>{c.flag}</div>
@@ -196,7 +196,7 @@ export default function LandingPage() {
                 <div style={{ fontSize: "13px", color: A, fontWeight: "600", marginBottom: "14px" }}>{c.city}</div>
                 <div style={{ width: "36px", height: "2px", background: c.accent, borderRadius: "2px", margin: "0 auto 16px" }} />
                 <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)", lineHeight: 1.6, marginBottom: "18px" }}>{c.desc}</div>
-                <div style={{ display: "inline-block", background: "rgba(232,160,32,0.1)", border: "1px solid rgba(232,160,32,0.2)", borderRadius: "20px", padding: "4px 14px", fontSize: "12px", color: A, fontWeight: "600" }}>{c.routes}</div>
+                <div style={{ display: "inline-block", background: "rgba(61,123,255,0.1)", border: "1px solid rgba(61,123,255,0.2)", borderRadius: "20px", padding: "4px 14px", fontSize: "12px", color: A, fontWeight: "600" }}>{c.routes}</div>
               </div>
             ))}
           </div>
@@ -207,7 +207,7 @@ export default function LandingPage() {
       <section style={{ padding: "100px 24px", background: BG }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: "64px" }}>
-            <div style={{ display: "inline-block", background: `rgba(27,58,45,0.07)`, borderRadius: "99px", padding: "5px 16px", fontSize: "12px", fontWeight: "700", color: P, letterSpacing: "1px", textTransform: "uppercase", marginBottom: "16px" }}>Fleet</div>
+            <div style={{ display: "inline-block", background: `rgba(10,31,68,0.07)`, borderRadius: "99px", padding: "5px 16px", fontSize: "12px", fontWeight: "700", color: P, letterSpacing: "1px", textTransform: "uppercase", marginBottom: "16px" }}>Fleet</div>
             <h2 style={{ margin: "0 0 12px", fontSize: "clamp(28px, 4vw, 48px)", fontWeight: "800", color: P, letterSpacing: "-1px" }}>All Truck Types</h2>
             <p style={{ margin: 0, fontSize: "17px", color: "var(--text-secondary)" }}>Whatever your cargo needs, we have the right truck</p>
           </div>
@@ -221,7 +221,7 @@ export default function LandingPage() {
               { emoji: "🛻", name: "Mini Truck", desc: "Small loads, city deliveries" },
             ].map((t, i) => (
               <div key={i} style={{ background: SRF, borderRadius: "14px", padding: "22px", display: "flex", alignItems: "center", gap: "16px", border: "1px solid var(--border)" }}>
-                <div style={{ width: "44px", height: "44px", borderRadius: "10px", background: `rgba(27,58,45,0.07)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", flexShrink: 0 }}>{t.emoji}</div>
+                <div style={{ width: "44px", height: "44px", borderRadius: "10px", background: `rgba(10,31,68,0.07)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", flexShrink: 0 }}>{t.emoji}</div>
                 <div>
                   <div style={{ fontWeight: "700", fontSize: "15px", color: P }}>{t.name}</div>
                   <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginTop: "2px" }}>{t.desc}</div>
@@ -236,7 +236,7 @@ export default function LandingPage() {
       <section style={{ padding: "100px 24px", background: SRF }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: "64px" }}>
-            <div style={{ display: "inline-block", background: `rgba(27,58,45,0.07)`, borderRadius: "99px", padding: "5px 16px", fontSize: "12px", fontWeight: "700", color: P, letterSpacing: "1px", textTransform: "uppercase", marginBottom: "16px" }}>Routes</div>
+            <div style={{ display: "inline-block", background: `rgba(10,31,68,0.07)`, borderRadius: "99px", padding: "5px 16px", fontSize: "12px", fontWeight: "700", color: P, letterSpacing: "1px", textTransform: "uppercase", marginBottom: "16px" }}>Routes</div>
             <h2 style={{ margin: "0 0 12px", fontSize: "clamp(28px, 4vw, 48px)", fontWeight: "800", color: P, letterSpacing: "-1px" }}>Popular Trade Routes</h2>
             <p style={{ margin: 0, fontSize: "17px", color: "var(--text-secondary)" }}>High-demand corridors across East Africa</p>
           </div>
@@ -257,7 +257,7 @@ export default function LandingPage() {
                 <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "12px" }}>{route.desc}</div>
                 <div style={{ display: "flex", gap: "8px" }}>
                   <span style={{ fontSize: "11px", fontWeight: "600", padding: "3px 10px", borderRadius: "99px", background: "#f0ede6", color: "var(--text-secondary)" }}>{route.distance}</span>
-                  <span style={{ fontSize: "11px", fontWeight: "700", padding: "3px 10px", borderRadius: "99px", background: route.volume === "High" ? "#f0fdf4" : "#fff7ed", color: route.volume === "High" ? "#16a34a" : "#E8A020" }}>{route.volume} Volume</span>
+                  <span style={{ fontSize: "11px", fontWeight: "700", padding: "3px 10px", borderRadius: "99px", background: route.volume === "High" ? "#f0fdf4" : "#fff7ed", color: route.volume === "High" ? "#16a34a" : "#F59E0B" }}>{route.volume} Volume</span>
                 </div>
               </div>
             ))}
@@ -269,7 +269,7 @@ export default function LandingPage() {
       <section style={{ padding: "100px 24px", background: BG }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: "64px" }}>
-            <div style={{ display: "inline-block", background: `rgba(27,58,45,0.07)`, borderRadius: "99px", padding: "5px 16px", fontSize: "12px", fontWeight: "700", color: P, letterSpacing: "1px", textTransform: "uppercase", marginBottom: "16px" }}>Testimonials</div>
+            <div style={{ display: "inline-block", background: `rgba(10,31,68,0.07)`, borderRadius: "99px", padding: "5px 16px", fontSize: "12px", fontWeight: "700", color: P, letterSpacing: "1px", textTransform: "uppercase", marginBottom: "16px" }}>Testimonials</div>
             <h2 style={{ margin: "0 0 12px", fontSize: "clamp(28px, 4vw, 48px)", fontWeight: "800", color: P, letterSpacing: "-1px" }}>Trusted by Shippers & Drivers</h2>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "20px" }}>
@@ -292,13 +292,13 @@ export default function LandingPage() {
       </section>
 
       {/* ── CTA ───────────────────────────────────────── */}
-      <section style={{ padding: "100px 24px", background: `linear-gradient(135deg, ${P} 0%, #0E2419 100%)`, textAlign: "center", position: "relative", overflow: "hidden" }}>
+      <section style={{ padding: "100px 24px", background: `linear-gradient(135deg, ${P} 0%, #13316B 100%)`, textAlign: "center", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", inset: 0, opacity: 0.05, backgroundImage: `radial-gradient(circle, ${A} 1px, transparent 1px)`, backgroundSize: "36px 36px" }} />
         <div style={{ maxWidth: "640px", margin: "0 auto", position: "relative", zIndex: 1 }}>
           <h2 style={{ margin: "0 0 16px", fontSize: "clamp(28px, 4vw, 52px)", fontWeight: "800", color: "#fff", letterSpacing: "-1.5px" }}>Ready to Get Started?</h2>
           <p style={{ margin: "0 0 48px", fontSize: "17px", color: "rgba(255,255,255,0.65)", lineHeight: 1.7 }}>Join cargo senders and truck owners across East Africa. Free to sign up, verified in 24 hours.</p>
           <div className="cta-btns" style={{ display: "flex", gap: "14px", justifyContent: "center", flexWrap: "wrap" }}>
-            <button onClick={() => router.push("/auth/register")} style={{ background: A, border: "none", borderRadius: "12px", padding: "16px 44px", color: "#fff", fontSize: "16px", fontWeight: "800", cursor: "pointer", boxShadow: `0 8px 32px rgba(232,160,32,0.45)` }}>
+            <button onClick={() => router.push("/auth/register")} style={{ background: A, border: "none", borderRadius: "12px", padding: "16px 44px", color: "#fff", fontSize: "16px", fontWeight: "800", cursor: "pointer", boxShadow: `0 8px 32px rgba(61,123,255,0.45)` }}>
               Sign Up Free →
             </button>
             <button onClick={() => router.push("/auth/login")} style={{ background: "transparent", border: "2px solid rgba(255,255,255,0.35)", borderRadius: "12px", padding: "16px 44px", color: "#fff", fontSize: "16px", fontWeight: "600", cursor: "pointer" }}>
@@ -309,7 +309,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── FOOTER ───────────────────────────────────── */}
-      <footer style={{ background: "#0A1A10", padding: "56px 40px 32px" }}>
+      <footer style={{ background: "#0A1F44", padding: "56px 40px 32px" }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
           <div className="footer-inner" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "40px", marginBottom: "48px" }}>
             <div style={{ maxWidth: "300px" }}>

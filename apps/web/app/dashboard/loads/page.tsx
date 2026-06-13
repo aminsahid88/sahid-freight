@@ -12,7 +12,7 @@ const COUNTRIES   = ["ETHIOPIA","SOMALIA","DJIBOUTI"];
 
 const statusStyle: any = {
   OPEN:       { bg: "#F0FDF4", color: "#16A34A", border: "#BBF7D0", label: "Open" },
-  BOOKED:     { bg: "#EFF6FF", color: "#2563EB", border: "#BFDBFE", label: "Booked" },
+  BOOKED:     { bg: "#E8F0FF", color: "#3D7BFF", border: "#BBD0FF", label: "Booked" },
   IN_TRANSIT: { bg: "#FFF7ED", color: "#C2791A", border: "#FED7AA", label: "In Transit" },
   DELIVERED:  { bg: "#F0FDF4", color: "#15803D", border: "#86EFAC", label: "Delivered" },
   CANCELLED:  { bg: "#FEF2F2", color: "#DC2626", border: "#FECACA", label: "Cancelled" },
@@ -215,7 +215,7 @@ export default function LoadsPage() {
                 </div>
                 <div style={{ display: "flex", gap: "8px", alignItems: "center", flexShrink: 0 }}>
                   {canEdit(load) && (
-                    <button onClick={e => { e.stopPropagation(); openEdit(load); }} style={{ display: "flex", alignItems: "center", gap: "4px", background: "#EFF6FF", border: "none", borderRadius: "7px", padding: "6px 12px", fontSize: "12px", fontWeight: "600", color: "#2563EB", cursor: "pointer", minHeight: "32px" }}>
+                    <button onClick={e => { e.stopPropagation(); openEdit(load); }} style={{ display: "flex", alignItems: "center", gap: "4px", background: "#E8F0FF", border: "none", borderRadius: "7px", padding: "6px 12px", fontSize: "12px", fontWeight: "600", color: "#3D7BFF", cursor: "pointer", minHeight: "32px" }}>
                       <IconEdit />Edit
                     </button>
                   )}

@@ -27,7 +27,7 @@ interface User {
 const ROLES = ["ALL", "CARGO_SENDER", "TRUCK_OWNER", "DRIVER", "ADMIN"] as const;
 
 const ROLE_COLOR: Record<string, string> = {
-  CARGO_SENDER: "#2563eb",
+  CARGO_SENDER: "#3D7BFF",
   TRUCK_OWNER: "#F97316",
   DRIVER: "#7c3aed",
   ADMIN: "#dc2626",
@@ -38,7 +38,7 @@ const STATUS_MAP: Record<string, { bg: string; fg: string; border: string }> = {
   SUSPENDED:              { bg: "#fef2f2", fg: "#dc2626", border: "#fecaca" },
   BANNED:                 { bg: "#fef2f2", fg: "#dc2626", border: "#fecaca" },
   PENDING_VERIFICATION:   { bg: "#fffbeb", fg: "#d97706", border: "#fde68a" },
-  DOCUMENTS_SUBMITTED:    { bg: "#eff6ff", fg: "#2563eb", border: "#bfdbfe" },
+  DOCUMENTS_SUBMITTED:    { bg: "#E8F0FF", fg: "#3D7BFF", border: "#BBD0FF" },
 };
 
 /* ── Helpers ────────────────────────────────────────────── */
@@ -326,9 +326,9 @@ export default function AdminUsersPage() {
                             onClick={() => handleUnban(u.id)}
                             className="rounded-lg px-3 py-1.5 text-xs font-semibold"
                             style={{
-                              background: "#eff6ff",
-                              border: "1px solid #bfdbfe",
-                              color: "#2563eb",
+                              background: "#E8F0FF",
+                              border: "1px solid #BBD0FF",
+                              color: "#3D7BFF",
                               cursor: "pointer",
                             }}
                           >
@@ -415,7 +415,7 @@ export default function AdminUsersPage() {
                     <button
                       onClick={() => handleUnban(u.id)}
                       className="flex-1 rounded-lg py-2 text-sm font-semibold"
-                      style={{ background: "#eff6ff", border: "1px solid #bfdbfe", color: "#2563eb", cursor: "pointer" }}
+                      style={{ background: "#E8F0FF", border: "1px solid #BBD0FF", color: "#3D7BFF", cursor: "pointer" }}
                     >
                       Unban
                     </button>
@@ -701,7 +701,7 @@ export default function AdminUsersPage() {
                       <button
                         onClick={() => { handleUnban(detail.id); setDetail(null); }}
                         className="flex-1 rounded-lg py-3 text-sm font-bold"
-                        style={{ background: "#eff6ff", border: "1px solid #bfdbfe", color: "#2563eb", cursor: "pointer" }}
+                        style={{ background: "#E8F0FF", border: "1px solid #BBD0FF", color: "#3D7BFF", cursor: "pointer" }}
                       >
                         Unban User
                       </button>

@@ -16,7 +16,7 @@ const STATUS_OPTS = ["", "DRAFT", "OPEN", "BOOKED", "IN_TRANSIT", "DELIVERED", "
 
 const statusStyle = (s: string) => {
   const m: Record<string, { bg: string; color: string; border: string }> = {
-    OPEN:       { bg: "#eff6ff", color: "#2563eb", border: "#bfdbfe" },
+    OPEN:       { bg: "#E8F0FF", color: "#3D7BFF", border: "#BBD0FF" },
     BOOKED:     { bg: "#f0fdf4", color: "#16a34a", border: "#bbf7d0" },
     IN_TRANSIT: { bg: "#fff7ed", color: "#d97706", border: "#fed7aa" },
     DELIVERED:  { bg: "#f0fdf4", color: "#15803d", border: "#86efac" },

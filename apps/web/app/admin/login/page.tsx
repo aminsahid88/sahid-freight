@@ -39,14 +39,14 @@ export default function AdminLoginPage() {
           <img src="/logo.svg" alt="Sahid Freight" className="w-10 h-10 object-contain" />
           <div>
             <div className="text-xl font-extrabold text-white tracking-tight">Sahid Freight</div>
-            <div className="text-[10px] text-[#3B82F6] tracking-[2px] -mt-0.5">ADMIN CONSOLE</div>
+            <div className="text-[10px] text-[#3D7BFF] tracking-[2px] -mt-0.5">ADMIN CONSOLE</div>
           </div>
         </div>
         <div className="flex-1 flex flex-col justify-center relative z-10">
-          <div className="w-12 h-[3px] bg-[#3B82F6] rounded mb-8" />
+          <div className="w-12 h-[3px] bg-[#3D7BFF] rounded mb-8" />
           <h1 className="text-5xl font-extrabold text-white leading-tight tracking-tight mb-6">
             Admin<br />
-            <span className="text-[#3B82F6]">Console</span>
+            <span className="text-[#3D7BFF]">Console</span>
           </h1>
           <p className="text-white/30 text-base leading-relaxed max-w-[360px]">
             Manage users, verify documents, monitor loads and bookings across the Sahid Freight platform.
@@ -65,7 +65,7 @@ export default function AdminLoginPage() {
             <img src="/logo.svg" alt="Sahid Freight" className="w-9 h-9 object-contain" />
             <div>
               <div className="text-lg font-extrabold" style={{ color: "var(--primary)" }}>Sahid Freight</div>
-              <div className="text-[10px] text-[#3B82F6] tracking-[2px]">ADMIN</div>
+              <div className="text-[10px] text-[#3D7BFF] tracking-[2px]">ADMIN</div>
             </div>
           </div>
 

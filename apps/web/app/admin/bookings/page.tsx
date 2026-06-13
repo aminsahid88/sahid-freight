@@ -18,7 +18,7 @@ const STATUS_OPTS = ["", "PENDING", "ACCEPTED", "IN_TRANSIT", "COMPLETED", "REJE
 const statusStyle = (s: string) => {
   const m: Record<string, { bg: string; color: string; border: string }> = {
     PENDING:    { bg: "#fff7ed", color: "#d97706", border: "#fed7aa" },
-    ACCEPTED:   { bg: "#eff6ff", color: "#2563eb", border: "#bfdbfe" },
+    ACCEPTED:   { bg: "#E8F0FF", color: "#3D7BFF", border: "#BBD0FF" },
     IN_TRANSIT: { bg: "#fff7ed", color: "#d97706", border: "#fed7aa" },
     COMPLETED:  { bg: "#f0fdf4", color: "#16a34a", border: "#bbf7d0" },
     REJECTED:   { bg: "#fef2f2", color: "#dc2626", border: "#fecaca" },
