@@ -4,6 +4,7 @@ import { AuthRequest } from "../middleware/auth.middleware";
 import { notify } from "../utils/notify";
 import { sendSMS } from "../utils/sms";
 import { getIO } from "../utils/socket";
+import { uploadToS3 } from "../utils/s3";
 
 export const createBooking = async (req: AuthRequest, res: Response) => {
   try {
@@ -431,5 +432,65 @@ export const getMySenderBookings = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: 'Something went wrong' });
+  }
+};
+
+// ─────────────────────────────────────────
+// SUBMIT PROOF OF DELIVERY (owner or driver)
+// ─────────────────────────────────────────
+export const submitProofOfDelivery = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const files = ((req as any).files as Express.Multer.File[] | undefined) || [];
+    const notesRaw = typeof req.body?.notes === "string" ? req.body.notes.trim() : "";
+    const notes = notesRaw.length > 0 ? notesRaw : null;
+
+    if (files.length === 0) {
+      return res.status(400).json({ message: "At least one photo is required." });
+    }
+
+    const booking = await prisma.booking.findUnique({
+      where: { id },
+      select: { id: true, ownerId: true, driverId: true, status: true },
+    });
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
+
+    const isOwner = booking.ownerId === req.user!.userId;
+    const isDriver = booking.driverId === req.user!.userId;
+    if (!isOwner && !isDriver) return res.status(403).json({ message: "Not your booking" });
+
+    if (booking.status !== "IN_TRANSIT") {
+      return res.status(400).json({ message: "Booking must be in transit before proof of delivery can be submitted." });
+    }
+
+    const existing = await prisma.proofOfDelivery.findUnique({ where: { bookingId: id } });
+    if (existing) return res.status(400).json({ message: "Proof of delivery already submitted for this booking." });
+
+    const uploadedPhotos = await Promise.all(files.map(async (file) => {
+      const key = await uploadToS3(file.buffer, file.originalname, file.mimetype, "proof-of-delivery");
+      return {
+        fileUrl: key,
+        fileName: file.originalname,
+        fileSize: file.size,
+        mimeType: file.mimetype,
+      };
+    }));
+
+    const pod = await prisma.$transaction(async (tx) => {
+      return tx.proofOfDelivery.create({
+        data: {
+          bookingId: id,
+          submittedById: req.user!.userId,
+          notes,
+          photos: { create: uploadedPhotos },
+        },
+        include: { photos: true },
+      });
+    });
+
+    return res.status(201).json({ message: "Proof of delivery submitted", proofOfDelivery: pod });
+  } catch (error) {
+    console.error("submitProofOfDelivery failed:", error);
+    return res.status(500).json({ message: "Failed to submit proof of delivery. Please try again." });
   }
 };

@@ -153,6 +153,14 @@ enum BidStatus {
   REJECTED
 }
 
+enum DriverInviteStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  CANCELLED
+}
+
 // ─────────────────────────────────────────
 // USER
 // ─────────────────────────────────────────
@@ -190,8 +198,9 @@ model User {
   invitedById       String?
   invitedBy         User?              @relation("DriverInvites", fields: [invitedById], references: [id])
   drivers           User[]             @relation("DriverInvites")
-  reviewsGiven      Review[]           @relation("ReviewsGiven")
-  reviewsReceived   Review[]           @relation("ReviewsReceived")
+  invitesSent       DriverInvite[]     @relation("InvitesSent")
+  invitesAccepted   DriverInvite[]     @relation("InvitesAccepted")
+  proofsSubmitted   ProofOfDelivery[]
   bidsPlaced        Bid[]              @relation("BidsAsOwner")
   notifications     Notification[]
   messagesSent     Message[] @relation("MessagesSent")
@@ -323,9 +332,9 @@ model Booking {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
-  payment     Payment?
-  review      Review?
-  messages Message[]
+  payment         Payment?
+  proofOfDelivery ProofOfDelivery?
+  messages        Message[]
 }
 
 // ─────────────────────────────────────────
@@ -366,20 +375,50 @@ model Payment {
 }
 
 // ─────────────────────────────────────────
-// REVIEW
+// PROOF OF DELIVERY
 // ─────────────────────────────────────────
 
-model Review {
-  id         String   @id @default(uuid())
-  bookingId  String   @unique
-  booking    Booking  @relation(fields: [bookingId], references: [id])
-  reviewerId String
-  reviewer   User     @relation("ReviewsGiven", fields: [reviewerId], references: [id])
-  revieweeId String
-  reviewee   User     @relation("ReviewsReceived", fields: [revieweeId], references: [id])
-  rating     Int
-  comment    String?
-  createdAt  DateTime @default(now())
+model ProofOfDelivery {
+  id            String                @id @default(uuid())
+  bookingId     String                @unique
+  booking       Booking               @relation(fields: [bookingId], references: [id])
+  notes         String?
+  submittedById String
+  submittedBy   User                  @relation(fields: [submittedById], references: [id])
+  submittedAt   DateTime              @default(now())
+
+  photos        ProofOfDeliveryPhoto[]
+}
+
+model ProofOfDeliveryPhoto {
+  id         String          @id @default(uuid())
+  podId      String
+  pod        ProofOfDelivery @relation(fields: [podId], references: [id], onDelete: Cascade)
+  fileUrl    String
+  fileName   String
+  fileSize   Int
+  mimeType   String
+  uploadedAt DateTime        @default(now())
+}
+
+// ─────────────────────────────────────────
+// DRIVER INVITE
+// ─────────────────────────────────────────
+
+model DriverInvite {
+  id               String             @id @default(uuid())
+  phone            String
+  ownerId          String
+  owner            User               @relation("InvitesSent", fields: [ownerId], references: [id])
+  acceptedByUserId String?
+  acceptedBy       User?              @relation("InvitesAccepted", fields: [acceptedByUserId], references: [id])
+  status           DriverInviteStatus @default(PENDING)
+  expiresAt        DateTime?
+  acceptedAt       DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  @@index([phone])
 }
 
 // ─────────────────────────────────────────
