@@ -75,43 +75,43 @@ export default function LoginPage() {
     <div style={{ minHeight: "100vh", display: "flex", fontFamily: "'Inter, system-ui, sans-serif", background: "var(--bg)" }}>
 
       {/* ── LEFT PANEL — untouched ── */}
-      <div className="auth-left" style={{ width: "52%", background: "#1B3A2D", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", padding: "52px 60px" }}>
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle at 80% 20%, rgba(240,220,170,0.06) 0%, transparent 50%), radial-gradient(circle at 20% 80%, rgba(200,144,30,0.08) 0%, transparent 50%)" }} />
-        <div style={{ position: "absolute", right: "-120px", top: "50%", transform: "translateY(-50%)", width: "500px", height: "500px", borderRadius: "50%", border: "1px solid rgba(240,220,170,0.05)" }} />
+      <div className="auth-left" style={{ width: "52%", background: "#0A1F44", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", padding: "52px 60px" }}>
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle at 80% 20%, rgba(255,255,255,0.06) 0%, transparent 50%), radial-gradient(circle at 20% 80%, rgba(61,123,255,0.08) 0%, transparent 50%)" }} />
+        <div style={{ position: "absolute", right: "-120px", top: "50%", transform: "translateY(-50%)", width: "500px", height: "500px", borderRadius: "50%", border: "1px solid rgba(255,255,255,0.05)" }} />
         <div style={{ display: "flex", alignItems: "center", gap: "12px", position: "relative", zIndex: 1 }}>
           <img src="/logo.svg" alt="Sahid Freight" style={{ width: "42px", height: "42px", borderRadius: "10px", objectFit: "contain" }} />
           <div>
-            <div style={{ fontSize: "20px", fontWeight: "800", color: "#FAFAF8", letterSpacing: "-0.5px" }}>Sahid Freight</div>
-            <div style={{ fontSize: "10px", color: "#E8A020", letterSpacing: "2px", marginTop: "-2px" }}>ETHIOPIA · SOMALIA · DJIBOUTI</div>
+            <div style={{ fontSize: "20px", fontWeight: "800", color: "#FFFFFF", letterSpacing: "-0.5px" }}>Sahid Freight</div>
+            <div style={{ fontSize: "10px", color: "#3D7BFF", letterSpacing: "2px", marginTop: "-2px" }}>ETHIOPIA · SOMALIA · DJIBOUTI</div>
           </div>
         </div>
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", position: "relative", zIndex: 1 }}>
-          <div style={{ width: "48px", height: "3px", background: "#E8A020", borderRadius: "2px", marginBottom: "32px" }} />
-          <h1 style={{ fontSize: "50px", fontWeight: "800", color: "#FAFAF8", lineHeight: "1.12", margin: "0 0 24px", letterSpacing: "-2px" }}>
+          <div style={{ width: "48px", height: "3px", background: "#3D7BFF", borderRadius: "2px", marginBottom: "32px" }} />
+          <h1 style={{ fontSize: "50px", fontWeight: "800", color: "#FFFFFF", lineHeight: "1.12", margin: "0 0 24px", letterSpacing: "-2px" }}>
             Move freight.<br />
-            <span style={{ color: "#E8A020" }}>Move forward.</span>
+            <span style={{ color: "#3D7BFF" }}>Move forward.</span>
           </h1>
-          <p style={{ color: "rgba(240,235,224,0.4)", fontSize: "16px", lineHeight: "1.75", maxWidth: "360px", margin: "0 0 48px" }}>
+          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "16px", lineHeight: "1.75", maxWidth: "360px", margin: "0 0 48px" }}>
             Connect with verified truck owners. Post loads. Track shipments live across Ethiopia, Somalia, and Djibouti.
           </p>
           <div style={{ display: "flex", gap: "0" }}>
             {[["3", "Countries"], ["Live", "GPS"], ["100%", "Verified"]].map(([val, label], i) => (
-              <div key={label} style={{ paddingRight: "32px", marginRight: "32px", borderRight: i < 2 ? "1px solid rgba(240,235,224,0.08)" : "none" }}>
-                <div style={{ fontSize: "26px", fontWeight: "800", color: "#FAFAF8", letterSpacing: "-1px" }}>{val}</div>
-                <div style={{ fontSize: "11px", color: "rgba(240,235,224,0.3)", letterSpacing: "2px", textTransform: "uppercase" as const, marginTop: "4px" }}>{label}</div>
+              <div key={label} style={{ paddingRight: "32px", marginRight: "32px", borderRight: i < 2 ? "1px solid rgba(255,255,255,0.08)" : "none" }}>
+                <div style={{ fontSize: "26px", fontWeight: "800", color: "#FFFFFF", letterSpacing: "-1px" }}>{val}</div>
+                <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)", letterSpacing: "2px", textTransform: "uppercase" as const, marginTop: "4px" }}>{label}</div>
               </div>
             ))}
           </div>
         </div>
-        <div style={{ position: "relative", zIndex: 1, borderTop: "1px solid rgba(240,235,224,0.06)", paddingTop: "24px" }}>
-          <p style={{ color: "rgba(240,235,224,0.2)", fontSize: "12px", margin: 0 }}>© 2025 Sahid Freight.et · Ethiopia · Somalia · Djibouti</p>
+        <div style={{ position: "relative", zIndex: 1, borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "24px" }}>
+          <p style={{ color: "rgba(255,255,255,0.2)", fontSize: "12px", margin: 0 }}>© 2025 Sahid Freight.et · Ethiopia · Somalia · Djibouti</p>
         </div>
       </div>
 
       {/* ── RIGHT PANEL ── */}
       <div className="auth-right" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "48px", background: "var(--bg)" }}>
         <div className="auth-card" style={{ width: "100%", maxWidth: "400px" }}>
-          <div style={{ background: "var(--surface)", borderRadius: "20px", padding: "48px 44px", boxShadow: "0 2px 4px rgba(26,39,68,0.04), 0 16px 48px rgba(26,39,68,0.10)", border: "1px solid rgba(26,39,68,0.06)" }}>
+          <div style={{ background: "var(--surface)", borderRadius: "20px", padding: "48px 44px", boxShadow: "0 2px 4px rgba(10,31,68,0.04), 0 16px 48px rgba(10,31,68,0.10)", border: "1px solid rgba(10,31,68,0.06)" }}>
 
             <div style={{ marginBottom: "36px" }}>
               <h2 style={{ fontSize: "26px", fontWeight: "800", color: P, margin: "0 0 8px", letterSpacing: "-0.5px" }}>Welcome back</h2>
@@ -156,7 +156,7 @@ export default function LoginPage() {
                       <div style={{
                         position: "absolute", top: "calc(100% + 4px)", left: 0, width: "200px",
                         background: "var(--surface)", border: "1.5px solid var(--border)", borderRadius: "12px",
-                        overflow: "hidden", zIndex: 50, boxShadow: "0 8px 32px rgba(26,39,68,0.12)",
+                        overflow: "hidden", zIndex: 50, boxShadow: "0 8px 32px rgba(10,31,68,0.12)",
                       }}>
                         {COUNTRIES.map((c) => (
                           <button
@@ -166,7 +166,7 @@ export default function LoginPage() {
                             style={{
                               width: "100%", display: "flex", alignItems: "center", gap: "10px",
                               padding: "12px 16px", background: country.code === c.code ? "var(--bg)" : "var(--surface)",
-                              border: "none", borderBottom: "1px solid #f5f0e8", cursor: "pointer", textAlign: "left" as const,
+                              border: "none", borderBottom: "1px solid #E2E8F0", cursor: "pointer", textAlign: "left" as const,
                             }}
                           >
                             <span style={{ fontSize: "20px" }}>{c.flag}</span>
@@ -201,7 +201,7 @@ export default function LoginPage() {
                       borderRadius: "10px", padding: "0 16px", color: P,
                       fontSize: "15px", outline: "none", boxSizing: "border-box" as const,
                       fontFamily: "monospace", transition: "all 0.15s",
-                      boxShadow: focused === "phone" ? "0 0 0 3px rgba(26,39,68,0.08)" : "none",
+                      boxShadow: focused === "phone" ? "0 0 0 3px rgba(10,31,68,0.08)" : "none",
                     }}
                   />
                 </div>
@@ -230,7 +230,7 @@ export default function LoginPage() {
                       borderRadius: "10px", padding: "0 44px 0 16px", color: P,
                       fontSize: "15px", outline: "none", boxSizing: "border-box" as const,
                       transition: "all 0.15s",
-                      boxShadow: focused === "password" ? "0 0 0 3px rgba(26,39,68,0.08)" : "none",
+                      boxShadow: focused === "password" ? "0 0 0 3px rgba(10,31,68,0.08)" : "none",
                     }}
                   />
                   <button
@@ -267,7 +267,7 @@ export default function LoginPage() {
                 >
                   {keepSignedIn && (
                     <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                      <path d="M1.5 5l3 3 4-4" stroke="#FAFAF8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M1.5 5l3 3 4-4" stroke="#FFFFFF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
                   )}
                 </div>
@@ -283,9 +283,9 @@ export default function LoginPage() {
                 disabled={loading}
                 style={{
                   marginTop: "4px", width: "100%", height: "50px",
-                  background: loading ? "var(--border)" : P,
+                  background: loading ? "var(--border)" : A,
                   border: "none", borderRadius: "10px",
-                  color: loading ? "#aaa" : "#FAFAF8",
+                  color: loading ? "#aaa" : "#FFFFFF",
                   fontSize: "15px", fontWeight: "700",
                   cursor: loading ? "not-allowed" : "pointer",
                   letterSpacing: "0.5px", transition: "all 0.2s",
@@ -297,7 +297,7 @@ export default function LoginPage() {
 
             </form>
 
-            <div style={{ marginTop: "28px", paddingTop: "24px", borderTop: "1px solid #f0ede6", textAlign: "center" as const }}>
+            <div style={{ marginTop: "28px", paddingTop: "24px", borderTop: "1px solid #E2E8F0", textAlign: "center" as const }}>
               <span style={{ color: "var(--text-secondary)", fontSize: "14px" }}>No account? </span>
               <a href="/auth/register" style={{ color: A, fontSize: "14px", fontWeight: "700", textDecoration: "none" }}>Register here</a>
             </div>

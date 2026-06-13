@@ -70,7 +70,7 @@ export default function RegisterPage() {
     outline: "none",
     boxSizing: "border-box" as const,
     transition: "all 0.15s",
-    boxShadow: focused === field ? "0 0 0 3px rgba(26,39,68,0.08)" : "none",
+    boxShadow: focused === field ? "0 0 0 3px rgba(10,31,68,0.08)" : "none",
   });
 
   const labelStyle = {
@@ -86,26 +86,26 @@ export default function RegisterPage() {
     <div style={{ minHeight: "100vh", display: "flex", fontFamily: "'Inter, system-ui, sans-serif", background: "var(--bg)" }}>
 
       {/* Left Panel */}
-      <div className="auth-left" style={{ width: "44%", background: "#1B3A2D", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", padding: "52px 56px" }}>
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle at 80% 20%, rgba(240,220,170,0.06) 0%, transparent 50%), radial-gradient(circle at 20% 80%, rgba(200,144,30,0.08) 0%, transparent 50%)" }} />
-        <div style={{ position: "absolute", right: "-120px", top: "50%", transform: "translateY(-50%)", width: "500px", height: "500px", borderRadius: "50%", border: "1px solid rgba(240,220,170,0.05)" }} />
+      <div className="auth-left" style={{ width: "44%", background: "#0A1F44", position: "relative", overflow: "hidden", display: "flex", flexDirection: "column", padding: "52px 56px" }}>
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle at 80% 20%, rgba(255,255,255,0.06) 0%, transparent 50%), radial-gradient(circle at 20% 80%, rgba(61,123,255,0.08) 0%, transparent 50%)" }} />
+        <div style={{ position: "absolute", right: "-120px", top: "50%", transform: "translateY(-50%)", width: "500px", height: "500px", borderRadius: "50%", border: "1px solid rgba(255,255,255,0.05)" }} />
 
         {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: "12px", position: "relative", zIndex: 1 }}>
           <img src="/logo.svg" alt="Sahid Freight" style={{ width: "42px", height: "42px", borderRadius: "10px", objectFit: "contain" }} />
           <div>
-            <div style={{ fontSize: "20px", fontWeight: "800", color: "#FAFAF8", letterSpacing: "-0.5px" }}>Sahid Freight</div>
-            <div style={{ fontSize: "10px", color: "#E8A020", letterSpacing: "2px", marginTop: "-2px" }}>ETHIOPIA · SOMALIA · DJIBOUTI</div>
+            <div style={{ fontSize: "20px", fontWeight: "800", color: "#FFFFFF", letterSpacing: "-0.5px" }}>Sahid Freight</div>
+            <div style={{ fontSize: "10px", color: "#3D7BFF", letterSpacing: "2px", marginTop: "-2px" }}>ETHIOPIA · SOMALIA · DJIBOUTI</div>
           </div>
         </div>
 
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", position: "relative", zIndex: 1 }}>
-          <div style={{ width: "48px", height: "3px", background: "#E8A020", borderRadius: "2px", marginBottom: "32px" }} />
-          <h1 style={{ fontSize: "42px", fontWeight: "800", color: "#FAFAF8", lineHeight: "1.15", margin: "0 0 24px", letterSpacing: "-1.5px" }}>
+          <div style={{ width: "48px", height: "3px", background: "#3D7BFF", borderRadius: "2px", marginBottom: "32px" }} />
+          <h1 style={{ fontSize: "42px", fontWeight: "800", color: "#FFFFFF", lineHeight: "1.15", margin: "0 0 24px", letterSpacing: "-1.5px" }}>
             Join the<br />
-            <span style={{ color: "#E8A020" }}>network.</span>
+            <span style={{ color: "#3D7BFF" }}>network.</span>
           </h1>
-          <p style={{ color: "rgba(240,235,224,0.4)", fontSize: "15px", lineHeight: "1.8", maxWidth: "300px", margin: "0 0 48px" }}>
+          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "15px", lineHeight: "1.8", maxWidth: "300px", margin: "0 0 48px" }}>
             Whether you own trucks or need to move cargo — Sahid Freight connects you with the right partner instantly.
           </p>
 
@@ -115,19 +115,19 @@ export default function RegisterPage() {
               { icon: "truck", title: "Truck Owner", desc: "List your trucks, accept load requests" },
               { icon: "package", title: "Cargo Sender", desc: "Post loads, find trucks, track delivery" },
             ].map((r) => (
-              <div key={r.title} style={{ display: "flex", alignItems: "center", gap: "14px", background: "rgba(240,235,224,0.04)", border: "1px solid rgba(240,235,224,0.06)", borderRadius: "10px", padding: "14px 16px" }}>
-                {r.icon === "truck" ? <Truck size={22} color="#E8A020" />  : <Package size={22} color="#E8A020" />}
+              <div key={r.title} style={{ display: "flex", alignItems: "center", gap: "14px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "10px", padding: "14px 16px" }}>
+                {r.icon === "truck" ? <Truck size={22} color="#3D7BFF" />  : <Package size={22} color="#3D7BFF" />}
                 <div>
-                  <div style={{ fontSize: "14px", fontWeight: "700", color: "#FAFAF8" }}>{r.title}</div>
-                  <div style={{ fontSize: "12px", color: "rgba(240,235,224,0.3)", marginTop: "2px" }}>{r.desc}</div>
+                  <div style={{ fontSize: "14px", fontWeight: "700", color: "#FFFFFF" }}>{r.title}</div>
+                  <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.3)", marginTop: "2px" }}>{r.desc}</div>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        <div style={{ position: "relative", zIndex: 1, borderTop: "1px solid rgba(240,235,224,0.06)", paddingTop: "24px" }}>
-          <p style={{ color: "rgba(240,235,224,0.2)", fontSize: "12px", margin: 0 }}>© 2025 Sahid Freight.et</p>
+        <div style={{ position: "relative", zIndex: 1, borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "24px" }}>
+          <p style={{ color: "rgba(255,255,255,0.2)", fontSize: "12px", margin: 0 }}>© 2025 Sahid Freight.et</p>
         </div>
       </div>
 
@@ -151,7 +151,7 @@ export default function RegisterPage() {
           </div>
 
           {/* Card */}
-          <div style={{ background: "var(--surface)", borderRadius: "20px", padding: "44px", boxShadow: "0 2px 4px rgba(26,39,68,0.04), 0 16px 48px rgba(26,39,68,0.10)", border: "1px solid rgba(26,39,68,0.06)" }}>
+          <div style={{ background: "var(--surface)", borderRadius: "20px", padding: "44px", boxShadow: "0 2px 4px rgba(10,31,68,0.04), 0 16px 48px rgba(10,31,68,0.10)", border: "1px solid rgba(10,31,68,0.06)" }}>
 
             <div style={{ marginBottom: "32px" }}>
               <h2 style={{ fontSize: "24px", fontWeight: "800", color: P, margin: "0 0 6px", letterSpacing: "-0.5px" }}>
@@ -240,13 +240,13 @@ export default function RegisterPage() {
                     Back
                   </button>
                 )}
-                <button type="submit" disabled={loading || (step === 2 && !form.role)} style={{ flex: 2, background: loading || (step === 2 && !form.role) ? "var(--border)" : P, border: "none", borderRadius: "10px", padding: "14px", color: loading || (step === 2 && !form.role) ? "#aaa" : "var(--bg)", fontSize: "15px", fontWeight: "700", cursor: loading || (step === 2 && !form.role) ? "not-allowed" : "pointer", transition: "all 0.2s" }}>
+                <button type="submit" disabled={loading || (step === 2 && !form.role)} style={{ flex: 2, background: loading || (step === 2 && !form.role) ? "var(--border)" : A, border: "none", borderRadius: "10px", padding: "14px", color: loading || (step === 2 && !form.role) ? "#aaa" : "#FFFFFF", fontSize: "15px", fontWeight: "700", cursor: loading || (step === 2 && !form.role) ? "not-allowed" : "pointer", transition: "all 0.2s" }}>
                   {loading ? "Creating account..." : step === 1 ? "Continue" : "Create Account"}
                 </button>
               </div>
             </form>
 
-            <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #f0ede6", textAlign: "center" as const }}>
+            <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #E2E8F0", textAlign: "center" as const }}>
               <span style={{ color: "var(--text-secondary)", fontSize: "14px" }}>Already have an account? </span>
               <a href="/auth/login" style={{ color: A, fontSize: "14px", fontWeight: "700", textDecoration: "none" }}>Sign in</a>
             </div>
