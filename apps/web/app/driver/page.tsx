@@ -320,8 +320,8 @@ export default function DriverDashboard() {
   };
 
   if (loading) return (
-    <div style={{ minHeight: "100vh", background: "#1B3A2D", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ width: "36px", height: "36px", border: "3px solid rgba(240,235,224,0.2)", borderTop: "3px solid #E8A020", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+    <div style={{ minHeight: "100vh", background: "#0A1F44", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ width: "36px", height: "36px", border: "3px solid rgba(255,255,255,0.2)", borderTop: "3px solid #3D7BFF", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
       <style>{`@keyframes spin{to{transform:rotate(360deg);}}`}</style>
     </div>
   );
@@ -336,19 +336,19 @@ export default function DriverDashboard() {
       `}</style>
 
       {toast && (
-        <div style={{ position: "fixed", top: "16px", right: "16px", background: "var(--primary)", color: "#FAFAF8", padding: "12px 18px", borderRadius: "10px", fontSize: "13px", fontWeight: "600", zIndex: 9999, animation: "fadeIn 0.2s ease" }}>
+        <div style={{ position: "fixed", top: "16px", right: "16px", background: "var(--primary)", color: "#FFFFFF", padding: "12px 18px", borderRadius: "10px", fontSize: "13px", fontWeight: "600", zIndex: 9999, animation: "fadeIn 0.2s ease" }}>
           {toast}
         </div>
       )}
 
       {/* Header */}
-      <div style={{ background: "#1B3A2D", padding: "0 20px", height: "56px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
+      <div style={{ background: "#0A1F44", padding: "0 20px", height: "56px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <img src="/logo.svg" alt="Sahid Freight" style={{ width: "30px", height: "30px", objectFit: "contain" }} />
           <span style={{ fontSize: "15px", fontWeight: "900", color: "#fff" }}>Sahid Freight</span>
-          <span style={{ background: "#E8A020", color: "#fff", fontSize: "10px", fontWeight: "700", padding: "2px 7px", borderRadius: "5px" }}>DRIVER</span>
+          <span style={{ background: "#3D7BFF", color: "#fff", fontSize: "10px", fontWeight: "700", padding: "2px 7px", borderRadius: "5px" }}>DRIVER</span>
         </div>
-        <div style={{ width: "34px", height: "34px", borderRadius: "9px", background: "#E8A020", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: "800", color: "#fff" }}>
+        <div style={{ width: "34px", height: "34px", borderRadius: "9px", background: "#3D7BFF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: "800", color: "#fff" }}>
           {user?.fullName?.charAt(0)}
         </div>
       </div>
@@ -380,7 +380,7 @@ export default function DriverDashboard() {
               </div>
               <div style={{ background: "var(--surface)", borderRadius: "12px", padding: "16px", border: "1px solid var(--border)" }}>
                 <div style={{ fontSize: "11px", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "6px" }}>Status</div>
-                <div style={{ fontSize: "14px", fontWeight: "700", color: activeBooking ? "#16a34a" : pendingBooking ? "#E8A020" : "#6b7280" }}>
+                <div style={{ fontSize: "14px", fontWeight: "700", color: activeBooking ? "#16a34a" : pendingBooking ? "#F59E0B" : "#6b7280" }}>
                   {activeBooking ? "On Trip" : pendingBooking ? "Assigned" : "Available"}
                 </div>
               </div>
@@ -395,7 +395,7 @@ export default function DriverDashboard() {
                 <div style={{ fontSize: "18px", fontWeight: "800", color: "var(--primary)", marginBottom: "6px" }}>Delivery Complete!</div>
                 <div style={{ fontSize: "13px", color: "#6b7280", marginBottom: "20px" }}>Great work. The cargo has been delivered successfully.</div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
-                  {[1,2,3,4,5].map(s => <Star key={s} size={20} fill="#E8A020" color="#E8A020" />)}
+                  {[1,2,3,4,5].map(s => <Star key={s} size={20} fill="#F59E0B" color="#F59E0B" />)}
                 </div>
                 <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "8px" }}>Excellent delivery</div>
                 <button
@@ -409,30 +409,30 @@ export default function DriverDashboard() {
 
             {/* ── ACTIVE JOURNEY ── */}
             {activeBooking && (
-              <div style={{ background: "#1B3A2D", borderRadius: "14px", padding: "20px", marginBottom: "16px" }}>
+              <div style={{ background: "#0A1F44", borderRadius: "14px", padding: "20px", marginBottom: "16px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-                  <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#4ade80", animation: "pulse 1.5s infinite" }} />
-                  <span style={{ fontSize: "11px", fontWeight: "700", color: "#4ade80", letterSpacing: "0.8px" }}>ACTIVE JOURNEY</span>
+                  <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#5BE3C4", animation: "pulse 1.5s infinite" }} />
+                  <span style={{ fontSize: "11px", fontWeight: "700", color: "#5BE3C4", letterSpacing: "0.8px" }}>ACTIVE JOURNEY</span>
                 </div>
-                <div style={{ fontSize: "16px", fontWeight: "700", color: "#FAFAF8", marginBottom: "6px" }}>{activeBooking.load?.title}</div>
-                <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "rgba(240,235,224,0.5)", marginBottom: "16px" }}>
+                <div style={{ fontSize: "16px", fontWeight: "700", color: "#FFFFFF", marginBottom: "6px" }}>{activeBooking.load?.title}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "rgba(255,255,255,0.5)", marginBottom: "16px" }}>
                   <MapPin size={12} />{activeBooking.load?.pickupCity} → {activeBooking.load?.deliveryCity}
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "14px" }}>
-                  <div style={{ background: "rgba(240,235,224,0.06)", borderRadius: "8px", padding: "10px" }}>
-                    <div style={{ fontSize: "10px", color: "rgba(240,235,224,0.3)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "3px" }}>Truck</div>
-                    <div style={{ fontSize: "13px", fontWeight: "700", color: "#FAFAF8", fontFamily: "monospace" }}>{activeBooking.truck?.plateNumber}</div>
+                  <div style={{ background: "rgba(255,255,255,0.06)", borderRadius: "8px", padding: "10px" }}>
+                    <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "3px" }}>Truck</div>
+                    <div style={{ fontSize: "13px", fontWeight: "700", color: "#FFFFFF", fontFamily: "monospace" }}>{activeBooking.truck?.plateNumber}</div>
                   </div>
-                  <div style={{ background: "rgba(240,235,224,0.06)", borderRadius: "8px", padding: "10px" }}>
-                    <div style={{ fontSize: "10px", color: "rgba(240,235,224,0.3)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "3px" }}>Type</div>
-                    <div style={{ fontSize: "13px", fontWeight: "700", color: "#FAFAF8" }}>{activeBooking.truck?.truckType?.replace(/_/g, " ")}</div>
+                  <div style={{ background: "rgba(255,255,255,0.06)", borderRadius: "8px", padding: "10px" }}>
+                    <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "3px" }}>Type</div>
+                    <div style={{ fontSize: "13px", fontWeight: "700", color: "#FFFFFF" }}>{activeBooking.truck?.truckType?.replace(/_/g, " ")}</div>
                   </div>
                 </div>
 
                 {/* Continue journey tracking link */}
                 <a
                   href={"/tracking/" + activeBooking.id}
-                  style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "13px", borderRadius: "10px", background: "#E8A020", color: "#fff", fontSize: "14px", fontWeight: "700", textDecoration: "none", marginBottom: "12px" }}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "13px", borderRadius: "10px", background: "#3D7BFF", color: "#fff", fontSize: "14px", fontWeight: "700", textDecoration: "none", marginBottom: "12px" }}
                 >
                   <Navigation size={16} /> View Live Tracking
                 </a>
@@ -449,7 +449,7 @@ export default function DriverDashboard() {
             {/* ── PENDING ASSIGNMENT ── */}
             {pendingBooking && !activeBooking && (
               <div style={{ background: "var(--surface)", borderRadius: "14px", padding: "20px", marginBottom: "16px", border: "1px solid var(--border)" }}>
-                <div style={{ fontSize: "11px", fontWeight: "700", color: "#E8A020", marginBottom: "10px", letterSpacing: "0.8px" }}>NEW ASSIGNMENT</div>
+                <div style={{ fontSize: "11px", fontWeight: "700", color: "#F59E0B", marginBottom: "10px", letterSpacing: "0.8px" }}>NEW ASSIGNMENT</div>
                 <div style={{ fontSize: "16px", fontWeight: "700", color: "var(--primary)", marginBottom: "6px" }}>{pendingBooking.load?.title}</div>
                 <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "#6b7280", marginBottom: "14px" }}>
                   <MapPin size={12} />{pendingBooking.load?.pickupCity} → {pendingBooking.load?.deliveryCity}
@@ -472,7 +472,7 @@ export default function DriverDashboard() {
                 {/* Slide to start journey */}
                 <SlideButton
                   label="Slide to start journey →"
-                  color="#E8A020"
+                  color="#3D7BFF"
                   onConfirm={() => startJourney(pendingBooking.id)}
                 />
               </div>
@@ -481,7 +481,7 @@ export default function DriverDashboard() {
             {/* No assignments */}
             {!activeBooking && !pendingBooking && !justDeliveredId && (
               <div style={{ background: "var(--surface)", borderRadius: "14px", padding: "48px 24px", textAlign: "center", border: "1px solid var(--border)" }}>
-                <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: "#c8c0b0" }}>
+                <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: "#94A3B8" }}>
                   <Truck size={24} />
                 </div>
                 <div style={{ fontSize: "15px", fontWeight: "700", color: "var(--primary)", marginBottom: "6px" }}>No assignments yet</div>
@@ -516,7 +516,7 @@ export default function DriverDashboard() {
             </div>
 
             <div style={{ background: "var(--surface)", borderRadius: "12px", padding: "20px", border: "1px solid var(--border)", marginBottom: "14px", display: "flex", alignItems: "center", gap: "16px" }}>
-              <div style={{ width: "56px", height: "56px", borderRadius: "14px", background: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", fontWeight: "800", color: "#FAFAF8", flexShrink: 0 }}>
+              <div style={{ width: "56px", height: "56px", borderRadius: "14px", background: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", fontWeight: "800", color: "#FFFFFF", flexShrink: 0 }}>
                 {user?.fullName?.charAt(0)}
               </div>
               <div>
@@ -541,7 +541,7 @@ export default function DriverDashboard() {
                 </div>
                 <div>
                   <label style={{ fontSize: "11px", fontWeight: "600", color: "#6b7280", display: "block", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Phone</label>
-                  <input style={{ ...inp, background: "#f0ede6", color: "var(--text-secondary)" }} value={user?.phone} disabled />
+                  <input style={{ ...inp, background: "#F1F5F9", color: "var(--text-secondary)" }} value={user?.phone} disabled />
                 </div>
                 <div>
                   <label style={{ fontSize: "11px", fontWeight: "600", color: "#6b7280", display: "block", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.5px" }}>City</label>
@@ -549,7 +549,7 @@ export default function DriverDashboard() {
                 </div>
               </div>
               {profileMsg && <div style={{ fontSize: "12px", color: "#dc2626", marginTop: "10px" }}>{profileMsg}</div>}
-              <button onClick={saveProfile} disabled={saving} style={{ marginTop: "14px", width: "100%", padding: "11px", borderRadius: "9px", border: "none", background: saving ? "var(--border)" : "var(--primary)", color: saving ? "#aaa" : "#FAFAF8", fontSize: "13px", fontWeight: "700", cursor: saving ? "not-allowed" : "pointer" }}>
+              <button onClick={saveProfile} disabled={saving} style={{ marginTop: "14px", width: "100%", padding: "11px", borderRadius: "9px", border: "none", background: saving ? "var(--border)" : "var(--primary)", color: saving ? "#aaa" : "#FFFFFF", fontSize: "13px", fontWeight: "700", cursor: saving ? "not-allowed" : "pointer" }}>
                 {saving ? "Saving…" : "Save Changes"}
               </button>
             </div>
@@ -569,7 +569,7 @@ export default function DriverDashboard() {
                 ))}
               </div>
               {pwError && <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "#dc2626", marginTop: "10px" }}><AlertCircle size={13} />{pwError}</div>}
-              <button onClick={changePassword} disabled={changingPw} style={{ marginTop: "14px", width: "100%", padding: "11px", borderRadius: "9px", border: "none", background: changingPw ? "var(--border)" : "var(--primary)", color: changingPw ? "#aaa" : "#FAFAF8", fontSize: "13px", fontWeight: "700", cursor: changingPw ? "not-allowed" : "pointer" }}>
+              <button onClick={changePassword} disabled={changingPw} style={{ marginTop: "14px", width: "100%", padding: "11px", borderRadius: "9px", border: "none", background: changingPw ? "var(--border)" : "var(--primary)", color: changingPw ? "#aaa" : "#FFFFFF", fontSize: "13px", fontWeight: "700", cursor: changingPw ? "not-allowed" : "pointer" }}>
                 {changingPw ? "Updating…" : "Update Password"}
               </button>
             </div>
@@ -586,12 +586,12 @@ export default function DriverDashboard() {
       </div>
 
       {/* Bottom nav */}
-      <nav style={{ position: "fixed", bottom: 0, left: 0, right: 0, height: "64px", background: "#1B3A2D", display: "flex", alignItems: "center", justifyContent: "space-around", borderTop: "1px solid rgba(240,235,224,0.1)", zIndex: 100 }}>
-        <button onClick={() => setTab("home")} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px", background: "none", border: "none", cursor: "pointer", padding: "6px 20px", color: tab === "home" ? "#E8A020" : "rgba(240,235,224,0.4)" }}>
+      <nav style={{ position: "fixed", bottom: 0, left: 0, right: 0, height: "64px", background: "#0A1F44", display: "flex", alignItems: "center", justifyContent: "space-around", borderTop: "1px solid rgba(255,255,255,0.1)", zIndex: 100 }}>
+        <button onClick={() => setTab("home")} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px", background: "none", border: "none", cursor: "pointer", padding: "6px 20px", color: tab === "home" ? "#3D7BFF" : "rgba(255,255,255,0.4)" }}>
           <Package size={20} />
           <span style={{ fontSize: "10px", fontWeight: tab === "home" ? "700" : "400" }}>Home</span>
         </button>
-        <button onClick={() => setTab("profile")} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px", background: "none", border: "none", cursor: "pointer", padding: "6px 20px", color: tab === "profile" ? "#E8A020" : "rgba(240,235,224,0.4)" }}>
+        <button onClick={() => setTab("profile")} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px", background: "none", border: "none", cursor: "pointer", padding: "6px 20px", color: tab === "profile" ? "#3D7BFF" : "rgba(255,255,255,0.4)" }}>
           <User size={20} />
           <span style={{ fontSize: "10px", fontWeight: tab === "profile" ? "700" : "400" }}>Profile</span>
         </button>
