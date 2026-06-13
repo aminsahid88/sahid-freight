@@ -82,13 +82,13 @@ export default function TrackingPage() {
       streetViewControl: false,
       fullscreenControl: false,
       styles: [
-        { elementType: "geometry", stylers: [{ color: "#1a2744" }] },
-        { elementType: "labels.text.fill", stylers: [{ color: "#f0ebe0" }] },
-        { elementType: "labels.text.stroke", stylers: [{ color: "#1a2744" }] },
-        { featureType: "road", elementType: "geometry", stylers: [{ color: "#2d3f6b" }] },
-        { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#1a2744" }] },
-        { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#c8901e" }] },
-        { featureType: "water", elementType: "geometry", stylers: [{ color: "#0f1a35" }] },
+        { elementType: "geometry", stylers: [{ color: "#0A1F44" }] },
+        { elementType: "labels.text.fill", stylers: [{ color: "#F8FAFC" }] },
+        { elementType: "labels.text.stroke", stylers: [{ color: "#0A1F44" }] },
+        { featureType: "road", elementType: "geometry", stylers: [{ color: "#13316B" }] },
+        { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#0A1F44" }] },
+        { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#3D7BFF" }] },
+        { featureType: "water", elementType: "geometry", stylers: [{ color: "#0A1F44" }] },
         { featureType: "poi", stylers: [{ visibility: "off" }] },
       ],
     });
@@ -100,7 +100,7 @@ export default function TrackingPage() {
       const directionsRenderer = new window.google.maps.DirectionsRenderer({
         map,
         suppressMarkers: true,
-        polylineOptions: { strokeColor: "#c8901e", strokeWeight: 4, strokeOpacity: 0.6 },
+        polylineOptions: { strokeColor: "#3D7BFF", strokeWeight: 4, strokeOpacity: 0.6 },
       });
 
       directionsService.route({
@@ -115,7 +115,7 @@ export default function TrackingPage() {
       new window.google.maps.Marker({
         position: { lat: booking.load.pickupLat, lng: booking.load.pickupLng },
         map,
-        icon: { path: window.google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: "#4ade80", fillOpacity: 1, strokeColor: "#fff", strokeWeight: 2 },
+        icon: { path: window.google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: "#16A34A", fillOpacity: 1, strokeColor: "#fff", strokeWeight: 2 },
         title: "Pickup: " + booking.load.pickupCity,
       });
 
@@ -132,7 +132,7 @@ export default function TrackingPage() {
     pathRef.current = new window.google.maps.Polyline({
       map,
       path: [],
-      strokeColor: "#c8901e",
+      strokeColor: "#3D7BFF",
       strokeWeight: 3,
       strokeOpacity: 1,
     });
@@ -160,11 +160,11 @@ export default function TrackingPage() {
           icon: {
             url: "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
               <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
-                <circle cx="24" cy="24" r="22" fill="#c8901e" stroke="white" stroke-width="3"/>
+                <circle cx="24" cy="24" r="22" fill="#3D7BFF" stroke="white" stroke-width="3"/>
                 <path d="M10 20h18v12H10z" fill="white"/>
                 <path d="M28 23h6l4 4v5h-10z" fill="white"/>
-                <circle cx="16" cy="33" r="3" fill="#c8901e"/>
-                <circle cx="32" cy="33" r="3" fill="#c8901e"/>
+                <circle cx="16" cy="33" r="3" fill="#3D7BFF"/>
+                <circle cx="32" cy="33" r="3" fill="#3D7BFF"/>
               </svg>
             `),
             scaledSize: new window.google.maps.Size(48, 48),
@@ -241,8 +241,8 @@ export default function TrackingPage() {
   };
 
   if (loading) return (
-    <div style={{ minHeight: "100vh", background: "#1a2744", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ width: "36px", height: "36px", border: "3px solid rgba(240,235,224,0.2)", borderTop: "3px solid #c8901e", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+    <div style={{ minHeight: "100vh", background: "#0A1F44", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ width: "36px", height: "36px", border: "3px solid rgba(255,255,255,0.2)", borderTop: "3px solid #3D7BFF", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
       <style>{`@keyframes spin{to{transform:rotate(360deg);}}`}</style>
     </div>
   );
@@ -254,21 +254,21 @@ export default function TrackingPage() {
   const isInTransit = loadStatus === "IN_TRANSIT";
 
   return (
-    <div style={{ height: "100vh", background: "#1a2744", fontFamily: "\'Helvetica Neue\', Arial, sans-serif", display: "flex", flexDirection: "column" as const, overflow: "hidden" }}>
+    <div style={{ height: "100vh", background: "#0A1F44", fontFamily: "\'Helvetica Neue\', Arial, sans-serif", display: "flex", flexDirection: "column" as const, overflow: "hidden" }}>
       <style>{`@keyframes spin{to{transform:rotate(360deg);}} @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}`}</style>
 
       {/* Header */}
-      <div style={{ padding: "12px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(240,235,224,0.08)", flexShrink: 0, background: "#1a2744", zIndex: 10 }}>
+      <div style={{ padding: "12px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.08)", flexShrink: 0, background: "#0A1F44", zIndex: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <button onClick={() => router.back()} style={{ background: "rgba(240,235,224,0.08)", border: "none", borderRadius: "8px", padding: "7px 12px", color: "#f0ebe0", fontSize: "13px", cursor: "pointer" }}>← Back</button>
+          <button onClick={() => router.back()} style={{ background: "rgba(255,255,255,0.08)", border: "none", borderRadius: "8px", padding: "7px 12px", color: "#F8FAFC", fontSize: "13px", cursor: "pointer" }}>← Back</button>
           <div>
-            <div style={{ fontSize: "14px", fontWeight: "700", color: "#f0ebe0" }}>{booking?.load?.title || "Tracking"}</div>
-            <div style={{ fontSize: "11px", color: "rgba(240,235,224,0.4)", marginTop: "1px" }}>{booking?.load?.pickupCity} → {booking?.load?.deliveryCity}</div>
+            <div style={{ fontSize: "14px", fontWeight: "700", color: "#F8FAFC" }}>{booking?.load?.title || "Tracking"}</div>
+            <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginTop: "1px" }}>{booking?.load?.pickupCity} → {booking?.load?.deliveryCity}</div>
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: isSharing ? "#4ade80" : isDelivered ? "#c8901e" : "#6b7280", animation: isSharing ? "pulse 1.5s infinite" : "none" }} />
-          <span style={{ fontSize: "11px", color: isSharing ? "#4ade80" : "rgba(240,235,224,0.4)", fontWeight: "700" }}>
+          <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: isSharing ? "#5BE3C4" : isDelivered ? "#16A34A" : "#6b7280", animation: isSharing ? "pulse 1.5s infinite" : "none" }} />
+          <span style={{ fontSize: "11px", color: isSharing ? "#5BE3C4" : "rgba(255,255,255,0.4)", fontWeight: "700" }}>
             {isSharing ? "LIVE" : isDelivered ? "DELIVERED" : isInTransit ? "IN TRANSIT" : bStatus || "—"}
           </span>
         </div>
@@ -278,20 +278,20 @@ export default function TrackingPage() {
       <div ref={mapContainerRef} style={{ flex: 1 }} />
 
       {/* Bottom panel */}
-      <div style={{ background: "#0f1a35", padding: "16px 20px", flexShrink: 0, zIndex: 10 }}>
+      <div style={{ background: "#0A1F44", padding: "16px 20px", flexShrink: 0, zIndex: 10 }}>
         {error && <div style={{ background: "rgba(220,38,38,0.15)", border: "1px solid rgba(220,38,38,0.3)", borderRadius: "8px", padding: "10px 14px", color: "#fca5a5", fontSize: "13px", marginBottom: "10px" }}>{error}</div>}
 
-        <div style={{ fontSize: "11px", color: "rgba(240,235,224,0.35)", marginBottom: "10px" }}>{status}</div>
+        <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.35)", marginBottom: "10px" }}>{status}</div>
 
         {location && (
           <div style={{ display: "flex", gap: "10px", marginBottom: "12px" }}>
-            <div style={{ background: "rgba(240,235,224,0.05)", borderRadius: "8px", padding: "8px 12px", flex: 1, textAlign: "center" as const }}>
-              <div style={{ fontSize: "9px", color: "rgba(240,235,224,0.3)", textTransform: "uppercase" as const, letterSpacing: "1px", marginBottom: "3px" }}>Lat</div>
-              <div style={{ fontSize: "12px", fontWeight: "700", color: "#f0ebe0", fontFamily: "monospace" }}>{location.lat.toFixed(5)}</div>
+            <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: "8px", padding: "8px 12px", flex: 1, textAlign: "center" as const }}>
+              <div style={{ fontSize: "9px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase" as const, letterSpacing: "1px", marginBottom: "3px" }}>Lat</div>
+              <div style={{ fontSize: "12px", fontWeight: "700", color: "#F8FAFC", fontFamily: "monospace" }}>{location.lat.toFixed(5)}</div>
             </div>
-            <div style={{ background: "rgba(240,235,224,0.05)", borderRadius: "8px", padding: "8px 12px", flex: 1, textAlign: "center" as const }}>
-              <div style={{ fontSize: "9px", color: "rgba(240,235,224,0.3)", textTransform: "uppercase" as const, letterSpacing: "1px", marginBottom: "3px" }}>Lng</div>
-              <div style={{ fontSize: "12px", fontWeight: "700", color: "#f0ebe0", fontFamily: "monospace" }}>{location.lng.toFixed(5)}</div>
+            <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: "8px", padding: "8px 12px", flex: 1, textAlign: "center" as const }}>
+              <div style={{ fontSize: "9px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase" as const, letterSpacing: "1px", marginBottom: "3px" }}>Lng</div>
+              <div style={{ fontSize: "12px", fontWeight: "700", color: "#F8FAFC", fontFamily: "monospace" }}>{location.lng.toFixed(5)}</div>
             </div>
           </div>
         )}
@@ -300,14 +300,14 @@ export default function TrackingPage() {
           <div style={{ display: "flex", flexDirection: "column" as const, gap: "8px" }}>
             {!isInTransit && !isDelivered && (
               <button onClick={handleStartJourney} disabled={actionLoading}
-                style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "none", background: "#c8901e", color: "#fff", fontSize: "14px", fontWeight: "700", cursor: actionLoading ? "not-allowed" : "pointer", opacity: actionLoading ? 0.7 : 1 }}>
+                style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "none", background: "#3D7BFF", color: "#fff", fontSize: "14px", fontWeight: "700", cursor: actionLoading ? "not-allowed" : "pointer", opacity: actionLoading ? 0.7 : 1 }}>
                 {actionLoading ? "Starting..." : "Start Journey"}
               </button>
             )}
             {isInTransit && !isDelivered && (
               <>
                 <button onClick={isSharing ? stopSharing : startSharing}
-                  style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "1px solid rgba(240,235,224,0.1)" }}>
+                  style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.1)" }}>
                   {isSharing ? "Pause Location Sharing" : "Resume Sharing"}
                 </button>
                 <button onClick={handleMarkDelivered} disabled={actionLoading}
@@ -317,7 +317,7 @@ export default function TrackingPage() {
               </>
             )}
             {isDelivered && (
-              <div style={{ textAlign: "center" as const, padding: "14px", background: "rgba(22,163,74,0.1)", borderRadius: "10px", color: "#4ade80", fontSize: "14px", fontWeight: "600" }}>
+              <div style={{ textAlign: "center" as const, padding: "14px", background: "rgba(22,163,74,0.1)", borderRadius: "10px", color: "#16A34A", fontSize: "14px", fontWeight: "600" }}>
                 Delivery Completed
               </div>
             )}
@@ -327,23 +327,23 @@ export default function TrackingPage() {
         {!isTruckOwner && (
           <div>
             {!isInTransit && !isDelivered && (
-              <div style={{ textAlign: "center" as const, padding: "12px", color: "rgba(240,235,224,0.4)", fontSize: "13px" }}>
+              <div style={{ textAlign: "center" as const, padding: "12px", color: "rgba(255,255,255,0.4)", fontSize: "13px" }}>
                 Waiting for truck owner to start the journey...
               </div>
             )}
             {isInTransit && !location && (
-              <div style={{ textAlign: "center" as const, padding: "12px", color: "rgba(240,235,224,0.4)", fontSize: "13px" }}>
+              <div style={{ textAlign: "center" as const, padding: "12px", color: "rgba(255,255,255,0.4)", fontSize: "13px" }}>
                 Journey started — waiting for location update...
               </div>
             )}
             {isInTransit && location && (
               <a href={"https://maps.google.com/?q=" + location.lat + "," + location.lng} target="_blank" rel="noopener noreferrer"
-                style={{ display: "block", width: "100%", padding: "14px", borderRadius: "10px", background: "#c8901e", color: "#fff", fontSize: "14px", fontWeight: "700", textAlign: "center" as const, textDecoration: "none" }}>
+                style={{ display: "block", width: "100%", padding: "14px", borderRadius: "10px", background: "#3D7BFF", color: "#fff", fontSize: "14px", fontWeight: "700", textAlign: "center" as const, textDecoration: "none" }}>
                 Open in Google Maps
               </a>
             )}
             {isDelivered && (
-              <div style={{ textAlign: "center" as const, padding: "14px", background: "rgba(22,163,74,0.1)", borderRadius: "10px", color: "#4ade80", fontSize: "14px", fontWeight: "600" }}>
+              <div style={{ textAlign: "center" as const, padding: "14px", background: "rgba(22,163,74,0.1)", borderRadius: "10px", color: "#16A34A", fontSize: "14px", fontWeight: "600" }}>
                 Your cargo has been delivered!
               </div>
             )}
