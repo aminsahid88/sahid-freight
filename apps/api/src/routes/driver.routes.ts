@@ -1,7 +1,10 @@
 import { Router, Response } from "express";
-import { protect, fleetManagerOnly } from "../middleware/auth.middleware";
+import { protect, fleetManagerOnly, truckOwnerOnly } from "../middleware/auth.middleware";
 import { AuthRequest } from "../middleware/auth.middleware";
 import prisma from "../utils/prisma";
+import { sendSMS } from "../utils/sms";
+
+const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 const router = Router();
 
@@ -67,25 +70,48 @@ router.post("/invite", protect, fleetManagerOnly, async (req: AuthRequest, res: 
   }
 });
 
-// Send SMS invite to unregistered driver (stub — stores intent, actual SMS is a TODO)
-router.post("/send-invite", protect, fleetManagerOnly, async (req: AuthRequest, res: Response) => {
+// Send SMS invite to unregistered driver. Creates (or refreshes) a DriverInvite
+// row that gets auto-linked to the owner when the recipient registers as a driver.
+router.post("/send-invite", protect, truckOwnerOnly, async (req: AuthRequest, res: Response) => {
   try {
     const { phone } = req.body;
     if (!phone) return res.status(400).json({ message: "Phone number is required" });
 
-    // TODO: integrate SMS provider (Twilio, Africa's Talking, etc.) to send:
-    // "[OwnerName] invited you to drive for their fleet on Sahid Freight.
-    //  Download: https://sahidfreight.app and register as a driver to accept."
-    //
-    // TODO: store pending invite in a DriverInvite table with phone, ownerId, expiresAt.
-    // When this phone later registers as DRIVER, auto-link via invitedById.
+    const ownerId = req.user!.userId;
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + INVITE_TTL_MS);
 
-    const owner = await prisma.user.findUnique({ where: { id: req.user!.userId } });
-    console.log(`[SMS INVITE STUB] ${owner?.fullName} invited ${phone} to join their fleet`);
+    // Dedup: refresh an existing non-expired PENDING invite from this owner to this phone.
+    const existing = await prisma.driverInvite.findFirst({
+      where: { phone, ownerId, status: "PENDING", expiresAt: { gt: now } },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const invite = existing
+      ? await prisma.driverInvite.update({
+          where: { id: existing.id },
+          data: { expiresAt },
+        })
+      : await prisma.driverInvite.create({
+          data: { phone, ownerId, status: "PENDING", expiresAt },
+        });
+
+    // Best-effort SMS. sendSMS already swallows its own errors, but wrap defensively
+    // so a future change can't take down the request.
+    try {
+      await sendSMS(
+        phone,
+        "You've been invited to join a fleet on Sahid Freight. Download the app and register with this number to get started.",
+      );
+    } catch (err) {
+      console.error("send-invite SMS failed (invite still recorded):", err);
+    }
 
     return res.status(200).json({
-      message: "Invite recorded. The driver will be linked to your fleet when they register.",
-      phone,
+      message: existing
+        ? "Invite refreshed. The driver will be linked to your fleet when they register."
+        : "Invite sent. The driver will be linked to your fleet when they register.",
+      invite,
     });
   } catch (error) {
     console.error("sendInvite failed:", error);

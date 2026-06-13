@@ -78,6 +78,40 @@ export const register = async (req: Request, res: Response) => {
       }
     } catch (err) { console.error("Profile creation failed (user still created):", err); }
 
+    // Best-effort driver-invite auto-link. If a non-expired PENDING invite exists
+    // for this phone, link the new driver to the inviting owner's fleet.
+    // MUST NOT throw — registration succeeds even if linking fails.
+    if (role === "DRIVER") {
+      try {
+        const invite = await prisma.driverInvite.findFirst({
+          where: {
+            phone,
+            status: "PENDING",
+            expiresAt: { gt: new Date() },
+          },
+          orderBy: { createdAt: "desc" },
+        });
+        if (invite) {
+          await prisma.$transaction([
+            prisma.user.update({
+              where: { id: user.id },
+              data: { invitedById: invite.ownerId },
+            }),
+            prisma.driverInvite.update({
+              where: { id: invite.id },
+              data: {
+                status: "ACCEPTED",
+                acceptedByUserId: user.id,
+                acceptedAt: new Date(),
+              },
+            }),
+          ]);
+        }
+      } catch (err) {
+        console.error("Driver auto-link failed (registration still succeeded):", err);
+      }
+    }
+
     const { accessToken, refreshToken } = await issueTokens(user.id, user.role);
 
     return res.status(201).json({
