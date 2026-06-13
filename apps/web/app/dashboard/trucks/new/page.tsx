@@ -77,7 +77,7 @@ export default function NewTruckPage() {
     border: `1.5px solid ${focused === field ? "var(--primary)" : "var(--border)"}`,
     borderRadius: "10px", padding: "13px 16px", color: "var(--primary)",
     fontSize: "15px", outline: "none", boxSizing: "border-box" as const,
-    transition: "all 0.15s", boxShadow: focused === field ? "0 0 0 3px rgba(26,39,68,0.08)" : "none",
+    transition: "all 0.15s", boxShadow: focused === field ? "0 0 0 3px rgba(10,31,68,0.08)" : "none",
   });
 
   const labelStyle = { display: "block", fontSize: "13px", fontWeight: "700" as const, color: "var(--primary)", marginBottom: "8px" };
@@ -116,7 +116,7 @@ export default function NewTruckPage() {
           <p style={{ color: "var(--text-secondary)", fontSize: "15px", margin: 0 }}>Register your truck to start receiving load requests</p>
         </div>
 
-        <div style={{ background: "var(--surface)", borderRadius: "20px", padding: "40px", boxShadow: "0 2px 4px rgba(26,39,68,0.04), 0 16px 48px rgba(26,39,68,0.08)", border: "1px solid rgba(26,39,68,0.06)" }}>
+        <div style={{ background: "var(--surface)", borderRadius: "20px", padding: "40px", boxShadow: "0 2px 4px rgba(10,31,68,0.04), 0 16px 48px rgba(10,31,68,0.08)", border: "1px solid rgba(10,31,68,0.06)" }}>
 
           {error && (
             <div style={{ background: "#fff5f5", border: "1px solid #fecaca", borderRadius: "10px", padding: "12px 16px", color: "#dc2626", fontSize: "14px", marginBottom: "28px" }}>

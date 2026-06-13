@@ -94,7 +94,7 @@ export default function TrucksPage() {
             {[1,2,3,4].map((i: number) => <div key={i} className="sk" style={{ height: "72px", marginBottom: "10px" }} />)}
           </div>
         ) : trucks.length === 0 ? (
-          <div style={{ background: "var(--surface)", borderRadius: "16px", padding: "64px 24px", textAlign: "center" as const, border: "1px solid rgba(26,39,68,0.06)" }}>
+          <div style={{ background: "var(--surface)", borderRadius: "16px", padding: "64px 24px", textAlign: "center" as const, border: "1px solid rgba(10,31,68,0.06)" }}>
 
             <h3 style={{ fontSize: "18px", fontWeight: "700", color: "var(--primary)", margin: "0 0 8px" }}>No trucks yet</h3>
             <p style={{ color: "var(--text-secondary)", fontSize: "15px", margin: "0 0 24px" }}>Add your first truck to start receiving load requests</p>
@@ -105,7 +105,7 @@ export default function TrucksPage() {
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px" }}>
             {trucks.map((truck: any) => (
-              <div key={truck.id} style={{ background: "var(--surface)", borderRadius: "16px", padding: "24px", border: "1px solid rgba(26,39,68,0.06)", boxShadow: "0 2px 8px rgba(26,39,68,0.04)" }}>
+              <div key={truck.id} style={{ background: "var(--surface)", borderRadius: "16px", padding: "24px", border: "1px solid rgba(10,31,68,0.06)", boxShadow: "0 2px 8px rgba(10,31,68,0.04)" }}>
 
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>

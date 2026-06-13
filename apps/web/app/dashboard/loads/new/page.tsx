@@ -211,7 +211,7 @@ export default function NewLoadPage() {
                   <label style={labelStyle}>Offered Price</label>
                   <input type="number" value={form.offeredPrice} onChange={(e) => update("offeredPrice", e.target.value)} placeholder="e.g. 1500" required min="1" onFocus={() => setFocused("price")} onBlur={() => setFocused(null)} style={inputStyle("price")} />
                   {priceSuggestion && (
-                    <div style={{ marginTop: "8px", display: "flex", alignItems: "center", gap: "8px", padding: "8px 12px", background: "rgba(232,160,32,0.08)", borderRadius: "8px", border: "1px solid rgba(232,160,32,0.2)" }}>
+                    <div style={{ marginTop: "8px", display: "flex", alignItems: "center", gap: "8px", padding: "8px 12px", background: "rgba(245,158,11,0.08)", borderRadius: "8px", border: "1px solid rgba(245,158,11,0.2)" }}>
                       <span style={{ fontSize: "14px" }}>💡</span>
                       <span style={{ fontSize: "12px", color: "#92400E" }}>
                         <strong>Market range:</strong> ${priceSuggestion.min.toLocaleString()} – ${priceSuggestion.max.toLocaleString()} · avg <strong>${priceSuggestion.avg.toLocaleString()}</strong>

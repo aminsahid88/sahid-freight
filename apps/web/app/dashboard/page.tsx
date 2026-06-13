@@ -113,7 +113,7 @@ export default function DashboardPage() {
       {user && !user.isVerified && user.status === "PENDING_VERIFICATION" && (
         <div style={{ background: "#FFFBEB", border: "1px solid #FCD34D", borderRadius: "14px", padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px", gap: "12px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-            <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(232,160,32,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(245,158,11,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={A} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
             </div>
             <div>
@@ -197,7 +197,7 @@ export default function DashboardPage() {
         </div>
         {/* Pending bids alert — cargo sender only */}
         {user?.role === "CARGO_SENDER" && loads.some((l: any) => l._count?.bids > 0 && l.status === "OPEN") && (
-          <div style={{ margin: "0 16px 0", padding: "12px 16px", background: "rgba(232,160,32,0.08)", borderBottom: "1px solid rgba(232,160,32,0.2)", display: "flex", alignItems: "center", gap: "10px" }}>
+          <div style={{ margin: "0 16px 0", padding: "12px 16px", background: "rgba(245,158,11,0.08)", borderBottom: "1px solid rgba(245,158,11,0.2)", display: "flex", alignItems: "center", gap: "10px" }}>
             <span style={{ fontSize: "16px" }}>🔔</span>
             <span style={{ fontSize: "13px", color: "#92400E", fontWeight: "600" }}>
               You have new bids waiting. Click any load to review and accept.
@@ -226,7 +226,7 @@ export default function DashboardPage() {
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <span style={{ fontSize: "13px", fontWeight: "600", color: P }}>{load.title}</span>
                 {load._count?.bids > 0 && load.status === "OPEN" && (
-                  <span style={{ fontSize: "10px", fontWeight: "700", padding: "2px 7px", borderRadius: "99px", background: "rgba(232,160,32,0.15)", color: "#92400E", whiteSpace: "nowrap" as const }}>
+                  <span style={{ fontSize: "10px", fontWeight: "700", padding: "2px 7px", borderRadius: "99px", background: "rgba(245,158,11,0.15)", color: "#92400E", whiteSpace: "nowrap" as const }}>
                     {load._count.bids} bid{load._count.bids !== 1 ? "s" : ""}
                   </span>
                 )}

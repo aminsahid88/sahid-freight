@@ -74,14 +74,14 @@ export default function VerifyPage() {
     <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Inter, system-ui, sans-serif" }}>
       <div style={{ textAlign: "center", maxWidth: "440px", padding: "48px 32px", background: "var(--surface)", borderRadius: "24px", boxShadow: "0 8px 40px rgba(0,0,0,0.08)" }}>
         <div style={{ width: "72px", height: "72px", background: "#fef3c7", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px" }}>
-          <Shield size={36} color="#E8A020" strokeWidth={1.5} />
+          <Shield size={36} color="#F59E0B" strokeWidth={1.5} />
         </div>
         <h2 style={{ margin: "0 0 12px", fontSize: "24px", fontWeight: "800", color: "var(--primary)" }}>Documents Under Review</h2>
         <p style={{ margin: "0 0 24px", color: "#6b7280", fontSize: "15px", lineHeight: "1.6" }}>Your documents have been submitted successfully. Our team will review and verify your account within 24 hours.</p>
         <div style={{ background: "#f8f7f5", borderRadius: "12px", padding: "16px", marginBottom: "24px" }}>
           {["Documents submitted", "Under review by our team", "Account activated"].map((step, i) => (
             <div key={i} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "8px 0" }}>
-              <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: i === 0 ? "#16a34a" : i === 1 ? "#E8A020" : "#e5e7eb", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: i === 0 ? "#16a34a" : i === 1 ? "#F59E0B" : "#e5e7eb", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 {i === 0 ? <CheckCircle size={14} color="#fff" /> : <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: i === 1 ? "#fff" : "#9ca3af" }} />}
               </div>
               <span style={{ fontSize: "14px", color: i === 2 ? "var(--text-muted)" : "var(--primary)", fontWeight: i === 1 ? "600" : "400" }}>{step}</span>
@@ -115,10 +115,10 @@ export default function VerifyPage() {
         <div style={{ background: "var(--surface)", borderRadius: "16px", padding: "20px 24px", marginBottom: "24px", border: "1px solid var(--bg)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
             <span style={{ fontSize: "14px", fontWeight: "600", color: "var(--primary)" }}>Required documents uploaded</span>
-            <span style={{ fontSize: "14px", fontWeight: "700", color: "#E8A020" }}>{uploadedRequired}/{requiredDocs.length}</span>
+            <span style={{ fontSize: "14px", fontWeight: "700", color: "#F59E0B" }}>{uploadedRequired}/{requiredDocs.length}</span>
           </div>
           <div style={{ background: "var(--bg)", borderRadius: "99px", height: "8px", overflow: "hidden" }}>
-            <div style={{ background: "#E8A020", height: "100%", borderRadius: "99px", width: `${(uploadedRequired / requiredDocs.length) * 100}%`, transition: "width 0.3s" }} />
+            <div style={{ background: "#F59E0B", height: "100%", borderRadius: "99px", width: `${(uploadedRequired / requiredDocs.length) * 100}%`, transition: "width 0.3s" }} />
           </div>
         </div>
 
@@ -178,10 +178,10 @@ export default function VerifyPage() {
           <div style={{ background: "var(--surface)", borderRadius: "12px", padding: "16px 20px", marginBottom: "16px", border: "1px solid var(--bg)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
               <span style={{ fontSize: "14px", fontWeight: "600", color: "var(--primary)" }}>Uploading documents...</span>
-              <span style={{ fontSize: "14px", fontWeight: "700", color: "#E8A020" }}>{progress}%</span>
+              <span style={{ fontSize: "14px", fontWeight: "700", color: "#F59E0B" }}>{progress}%</span>
             </div>
             <div style={{ background: "var(--bg)", borderRadius: "99px", height: "8px", overflow: "hidden" }}>
-              <div style={{ background: "#E8A020", height: "100%", borderRadius: "99px", width: `${progress}%`, transition: "width 0.3s" }} />
+              <div style={{ background: "#F59E0B", height: "100%", borderRadius: "99px", width: `${progress}%`, transition: "width 0.3s" }} />
             </div>
           </div>
         )}

@@ -104,11 +104,11 @@ export default function ProfilePage() {
         <div style={{ fontSize: "20px", fontWeight: "800", color: P, marginBottom: "4px" }}>{user?.fullName}</div>
         <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "12px" }}>{user?.phone}</div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", flexWrap: "wrap" }}>
-          <span style={{ fontSize: "11px", fontWeight: "700", padding: "3px 10px", borderRadius: "99px", background: "#F0EDE6", color: P }}>
+          <span style={{ fontSize: "11px", fontWeight: "700", padding: "3px 10px", borderRadius: "99px", background: "#F1F5F9", color: P }}>
             {user?.role?.replace(/_/g, " ")}
           </span>
 
-          <span style={{ fontSize: "11px", fontWeight: "700", padding: "3px 10px", borderRadius: "99px", background: user?.isVerified ? "#F0FDF4" : "#FFF7ED", color: user?.isVerified ? "#16A34A" : "#E8A020", border: `1px solid ${user?.isVerified ? "#BBF7D0" : "#FED7AA"}` }}>
+          <span style={{ fontSize: "11px", fontWeight: "700", padding: "3px 10px", borderRadius: "99px", background: user?.isVerified ? "#F0FDF4" : "#FFF7ED", color: user?.isVerified ? "#16A34A" : "#F59E0B", border: `1px solid ${user?.isVerified ? "#BBF7D0" : "#FED7AA"}` }}>
             {user?.isVerified ? "✓ Verified" : "⏳ Pending Verification"}
           </span>
           {totalRatings > 0 && avgRating && (
@@ -256,7 +256,7 @@ export default function ProfilePage() {
           ) : (
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "14px", padding: "16px", background: "#FFF7ED", borderRadius: "12px", border: "1px solid #FED7AA" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-                <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(232,160,32,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(245,158,11,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={A} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 </div>
                 <div>

@@ -175,7 +175,7 @@ export default function BookingsPage() {
   };
 
   const statusColor: any = {
-    PENDING:   { bg: "#fff7ed", color: "#E8A020", border: "#fed7aa" },
+    PENDING:   { bg: "#fff7ed", color: "#F59E0B", border: "#fed7aa" },
     ACCEPTED:  { bg: "#f0fdf4", color: "#16a34a", border: "#bbf7d0" },
     REJECTED:  { bg: "#fef2f2", color: "#dc2626", border: "#fecaca" },
     CANCELLED: { bg: "#f9fafb", color: "#6b7280", border: "#e5e7eb" },

@@ -142,7 +142,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {notifs.length === 0 ? (
         <div style={{ padding: "32px 16px", textAlign: "center", fontSize: "13px", color: "#6B6B6B" }}>No notifications yet</div>
       ) : notifs.map((n: any) => (
-        <div key={n.id} style={{ padding: "12px 16px", borderBottom: "1px solid #FAFAF8", background: n.isRead ? "#fff" : "rgba(232,160,32,0.04)" }}>
+        <div key={n.id} style={{ padding: "12px 16px", borderBottom: "1px solid #FAFAF8", background: n.isRead ? "#fff" : "rgba(245,158,11,0.04)" }}>
           <div style={{ fontSize: "13px", fontWeight: n.isRead ? "400" : "600", color: P, marginBottom: "3px" }}>{n.title}</div>
           <div style={{ fontSize: "12px", color: "#6B6B6B", lineHeight: "1.4", marginBottom: "4px" }}>{n.body}</div>
           <div style={{ fontSize: "11px", color: "#9CA3AF" }}>{timeAgo(n.createdAt)}</div>
@@ -223,7 +223,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </div>
           {user && !user.isVerified && user.status === "PENDING_VERIFICATION" && (
-            <div onClick={() => router.push("/dashboard/verify")} style={{ marginTop: "10px", background: "rgba(232,160,32,0.12)", border: "1px solid rgba(232,160,32,0.25)", borderRadius: "8px", padding: "7px 10px", display: "flex", alignItems: "center", gap: "7px", cursor: "pointer" }}>
+            <div onClick={() => router.push("/dashboard/verify")} style={{ marginTop: "10px", background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.25)", borderRadius: "8px", padding: "7px 10px", display: "flex", alignItems: "center", gap: "7px", cursor: "pointer" }}>
               <span style={{ color: A }}><IconShield /></span>
               <span style={{ fontSize: "11px", color: A, fontWeight: "600" }}>{tr("verify_account", language)}</span>
             </div>

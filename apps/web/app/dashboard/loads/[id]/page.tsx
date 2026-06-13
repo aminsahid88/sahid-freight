@@ -209,7 +209,7 @@ export default function LoadDetailPage() {
                 Bids <span style={{ color: "var(--text-secondary)", fontWeight: "400" }}>({bids.length})</span>
               </div>
               {pendingBids.length > 0 && (
-                <span style={{ fontSize: "12px", fontWeight: "700", color: A, background: `rgba(232,160,32,0.1)`, padding: "3px 10px", borderRadius: "99px" }}>
+                <span style={{ fontSize: "12px", fontWeight: "700", color: A, background: `rgba(245,158,11,0.1)`, padding: "3px 10px", borderRadius: "99px" }}>
                   {pendingBids.length} pending
                 </span>
               )}

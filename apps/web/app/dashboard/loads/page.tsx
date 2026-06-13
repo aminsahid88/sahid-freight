@@ -196,7 +196,7 @@ export default function LoadsPage() {
                     </div>
                     <StatusBadge status={load.status} />
                     {(load._count?.bids > 0) && (
-                      <span style={{ fontSize: "11px", fontWeight: "600", color: A, background: `rgba(232,160,32,0.1)`, padding: "2px 8px", borderRadius: "99px" }}>
+                      <span style={{ fontSize: "11px", fontWeight: "600", color: A, background: `rgba(245,158,11,0.1)`, padding: "2px 8px", borderRadius: "99px" }}>
                         {load._count.bids} bid{load._count.bids !== 1 ? "s" : ""}
                       </span>
                     )}

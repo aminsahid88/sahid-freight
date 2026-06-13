@@ -256,7 +256,7 @@ export default function LandingPage() {
                 </div>
                 <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "12px" }}>{route.desc}</div>
                 <div style={{ display: "flex", gap: "8px" }}>
-                  <span style={{ fontSize: "11px", fontWeight: "600", padding: "3px 10px", borderRadius: "99px", background: "#f0ede6", color: "var(--text-secondary)" }}>{route.distance}</span>
+                  <span style={{ fontSize: "11px", fontWeight: "600", padding: "3px 10px", borderRadius: "99px", background: "#F1F5F9", color: "var(--text-secondary)" }}>{route.distance}</span>
                   <span style={{ fontSize: "11px", fontWeight: "700", padding: "3px 10px", borderRadius: "99px", background: route.volume === "High" ? "#f0fdf4" : "#fff7ed", color: route.volume === "High" ? "#16a34a" : "#F59E0B" }}>{route.volume} Volume</span>
                 </div>
               </div>
