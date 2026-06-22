@@ -6,13 +6,26 @@ import {
 import ScreenWrapper from "../../components/ScreenWrapper";
 import { OtpInput } from "../../components/OtpInput";
 import { theme } from "../../theme";
+import api from "../../lib/api";
+import { formatApiError } from "../../lib/errors";
 import auth from "@react-native-firebase/auth";
 
 export default function OTPScreen({ route, navigation }: any) {
-  const { confirmation: initialConfirmation, phone, flow } = route?.params || {};
+  const params = route?.params || {};
+  const {
+    confirmation: initialConfirmation,
+    flow,
+    phone,
+    email,
+    fullName,
+    password,
+    country,
+  } = params;
+
   const confirmationRef = useRef(initialConfirmation);
   const [loading, setLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(60);
+  const [resending, setResending] = useState(false);
 
   useEffect(() => {
     if (resendTimer <= 0) return;
@@ -29,16 +42,25 @@ export default function OTPScreen({ route, navigation }: any) {
     }
     setLoading(true);
     try {
-      await confirmationRef.current.confirm(code);
-      const idToken = await auth().currentUser?.getIdToken();
-
       if (flow === "signup") {
-        navigation.navigate("SignUpDetails", { firebaseIdToken: idToken, phone });
+        const res = await api.post("/auth/verify-otp", {
+          identifier: email,
+          code,
+          purpose: "REGISTER",
+        });
+        navigation.navigate("SignUpDetails", {
+          verificationToken: res.data.verificationToken,
+          phone, fullName, password, country, email,
+        });
       } else if (flow === "reset") {
+        await confirmationRef.current.confirm(code);
+        const idToken = await auth().currentUser?.getIdToken();
         navigation.navigate("NewPassword", { firebaseIdToken: idToken, phone });
       }
     } catch (err: any) {
-      if (err.code === "auth/invalid-verification-code") {
+      if (flow === "signup") {
+        Alert.alert("Verification failed", formatApiError(err, "Incorrect code. Please try again."));
+      } else if (err.code === "auth/invalid-verification-code") {
         Alert.alert("Invalid code", "The code you entered is incorrect. Please try again.");
       } else if (err.code === "auth/session-expired") {
         Alert.alert("Code expired", "The verification code has expired. Please request a new one.");
@@ -51,15 +73,28 @@ export default function OTPScreen({ route, navigation }: any) {
   };
 
   const handleResend = async () => {
+    if (resendTimer > 0 || resending) return;
+    setResending(true);
     try {
-      const newConfirmation = await auth().signInWithPhoneNumber(phone);
-      confirmationRef.current = newConfirmation;
-      setResendTimer(60);
-      Alert.alert("Code sent", "A new verification code has been sent.");
+      if (flow === "signup") {
+        await api.post("/auth/request-otp", { identifier: email, purpose: "REGISTER" });
+        setResendTimer(60);
+        Alert.alert("Code sent", "A new code has been sent to your email.");
+      } else if (flow === "reset") {
+        const newConfirmation = await auth().signInWithPhoneNumber(phone);
+        confirmationRef.current = newConfirmation;
+        setResendTimer(60);
+        Alert.alert("Code sent", "A new verification code has been sent.");
+      }
     } catch (err: any) {
-      Alert.alert("Error", err.message || "Could not resend code.");
+      Alert.alert("Error", formatApiError(err, "Could not resend code."));
+    } finally {
+      setResending(false);
     }
   };
+
+  const sentToLabel = flow === "signup" ? (email || "your email") : (phone || "your phone");
+  const screenTitle = flow === "signup" ? "Verify your email" : "Verify your number";
 
   return (
     <ScreenWrapper backgroundColor={theme.bg}>
@@ -68,10 +103,10 @@ export default function OTPScreen({ route, navigation }: any) {
 
         <Image source={require('../../../assets/logo.png')} style={styles.logoImage} />
 
-        <Text style={styles.title}>Verify your number</Text>
+        <Text style={styles.title}>{screenTitle}</Text>
         <Text style={styles.subtitle}>
           We sent a 6-digit code to{"\n"}
-          <Text style={styles.phoneHighlight}>{phone || "your phone"}</Text>
+          <Text style={styles.phoneHighlight}>{sentToLabel}</Text>
         </Text>
 
         <View style={styles.card}>
@@ -82,21 +117,18 @@ export default function OTPScreen({ route, navigation }: any) {
           )}
         </View>
 
-        {/* Resend */}
         <View style={styles.resendRow}>
           {resendTimer > 0 ? (
-            <Text style={styles.resendMuted}>
-              Resend code in {resendTimer}s
-            </Text>
+            <Text style={styles.resendMuted}>Resend code in {resendTimer}s</Text>
           ) : (
-            <TouchableOpacity onPress={handleResend}>
-              <Text style={styles.resendLink}>Resend code</Text>
+            <TouchableOpacity onPress={handleResend} disabled={resending}>
+              <Text style={styles.resendLink}>{resending ? "Sending..." : "Resend code"}</Text>
             </TouchableOpacity>
           )}
         </View>
 
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.back}>{"\u2190"} Back</Text>
+          <Text style={styles.back}>{"←"} Back</Text>
         </TouchableOpacity>
 
       </View>

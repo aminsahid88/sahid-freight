@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Alert, StatusBar,
@@ -15,49 +15,39 @@ const ROLES = [
   { value: "DRIVER", label: "Driver", icon: "\u{1F3CE}", desc: "I drive trucks for owners" },
 ];
 
-export default function SignUpDetailsScreen({ route, navigation }: any) {
-  const { firebaseIdToken, phone } = route?.params || {};
+export default function SignUpDetailsScreen({ route }: any) {
+  const params = route?.params || {};
+  const { verificationToken, phone, fullName, password, country, email } = params;
   const { setAuth } = useAuthStore();
 
-  const [fullName, setFullName] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPw, setConfirmPw] = useState("");
   const [role, setRole] = useState("CARGO_SENDER");
   const [city, setCity] = useState("");
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const passwordRef = useRef<TextInput>(null);
-  const confirmPwRef = useRef<TextInput>(null);
-  const cityRef = useRef<TextInput>(null);
-
-  const clearError = (field: string) => {
-    if (errors[field]) setErrors(e => { const n = { ...e }; delete n[field]; return n; });
-  };
+  const [error, setError] = useState("");
 
   const handleSubmit = async () => {
-    const newErrors: Record<string, string> = {};
-    if (!fullName.trim()) newErrors.fullName = "Full name is required";
-    if (password.length < 8) newErrors.password = "Password must be at least 8 characters";
-    if (password !== confirmPw) newErrors.confirmPw = "Passwords do not match";
-    if (Object.keys(newErrors).length) {
-      setErrors(newErrors);
+    if (!verificationToken) {
+      setError("Verification missing. Please go back and verify your email again.");
       return;
     }
-    setErrors({});
-
+    setError("");
     setLoading(true);
     try {
       const res = await api.post("/auth/register", {
-        firebaseIdToken,
-        fullName: fullName.trim(),
+        verificationToken,
+        phone,
+        fullName,
         password,
         role,
+        country,
         city: city.trim() || undefined,
       });
+      // setAuth populates the auth store; AppNavigator reactively swaps to the role's stack.
       await setAuth(res.data.user, res.data.accessToken, res.data.refreshToken);
     } catch (err: any) {
-      Alert.alert("Registration failed", formatApiError(err, "Could not create account."));
+      const msg = formatApiError(err, "Could not create account.");
+      setError(msg);
+      Alert.alert("Registration failed", msg);
     } finally {
       setLoading(false);
     }
@@ -71,25 +61,17 @@ export default function SignUpDetailsScreen({ route, navigation }: any) {
 
           <View style={styles.header}>
             <Text style={styles.title}>Complete your profile</Text>
-            <Text style={styles.subtitle}>Verified as {phone}</Text>
+            <Text style={styles.subtitle}>Verified email{email ? `: ${email}` : ""}</Text>
           </View>
 
           <View style={styles.card}>
-            {/* Full name */}
-            <Text style={styles.label}>FULL NAME *</Text>
-            <TextInput
-              style={[styles.input, errors.fullName ? styles.inputError : undefined]}
-              placeholder="e.g. Ahmed Hassan"
-              placeholderTextColor={theme.textMuted}
-              value={fullName}
-              onChangeText={t => { setFullName(t); clearError("fullName"); }}
-              returnKeyType="next"
-              onSubmitEditing={() => cityRef.current?.focus()}
-            />
-            {errors.fullName && <Text style={styles.errorText}>{errors.fullName}</Text>}
+            {!!error && (
+              <View style={styles.formError}>
+                <Text style={styles.formErrorText}>{error}</Text>
+              </View>
+            )}
 
-            {/* Role picker */}
-            <Text style={[styles.label, { marginTop: 20 }]}>I AM A... *</Text>
+            <Text style={styles.label}>I AM A... *</Text>
             <View style={styles.roleRow}>
               {ROLES.map((r) => (
                 <TouchableOpacity
@@ -99,69 +81,30 @@ export default function SignUpDetailsScreen({ route, navigation }: any) {
                 >
                   <Text style={styles.roleIcon}>{r.icon}</Text>
                   <View style={{ flex: 1 }}>
-                    <Text style={[styles.roleLabel, role === r.value && styles.roleLabelActive]}>
-                      {r.label}
-                    </Text>
-                    <Text style={[styles.roleDesc, role === r.value && { color: theme.accent }]}>
-                      {r.desc}
-                    </Text>
+                    <Text style={[styles.roleLabel, role === r.value && styles.roleLabelActive]}>{r.label}</Text>
+                    <Text style={[styles.roleDesc, role === r.value && { color: theme.accent }]}>{r.desc}</Text>
                   </View>
                 </TouchableOpacity>
               ))}
             </View>
 
-            {/* City */}
             <Text style={[styles.label, { marginTop: 20 }]}>CITY</Text>
             <TextInput
-              ref={cityRef}
               style={styles.input}
               placeholder="e.g. Addis Ababa"
               placeholderTextColor={theme.textMuted}
               value={city}
               onChangeText={setCity}
-              returnKeyType="next"
-              onSubmitEditing={() => passwordRef.current?.focus()}
-            />
-
-            {/* Password */}
-            <Text style={[styles.label, { marginTop: 20 }]}>PASSWORD *</Text>
-            <TextInput
-              ref={passwordRef}
-              style={[styles.input, errors.password ? styles.inputError : undefined]}
-              placeholder="At least 8 characters"
-              placeholderTextColor={theme.textMuted}
-              secureTextEntry
-              value={password}
-              onChangeText={t => { setPassword(t); clearError("password"); }}
-              returnKeyType="next"
-              onSubmitEditing={() => confirmPwRef.current?.focus()}
-            />
-            {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
-
-            {/* Confirm password */}
-            <Text style={[styles.label, { marginTop: 20 }]}>CONFIRM PASSWORD *</Text>
-            <TextInput
-              ref={confirmPwRef}
-              style={[styles.input, errors.confirmPw ? styles.inputError : undefined]}
-              placeholder="Re-enter your password"
-              placeholderTextColor={theme.textMuted}
-              secureTextEntry
-              value={confirmPw}
-              onChangeText={t => { setConfirmPw(t); clearError("confirmPw"); }}
               returnKeyType="done"
               onSubmitEditing={handleSubmit}
             />
-            {errors.confirmPw && <Text style={styles.errorText}>{errors.confirmPw}</Text>}
 
-            {/* Submit */}
             <TouchableOpacity
               style={[styles.btn, loading && styles.btnDisabled]}
               onPress={handleSubmit}
               disabled={loading}
             >
-              {loading
-                ? <ActivityIndicator color={theme.darkGreen} />
-                : <Text style={styles.btnText}>Create Account</Text>}
+              {loading ? <ActivityIndicator color={theme.darkGreen} /> : <Text style={styles.btnText}>Create Account</Text>}
             </TouchableOpacity>
           </View>
 
@@ -178,10 +121,10 @@ const styles = StyleSheet.create({
   title:           { fontSize: 22, fontWeight: "500", color: theme.text },
   subtitle:        { fontSize: 14, color: theme.accent, marginTop: 4, fontWeight: "500" },
   card:            { backgroundColor: theme.surface, borderRadius: 16, padding: 20, borderWidth: 0.5, borderColor: theme.border },
+  formError:       { backgroundColor: "#fff5f5", borderColor: "#fecaca", borderWidth: 1, borderRadius: 10, padding: 12, marginBottom: 16 },
+  formErrorText:   { color: theme.danger, fontSize: 13 },
   label:           { fontSize: 11, fontWeight: "500", color: theme.textMuted, textTransform: "uppercase", letterSpacing: 0.9, marginBottom: 10 },
   input:           { borderWidth: 0.5, borderColor: theme.border, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13, fontSize: 15, color: theme.text, backgroundColor: theme.bg, fontWeight: "400", height: 52 },
-  inputError:      { borderColor: theme.danger, borderWidth: 1 },
-  errorText:       { fontSize: 12, color: theme.danger, marginTop: 4, fontWeight: "400" },
   roleRow:         { gap: 10 },
   roleCard:        { flexDirection: "row", alignItems: "center", gap: 12, padding: 14, borderRadius: 12, backgroundColor: theme.bg },
   roleCardActive:  { backgroundColor: theme.accentDim, borderWidth: 0.5, borderColor: theme.accentBorder },
