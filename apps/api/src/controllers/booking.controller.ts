@@ -272,6 +272,7 @@ export const assignDriver = async (req: AuthRequest, res: Response) => {
     if (!driver) return res.status(404).json({ message: "Driver not found" });
     if (driver.role !== "DRIVER") return res.status(400).json({ message: "User is not a driver" });
     if ((driver as any).invitedById !== req.user!.userId) return res.status(403).json({ message: "Driver not in your fleet" });
+    if (!(driver as any).fleetConfirmed) return res.status(403).json({ message: "Driver must be confirmed to your fleet first." });
 
     const updated = await prisma.booking.update({
       where: { id },

@@ -125,7 +125,7 @@ router.get("/", protect, fleetManagerOnly, async (req: AuthRequest, res: Respons
     const drivers = await prisma.user.findMany({
       where: { invitedById: req.user!.userId, role: "DRIVER" },
       select: {
-        id: true, fullName: true, phone: true, licenseNumber: true, status: true, createdAt: true,
+        id: true, fullName: true, phone: true, licenseNumber: true, status: true, createdAt: true, fleetConfirmed: true,
         bookingsAsDriver: {
           select: { id: true, status: true, load: { select: { title: true } } },
           orderBy: { createdAt: "desc" },
@@ -137,6 +137,24 @@ router.get("/", protect, fleetManagerOnly, async (req: AuthRequest, res: Respons
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Something went wrong" });
+  }
+});
+
+// Confirm a driver into the fleet (owner approves an attached driver)
+router.post("/:id/confirm", protect, fleetManagerOnly, async (req: AuthRequest, res: Response) => {
+  try {
+    const driver = await prisma.user.findUnique({ where: { id: req.params.id } });
+    if (!driver) return res.status(404).json({ message: "Driver not found" });
+    if ((driver as any).invitedById !== req.user!.userId) return res.status(403).json({ message: "Not your driver" });
+
+    await prisma.user.update({
+      where: { id: driver.id },
+      data: { fleetConfirmed: true },
+    });
+    return res.status(200).json({ ok: true });
+  } catch (error) {
+    console.error("confirmDriver failed:", error);
+    return res.status(500).json({ message: "Failed to confirm driver." });
   }
 });
 

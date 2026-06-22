@@ -1,12 +1,12 @@
 import { Router } from "express";
-import { register, login, logout, refresh, sendOtp, verifyOtp, forgotPassword, resetPassword, googleAuth, appleAuth, deleteAccount, setRole } from "../controllers/auth.controller";
+import { register, login, logout, refresh, requestOtp, verifyOtp, forgotPassword, resetPassword, googleAuth, appleAuth, deleteAccount, setRole } from "../controllers/auth.controller";
 import { protect } from "../middleware/auth.middleware";
 const router = Router();
 router.post("/register", register);
 router.post("/login", login);
 router.post("/logout", logout);
 router.post("/refresh", refresh);
-router.post("/send-otp", sendOtp);
+router.post("/request-otp", requestOtp);
 router.post("/verify-otp", verifyOtp);
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);

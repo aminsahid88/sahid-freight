@@ -128,6 +128,7 @@ export const updateTruck = async (req: AuthRequest, res: Response) => {
       const driver = await prisma.user.findUnique({ where: { id: driverId } });
       if (!driver) return res.status(404).json({ message: "Driver not found" });
       if ((driver as any).invitedById !== req.user!.userId) return res.status(403).json({ message: "Driver not in your fleet" });
+      if (!(driver as any).fleetConfirmed) return res.status(403).json({ message: "Driver must be confirmed to your fleet first." });
     }
 
     const updated = await prisma.truck.update({

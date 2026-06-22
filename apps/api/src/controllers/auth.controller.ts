@@ -1,12 +1,22 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { randomInt } from "crypto";
 import dotenv from "dotenv";
 import path from "path";
 import prisma from "../utils/prisma";
 import { verifyFirebaseToken } from "../utils/firebase";
+import { sendOTPEmail } from "../utils/email";
 import { OAuth2Client } from "google-auth-library";
 import * as appleSignin from "apple-signin-auth";
+
+const OTP_TTL_MS = 10 * 60 * 1000;          // 10 minutes
+const OTP_RATE_WINDOW_MS = 15 * 60 * 1000;  // 15 minutes
+const OTP_RATE_LIMIT = 3;                    // max requests per identifier+purpose per window
+const OTP_MAX_ATTEMPTS = 5;                  // max failed verifies before invalidation
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const VALID_OTP_PURPOSES = ["REGISTER", "RESET_PASSWORD"] as const;
+type OtpPurpose = typeof VALID_OTP_PURPOSES[number];
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
@@ -30,39 +40,45 @@ const userPayload = (user: any) => ({
   averageRating: user.averageRating, totalRatings: user.totalRatings,
 });
 
-// ── REGISTER (Firebase phone-verified) ────────────────────────────────────
+// ── REGISTER (server-side email-OTP verified) ────────────────────────────
 export const register = async (req: Request, res: Response) => {
   try {
-    const { firebaseIdToken, fullName, password, role, country, city } = req.body;
+    const { verificationToken, phone, fullName, password, role, country, city } = req.body;
 
-    if (!firebaseIdToken || !fullName || !password || !role) {
-      return res.status(400).json({ message: "firebaseIdToken, fullName, password and role are required" });
+    if (!verificationToken || !phone || !fullName || !password || !role) {
+      return res.status(400).json({ message: "verificationToken, phone, fullName, password and role are required" });
     }
 
-    // Verify Firebase token to get the verified phone number
-    let phone: string;
-    let firebaseUid: string;
+    // Verify the email-OTP verification token (issued by /auth/verify-otp).
+    // Token carries the canonical email — we trust the JWT signature, not the request body.
+    let email: string;
     try {
-      const result = await verifyFirebaseToken(firebaseIdToken);
-      phone = result.phone;
-      firebaseUid = result.uid;
+      const decoded = jwt.verify(verificationToken, JWT_SECRET) as any;
+      if (decoded?.type !== "otp_verification" || decoded?.purpose !== "REGISTER") {
+        throw new Error("Token has wrong type or purpose");
+      }
+      if (!decoded?.identifier || typeof decoded.identifier !== "string") {
+        throw new Error("Token missing identifier");
+      }
+      email = decoded.identifier;
     } catch (err: any) {
-      console.error("Firebase token verification failed:", err);
-      return res.status(401).json({ message: "Phone verification failed. Please try again." });
+      console.error("verificationToken verification failed:", err?.message);
+      return res.status(401).json({ message: "Verification expired or invalid. Please verify your email again." });
     }
 
-    // Check for existing user
-    const existing = await prisma.user.findUnique({ where: { phone } });
-    if (existing) return res.status(400).json({ message: "Phone number already registered. Please log in instead." });
+    // Dedupe on both unique fields — phone (always) and email (now required + load-bearing)
+    const existingByPhone = await prisma.user.findUnique({ where: { phone } });
+    if (existingByPhone) return res.status(400).json({ message: "Phone number already registered. Please log in instead." });
+    const existingByEmail = await prisma.user.findUnique({ where: { email } });
+    if (existingByEmail) return res.status(400).json({ message: "This email is already registered. Please log in instead." });
 
     const passwordHash = await bcrypt.hash(password, 12);
     const user = await prisma.user.create({
       data: {
-        fullName, phone, passwordHash, role,
+        fullName, phone, email, passwordHash, role,
         country: country || "ETHIOPIA",
         city: city || "",
-        firebaseUid,
-        phoneVerified: true,
+        phoneVerified: false,        // phone is now a claimed-but-unverified field
         status: "ACTIVE",
         isVerified: false,
       },
@@ -397,13 +413,129 @@ export const adminLogin = async (req: Request, res: Response) => {
   }
 };
 
-// Legacy exports kept for backward compat with routes that reference them
-export const sendOtp = async (_req: Request, res: Response) => {
-  return res.status(410).json({ message: "OTP is now handled by Firebase. Please update your app." });
+// ─────────────────────────────────────────────────────────────────────────
+// REQUEST EMAIL OTP (Stage 2 of email-OTP rollout)
+// ─────────────────────────────────────────────────────────────────────────
+export const requestOtp = async (req: Request, res: Response) => {
+  try {
+    const { identifier, purpose } = req.body as { identifier?: string; purpose?: OtpPurpose };
+
+    if (!identifier || !purpose) {
+      return res.status(400).json({ message: "identifier and purpose are required" });
+    }
+    if (!VALID_OTP_PURPOSES.includes(purpose)) {
+      return res.status(400).json({ message: "purpose must be REGISTER or RESET_PASSWORD" });
+    }
+    if (!EMAIL_RE.test(identifier)) {
+      return res.status(400).json({ message: "A valid email address is required" });
+    }
+    const email = identifier.trim().toLowerCase();
+
+    // Rate limit: max OTP_RATE_LIMIT requests per (identifier, purpose) in the
+    // OTP_RATE_WINDOW_MS window. Defeats spam + protects email reputation.
+    const windowStart = new Date(Date.now() - OTP_RATE_WINDOW_MS);
+    const recentCount = await prisma.otp.count({
+      where: { identifier: email, purpose, createdAt: { gt: windowStart } },
+    });
+    if (recentCount >= OTP_RATE_LIMIT) {
+      return res.status(429).json({ message: "Too many requests. Please wait a few minutes before requesting another code." });
+    }
+
+    // Invalidate any prior unconsumed OTPs for this (identifier, purpose) so
+    // only the latest code can be used. Audit-trail preserved (rows kept).
+    await prisma.otp.updateMany({
+      where: { identifier: email, purpose, consumedAt: null },
+      data: { consumedAt: new Date() },
+    });
+
+    // Crypto-secure 6-digit code; bcrypt-hashed before storage (never plaintext).
+    const code = randomInt(100000, 1000000).toString();
+    const codeHash = await bcrypt.hash(code, 10);
+
+    await prisma.otp.create({
+      data: {
+        identifier: email,
+        channel: "EMAIL",
+        codeHash,
+        purpose,
+        expiresAt: new Date(Date.now() + OTP_TTL_MS),
+      },
+    });
+
+    // Send via Resend. If sending fails (Resend API error or network error),
+    // sendOTPEmail throws — we return 502 so the caller can prompt retry.
+    try {
+      await sendOTPEmail(email, code);
+    } catch (err: any) {
+      console.error("requestOtp: email send failed:", err?.message);
+      return res.status(502).json({ message: "Couldn't send the code, please try again." });
+    }
+
+    // Always { ok: true } regardless of whether the email maps to an account,
+    // to avoid account-enumeration leakage.
+    return res.status(200).json({ ok: true });
+  } catch (error: any) {
+    console.error("requestOtp failed:", error?.message);
+    return res.status(500).json({ message: "Failed to send code. Please try again." });
+  }
 };
-export const verifyOtp = async (_req: Request, res: Response) => {
-  return res.status(410).json({ message: "OTP is now handled by Firebase. Please update your app." });
+
+// ─────────────────────────────────────────────────────────────────────────
+// VERIFY EMAIL OTP — returns a short-lived verificationToken JWT on success.
+// ─────────────────────────────────────────────────────────────────────────
+export const verifyOtp = async (req: Request, res: Response) => {
+  try {
+    const { identifier, code, purpose } = req.body as { identifier?: string; code?: string; purpose?: OtpPurpose };
+
+    if (!identifier || !code || !purpose) {
+      return res.status(400).json({ message: "identifier, code and purpose are required" });
+    }
+    if (!VALID_OTP_PURPOSES.includes(purpose)) {
+      return res.status(400).json({ message: "purpose must be REGISTER or RESET_PASSWORD" });
+    }
+    const email = identifier.trim().toLowerCase();
+
+    // Latest unconsumed, non-expired OTP for (identifier, purpose).
+    const otp = await prisma.otp.findFirst({
+      where: { identifier: email, purpose, consumedAt: null, expiresAt: { gt: new Date() } },
+      orderBy: { createdAt: "desc" },
+    });
+    if (!otp) {
+      return res.status(400).json({ message: "Code expired or not found, request a new one." });
+    }
+
+    const match = await bcrypt.compare(code, otp.codeHash);
+    if (!match) {
+      const newAttempts = otp.attempts + 1;
+      if (newAttempts >= OTP_MAX_ATTEMPTS) {
+        // Burn the row so it can't be used even with a correct code later.
+        await prisma.otp.update({
+          where: { id: otp.id },
+          data: { attempts: newAttempts, consumedAt: new Date() },
+        });
+        return res.status(429).json({ message: "Too many attempts, request a new code." });
+      }
+      await prisma.otp.update({ where: { id: otp.id }, data: { attempts: newAttempts } });
+      return res.status(400).json({ message: "Incorrect code. Please try again." });
+    }
+
+    // Mark the OTP consumed (single-use), mint a short-lived verificationToken.
+    await prisma.otp.update({ where: { id: otp.id }, data: { consumedAt: new Date() } });
+
+    const verificationToken = jwt.sign(
+      { identifier: email, purpose, type: "otp_verification" },
+      JWT_SECRET,
+      { expiresIn: "10m" },
+    );
+
+    return res.status(200).json({ verificationToken });
+  } catch (error: any) {
+    console.error("verifyOtp failed:", error?.message);
+    return res.status(500).json({ message: "Failed to verify code. Please try again." });
+  }
 };
+
+// Legacy stub kept until Stage 4 swaps the forgot-password flow too.
 export const forgotPassword = async (_req: Request, res: Response) => {
-  return res.status(410).json({ message: "Password reset now uses Firebase phone verification. Please update your app." });
+  return res.status(410).json({ message: "Password reset is being upgraded. Please use the latest app version." });
 };

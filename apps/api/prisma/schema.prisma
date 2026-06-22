@@ -206,6 +206,7 @@ model User {
   bookingsAsOwner   Booking[]          @relation("OwnerBookings")
   bookingsAsDriver  Booking[]          @relation("DriverBookings")
   invitedById       String?
+  fleetConfirmed    Boolean            @default(false)
   invitedBy         User?              @relation("DriverInvites", fields: [invitedById], references: [id])
   drivers           User[]             @relation("DriverInvites")
   invitesSent       DriverInvite[]     @relation("InvitesSent")

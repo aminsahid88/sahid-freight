@@ -22,7 +22,13 @@ export const sendOTPEmail = async (email: string, otp: string): Promise<void> =>
         </div>
       `,
     });
-    console.log(`✅ Email OTP sent:`, result);
+    // Resend SDK returns { data, error } and does NOT throw on API errors
+    // (401/403/429). Surface those as thrown errors so callers can detect them.
+    if (result.error) {
+      console.error("❌ Resend API error:", result.error);
+      throw new Error(`Email send failed: ${(result.error as any).message || (result.error as any).name || "unknown"}`);
+    }
+    console.log(`✅ Email OTP sent, id:`, result.data?.id);
   } catch (error) {
     console.error("❌ Email OTP error:", error);
     throw error;
