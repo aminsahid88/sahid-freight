@@ -161,6 +161,16 @@ enum DriverInviteStatus {
   CANCELLED
 }
 
+enum OtpChannel {
+  EMAIL
+  SMS
+}
+
+enum OtpPurpose {
+  REGISTER
+  RESET_PASSWORD
+}
+
 // ─────────────────────────────────────────
 // USER
 // ─────────────────────────────────────────
@@ -222,6 +232,25 @@ model RefreshToken {
   user      User     @relation(fields: [userId], references: [id])
   expiresAt DateTime
   createdAt DateTime @default(now())
+}
+
+// ─────────────────────────────────────────
+// OTP (email now; channel-agnostic for SMS later)
+// ─────────────────────────────────────────
+
+model Otp {
+  id         String     @id @default(uuid())
+  identifier String                              // the email (or phone later) the code was sent to
+  channel    OtpChannel @default(EMAIL)
+  codeHash   String                              // bcrypt(code) — never store plaintext
+  purpose    OtpPurpose
+  expiresAt  DateTime                            // now + 10 min
+  attempts   Int        @default(0)              // failed verifies; lock at 5
+  consumedAt DateTime?                           // single-use; non-null once verified
+  createdAt  DateTime   @default(now())
+
+  @@index([identifier, purpose])
+  @@index([expiresAt])
 }
 
 // ─────────────────────────────────────────
