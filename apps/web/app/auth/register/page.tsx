@@ -1,6 +1,6 @@
 "use client";
-import { useState } from "react";
-import { Truck, Package, Bell, Shield, DollarSign, Globe, Clock, MapPin, CheckCircle, AlertCircle, Inbox, BellOff, RefrigeratorIcon, Fuel, Container, Box, Minimize2 } from "lucide-react";
+import { useState, useRef } from "react";
+import { Truck, Package } from "lucide-react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
@@ -12,6 +12,14 @@ export default function RegisterPage() {
   const [focused, setFocused] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [verificationToken, setVerificationToken] = useState("");
+
+  // OTP step state
+  const [otp, setOtp] = useState<string[]>(["", "", "", "", "", ""]);
+  const [resending, setResending] = useState(false);
+  const [countdown, setCountdown] = useState(60);
+  const [canResend, setCanResend] = useState(false);
+  const otpInputs = useRef<(HTMLInputElement | null)[]>([]);
 
   const [form, setForm] = useState({
     fullName: "",
@@ -28,32 +36,130 @@ export default function RegisterPage() {
 
   const update = (field: string, value: string) => setForm((p) => ({ ...p, [field]: value }));
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (form.password !== form.confirmPassword) {
-      setError("Passwords do not match");
-      return;
+  const startCountdown = () => {
+    setCanResend(false);
+    setCountdown(60);
+    const id = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) { clearInterval(id); setCanResend(true); return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const requestOtp = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      await api.post("/auth/request-otp", { identifier: form.email, purpose: "REGISTER" });
+      setOtp(["", "", "", "", "", ""]);
+      setStep(2);
+      startCountdown();
+      setTimeout(() => otpInputs.current[0]?.focus(), 50);
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Couldn't send the code, please try again.");
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleResend = async () => {
+    if (!canResend) return;
+    setResending(true);
+    setError("");
+    try {
+      await api.post("/auth/request-otp", { identifier: form.email, purpose: "REGISTER" });
+      setOtp(["", "", "", "", "", ""]);
+      startCountdown();
+      otpInputs.current[0]?.focus();
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Failed to resend code");
+    } finally {
+      setResending(false);
+    }
+  };
+
+  const verifyOtp = async (code?: string) => {
+    const finalOtp = code ?? otp.join("");
+    if (finalOtp.length !== 6) return;
+    setLoading(true);
+    setError("");
+    try {
+      const res = await api.post("/auth/verify-otp", {
+        identifier: form.email,
+        code: finalOtp,
+        purpose: "REGISTER",
+      });
+      setVerificationToken(res.data.verificationToken);
+      setStep(3);
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Incorrect code");
+      setOtp(["", "", "", "", "", ""]);
+      otpInputs.current[0]?.focus();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOtpChange = (index: number, value: string) => {
+    if (!/^\d*$/.test(value)) return;
+    const next = [...otp];
+    next[index] = value.slice(-1);
+    setOtp(next);
+    if (value && index < 5) otpInputs.current[index + 1]?.focus();
+    if (next.every((d) => d !== "")) verifyOtp(next.join(""));
+  };
+
+  const handleOtpKey = (index: number, e: React.KeyboardEvent) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      otpInputs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const paste = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (paste.length === 6) {
+      setOtp(paste.split(""));
+      verifyOtp(paste);
+    }
+  };
+
+  const handleRegister = async () => {
     setLoading(true);
     setError("");
     try {
       const fullPhone = form.countryCode + form.phoneNumber.replace(/^0+/, "");
       const res = await api.post("/auth/register", {
+        verificationToken,
         fullName: form.fullName,
         phone: fullPhone,
         password: form.password,
         role: form.role,
         country: form.country,
         city: form.city,
-        email: form.email,
       });
       setAuth(res.data.user, res.data.accessToken, res.data.refreshToken);
-      if (res.data.user.status === "PENDING_VERIFICATION") { router.push("/auth/verify"); } else { router.push("/dashboard"); }
+      if (res.data.user.role === "DRIVER") {
+        router.push("/driver");
+      } else {
+        router.push("/dashboard");
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (step === 1) {
+      if (form.password !== form.confirmPassword) { setError("Passwords do not match"); return; }
+      return requestOtp();
+    }
+    if (step === 2) return verifyOtp();
+    if (step === 3) return handleRegister();
   };
 
   const P = "var(--primary)";
@@ -81,6 +187,22 @@ export default function RegisterPage() {
     marginBottom: "8px",
     letterSpacing: "0.2px",
   };
+
+  const stepLabels: Record<number, string> = { 1: "Your Info", 2: "Verify Email", 3: "Account Details" };
+  const headerTitle = step === 1 ? "Create your account" : step === 2 ? "Verify your email" : "Almost done";
+  const headerSub =
+    step === 1 ? "Step 1 of 3 — Basic information" :
+    step === 2 ? "Step 2 of 3 — Enter the 6-digit code" :
+    "Step 3 of 3 — Choose your role";
+  const submitDisabled =
+    loading ||
+    (step === 2 && otp.some((d) => !d)) ||
+    (step === 3 && !form.role);
+  const submitLabel =
+    loading ? (step === 3 ? "Creating account..." : step === 2 ? "Verifying..." : "Sending code...") :
+    step === 1 ? "Continue" :
+    step === 2 ? "Verify" :
+    "Create Account";
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", fontFamily: "'Inter, system-ui, sans-serif", background: "var(--bg)" }}>
@@ -137,15 +259,15 @@ export default function RegisterPage() {
 
           {/* Step indicator */}
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "28px" }}>
-            {[1, 2].map((s) => (
+            {[1, 2, 3].map((s) => (
               <div key={s} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: step >= s ? P : "var(--border)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "700", color: step >= s ? "var(--bg)" : "var(--text-secondary)", transition: "all 0.2s" }}>
                   {s}
                 </div>
                 <span style={{ fontSize: "13px", color: step >= s ? P : "var(--text-secondary)", fontWeight: step >= s ? "600" : "400" }}>
-                  {s === 1 ? "Your Info" : "Account Details"}
+                  {stepLabels[s]}
                 </span>
-                {s < 2 && <div style={{ width: "32px", height: "1px", background: step > s ? P : "var(--border)", margin: "0 4px" }} />}
+                {s < 3 && <div style={{ width: "24px", height: "1px", background: step > s ? P : "var(--border)", margin: "0 4px" }} />}
               </div>
             ))}
           </div>
@@ -155,10 +277,10 @@ export default function RegisterPage() {
 
             <div style={{ marginBottom: "32px" }}>
               <h2 style={{ fontSize: "24px", fontWeight: "800", color: P, margin: "0 0 6px", letterSpacing: "-0.5px" }}>
-                {step === 1 ? "Create your account" : "Almost done"}
+                {headerTitle}
               </h2>
               <p style={{ color: "var(--text-secondary)", fontSize: "14px", margin: 0 }}>
-                {step === 1 ? "Step 1 of 2 — Basic information" : "Step 2 of 2 — Choose your role"}
+                {headerSub}
               </p>
             </div>
 
@@ -168,7 +290,7 @@ export default function RegisterPage() {
               </div>
             )}
 
-            <form onSubmit={step === 1 ? (e) => { e.preventDefault(); setError(""); setStep(2); } : handleSubmit}>
+            <form onSubmit={handleSubmit}>
               {step === 1 && (
                 <div style={{ display: "flex", flexDirection: "column" as const, gap: "18px" }}>
                   <div>
@@ -202,6 +324,55 @@ export default function RegisterPage() {
               )}
 
               {step === 2 && (
+                <div style={{ display: "flex", flexDirection: "column" as const, gap: "20px" }}>
+                  <p style={{ color: "var(--text-secondary)", fontSize: "14px", margin: 0, lineHeight: 1.6 }}>
+                    We sent a 6-digit code to <strong style={{ color: P }}>{form.email}</strong>. Enter it below to continue.
+                  </p>
+
+                  <div style={{ display: "flex", gap: "10px" }} onPaste={handleOtpPaste}>
+                    {otp.map((digit, i) => (
+                      <input
+                        key={i}
+                        ref={(el) => { otpInputs.current[i] = el; }}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={digit}
+                        onChange={(e) => handleOtpChange(i, e.target.value)}
+                        onKeyDown={(e) => handleOtpKey(i, e)}
+                        style={{
+                          width: "48px",
+                          height: "56px",
+                          textAlign: "center" as const,
+                          fontSize: "22px",
+                          fontWeight: "800",
+                          color: P,
+                          background: "var(--bg)",
+                          border: `2px solid ${digit ? P : "var(--border)"}`,
+                          borderRadius: "12px",
+                          outline: "none",
+                          transition: "all 0.15s",
+                          fontFamily: "monospace",
+                        }}
+                      />
+                    ))}
+                  </div>
+
+                  <div style={{ textAlign: "center" as const }}>
+                    {canResend ? (
+                      <button type="button" onClick={handleResend} disabled={resending} style={{ background: "none", border: "none", color: A, fontSize: "14px", fontWeight: "700", cursor: resending ? "not-allowed" : "pointer" }}>
+                        {resending ? "Sending..." : "Resend code"}
+                      </button>
+                    ) : (
+                      <p style={{ color: "var(--text-secondary)", fontSize: "14px", margin: 0 }}>
+                        Resend code in <span style={{ fontWeight: "700", color: P }}>{countdown}s</span>
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {step === 3 && (
                 <div style={{ display: "flex", flexDirection: "column" as const, gap: "18px" }}>
                   {/* Role selection */}
                   <div>
@@ -235,13 +406,13 @@ export default function RegisterPage() {
               )}
 
               <div style={{ display: "flex", gap: "12px", marginTop: "28px" }}>
-                {step === 2 && (
-                  <button type="button" onClick={() => setStep(1)} style={{ flex: 1, background: "var(--bg)", border: "none", borderRadius: "10px", padding: "14px", color: P, fontSize: "15px", fontWeight: "700", cursor: "pointer" }}>
+                {step > 1 && (
+                  <button type="button" onClick={() => { setError(""); setStep((s) => s - 1); }} style={{ flex: 1, background: "var(--bg)", border: "none", borderRadius: "10px", padding: "14px", color: P, fontSize: "15px", fontWeight: "700", cursor: "pointer" }}>
                     Back
                   </button>
                 )}
-                <button type="submit" disabled={loading || (step === 2 && !form.role)} style={{ flex: 2, background: loading || (step === 2 && !form.role) ? "var(--border)" : A, border: "none", borderRadius: "10px", padding: "14px", color: loading || (step === 2 && !form.role) ? "#aaa" : "#FFFFFF", fontSize: "15px", fontWeight: "700", cursor: loading || (step === 2 && !form.role) ? "not-allowed" : "pointer", transition: "all 0.2s" }}>
-                  {loading ? "Creating account..." : step === 1 ? "Continue" : "Create Account"}
+                <button type="submit" disabled={submitDisabled} style={{ flex: 2, background: submitDisabled ? "var(--border)" : A, border: "none", borderRadius: "10px", padding: "14px", color: submitDisabled ? "#aaa" : "#FFFFFF", fontSize: "15px", fontWeight: "700", cursor: submitDisabled ? "not-allowed" : "pointer", transition: "all 0.2s" }}>
+                  {submitLabel}
                 </button>
               </div>
             </form>
