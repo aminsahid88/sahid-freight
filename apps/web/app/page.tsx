@@ -338,11 +338,14 @@ export default function LandingPage() {
               ].map((col, i) => (
                 <div key={i}>
                   <h4 style={{ margin: "0 0 16px", fontSize: "11px", fontWeight: "700", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "1.5px" }}>{col.title}</h4>
-                  {col.links.map(l => (
-                    <div key={l} style={{ marginBottom: "10px" }}>
-                      <a href="#" style={{ color: "rgba(255,255,255,0.55)", fontSize: "14px", textDecoration: "none" }}>{l}</a>
-                    </div>
-                  ))}
+                  {col.links.map(l => {
+                    const href = l === "Privacy Policy" ? "/privacy-policy" : "#";
+                    return (
+                      <div key={l} style={{ marginBottom: "10px" }}>
+                        <a href={href} style={{ color: "rgba(255,255,255,0.55)", fontSize: "14px", textDecoration: "none" }}>{l}</a>
+                      </div>
+                    );
+                  })}
                 </div>
               ))}
             </div>
