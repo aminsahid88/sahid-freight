@@ -1,43 +1,27 @@
 "use client";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 
-const COUNTRIES = [
-  { code: "ET", name: "Ethiopia",  dial: "+251", flag: "🇪🇹" },
-  { code: "SO", name: "Somalia",   dial: "+252", flag: "🇸🇴" },
-  { code: "DJ", name: "Djibouti", dial: "+253", flag: "🇩🇯" },
-];
+type Step = "email" | "otp" | "password" | "success";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
-  const [step, setStep] = useState<"phone" | "otp" | "password">("phone");
-  const [country, setCountry] = useState(COUNTRIES[0]);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [phone, setPhone] = useState("");
+  const [step, setStep] = useState<Step>("email");
+  const [email, setEmail] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [verificationToken, setVerificationToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
   const [error, setError] = useState("");
   const [focused, setFocused] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(0);
   const inputs = useRef<(HTMLInputElement | null)[]>([]);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const phoneInputRef = useRef<HTMLInputElement>(null);
 
-  const fullPhone = `${country.dial}${phone.replace(/^0+/, "")}`;
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const normalizedEmail = () => email.trim().toLowerCase();
 
   const startCountdown = () => {
     setCountdown(60);
@@ -50,13 +34,27 @@ export default function ForgotPasswordPage() {
     e?.preventDefault();
     setLoading(true); setError("");
     try {
-      await api.post("/auth/forgot-password", { phone: fullPhone });
+      await api.post("/auth/request-otp", { identifier: normalizedEmail(), purpose: "RESET_PASSWORD" });
       setStep("otp");
+      setOtp(["", "", "", "", "", ""]);
       startCountdown();
       setTimeout(() => inputs.current[0]?.focus(), 100);
     } catch (err: any) {
-      setError(err.response?.data?.message || "Something went wrong");
+      setError(err.response?.data?.message || "Couldn't send the code, please try again.");
     } finally { setLoading(false); }
+  };
+
+  const handleResend = async () => {
+    if (countdown > 0 || resending) return;
+    setResending(true); setError("");
+    try {
+      await api.post("/auth/request-otp", { identifier: normalizedEmail(), purpose: "RESET_PASSWORD" });
+      setOtp(["", "", "", "", "", ""]);
+      startCountdown();
+      inputs.current[0]?.focus();
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Failed to resend code");
+    } finally { setResending(false); }
   };
 
   const handleOtpChange = (index: number, value: string) => {
@@ -72,10 +70,32 @@ export default function ForgotPasswordPage() {
     if (e.key === "Backspace" && !otp[index] && index > 0) inputs.current[index - 1]?.focus();
   };
 
+  const handleOtpPaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const paste = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (paste.length === 6) {
+      setOtp(paste.split(""));
+      handleVerifyOtp(paste);
+    }
+  };
+
   const handleVerifyOtp = async (code?: string) => {
     const finalOtp = code || otp.join("");
     if (finalOtp.length !== 6) return;
-    setStep("password");
+    setLoading(true); setError("");
+    try {
+      const res = await api.post("/auth/verify-otp", {
+        identifier: normalizedEmail(),
+        code: finalOtp,
+        purpose: "RESET_PASSWORD",
+      });
+      setVerificationToken(res.data.verificationToken);
+      setStep("password");
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Incorrect code");
+      setOtp(["", "", "", "", "", ""]);
+      inputs.current[0]?.focus();
+    } finally { setLoading(false); }
   };
 
   const handleResetPassword = async (e: React.FormEvent) => {
@@ -84,13 +104,21 @@ export default function ForgotPasswordPage() {
     if (newPassword.length < 8) { setError("Password must be at least 8 characters"); return; }
     setLoading(true); setError("");
     try {
-      await api.post("/auth/reset-password", { phone: fullPhone, otp: otp.join(""), newPassword });
-      router.push("/auth/login");
+      await api.post("/auth/reset-password", { verificationToken, newPassword });
+      setStep("success");
+      setTimeout(() => router.push("/auth/login?reset=success"), 1500);
     } catch (err: any) {
-      setError(err.response?.data?.message || "Something went wrong");
-      if (err.response?.data?.message?.includes("code") || err.response?.data?.message?.includes("OTP")) {
-        setStep("otp");
+      const status = err.response?.status;
+      const msg = err.response?.data?.message || "Something went wrong";
+      if (status === 401) {
+        setError("Your verification expired. Please request a new code.");
+        setVerificationToken("");
         setOtp(["", "", "", "", "", ""]);
+        setNewPassword("");
+        setConfirmPassword("");
+        setStep("email");
+      } else {
+        setError(msg);
       }
     } finally { setLoading(false); }
   };
@@ -111,7 +139,7 @@ export default function ForgotPasswordPage() {
           Reset your<br /><span style={{ color: "#3D7BFF" }}>password.</span>
         </h1>
         <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "15px", lineHeight: "1.8", maxWidth: "300px" }}>
-          Enter your phone number and we'll send a reset code to your registered email address.
+          Enter your email and we'll send a 6-digit reset code.
         </p>
       </div>
       <div style={{ position: "relative", zIndex: 1, borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "24px" }}>
@@ -135,8 +163,8 @@ export default function ForgotPasswordPage() {
       <div className="fp-right" style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "48px" }}>
         <div style={{ width: "100%", maxWidth: "400px" }}>
 
-          {/* ── STEP 1: Phone ── */}
-          {step === "phone" && (
+          {/* ── STEP 1: Email ── */}
+          {step === "email" && (
             <Card>
               <div style={{ width: "56px", height: "56px", background: "#F8FAFC", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "24px" }}>
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0A1F44" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -144,61 +172,27 @@ export default function ForgotPasswordPage() {
                 </svg>
               </div>
               <h2 style={{ fontSize: "24px", fontWeight: "800", color: "#0A1F44", margin: "0 0 8px", letterSpacing: "-0.5px" }}>Forgot password?</h2>
-              <p style={{ color: "#94A3B8", fontSize: "14px", margin: "0 0 32px", lineHeight: "1.6" }}>Enter your phone number and we'll send a reset code to your email.</p>
+              <p style={{ color: "#94A3B8", fontSize: "14px", margin: "0 0 32px", lineHeight: "1.6" }}>Enter your email and we'll send a 6-digit reset code to verify your account.</p>
 
               {error && <div style={{ background: "#fff5f5", border: "1px solid #fecaca", borderRadius: "10px", padding: "12px 16px", color: "#dc2626", fontSize: "14px", marginBottom: "20px" }}>{error}</div>}
 
               <form onSubmit={handleSendCode} style={{ display: "flex", flexDirection: "column" as const, gap: "18px" }}>
                 <div>
-                  <label style={{ display: "block", fontSize: "13px", fontWeight: "700", color: "#0A1F44", marginBottom: "8px" }}>Phone Number</label>
-                  <div style={{ display: "flex", gap: "8px" }}>
-
-                    {/* Country dropdown */}
-                    <div ref={dropdownRef} style={{ position: "relative", flexShrink: 0 }}>
-                      <button type="button" onClick={() => setDropdownOpen(!dropdownOpen)}
-                        style={{ height: "50px", padding: "0 12px", background: "#F8FAFC", border: "1.5px solid #E2E8F0", borderRadius: "10px", display: "flex", alignItems: "center", gap: "6px", cursor: "pointer", minWidth: "110px" }}>
-                        <span style={{ fontSize: "18px" }}>{country.flag}</span>
-                        <span style={{ fontSize: "14px", fontWeight: "700", color: "#3D7BFF" }}>{country.dial}</span>
-                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ marginLeft: "auto", transform: dropdownOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>
-                          <path d="M1 3l4 4 4-4" stroke="#94A3B8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </button>
-                      {dropdownOpen && (
-                        <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, width: "200px", background: "#fff", border: "1.5px solid #E2E8F0", borderRadius: "12px", overflow: "hidden", zIndex: 50, boxShadow: "0 8px 32px rgba(10,31,68,0.12)" }}>
-                          {COUNTRIES.map((c) => (
-                            <button key={c.code} type="button"
-                              onClick={() => { setCountry(c); setDropdownOpen(false); setTimeout(() => phoneInputRef.current?.focus(), 50); }}
-                              style={{ width: "100%", display: "flex", alignItems: "center", gap: "10px", padding: "12px 16px", background: country.code === c.code ? "#F8FAFC" : "#fff", border: "none", borderBottom: "1px solid #E2E8F0", cursor: "pointer", textAlign: "left" as const }}>
-                              <span style={{ fontSize: "20px" }}>{c.flag}</span>
-                              <div style={{ flex: 1 }}>
-                                <div style={{ fontSize: "13px", fontWeight: "700", color: "#0A1F44" }}>{c.name}</div>
-                                <div style={{ fontSize: "12px", color: "#3D7BFF" }}>{c.dial}</div>
-                              </div>
-                              {country.code === c.code && (
-                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7l4 4 6-6" stroke="#3D7BFF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                              )}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Phone input — ref keeps focus stable */}
-                    <input
-                      ref={phoneInputRef}
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ""))}
-                      placeholder="900 000 000"
-                      required
-                      onFocus={() => setFocused("phone")}
-                      onBlur={() => setFocused(null)}
-                      style={{ flex: 1, height: "50px", background: focused === "phone" ? "#fff" : "#F8FAFC", border: `1.5px solid ${focused === "phone" ? "#0A1F44" : "#E2E8F0"}`, borderRadius: "10px", padding: "0 16px", color: "#0A1F44", fontSize: "15px", outline: "none", boxSizing: "border-box" as const, fontFamily: "monospace", transition: "all 0.15s" }}
-                    />
-                  </div>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: "700", color: "#0A1F44", marginBottom: "8px" }}>Email Address</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    required
+                    autoComplete="email"
+                    onFocus={() => setFocused("email")}
+                    onBlur={() => setFocused(null)}
+                    style={{ width: "100%", height: "50px", background: focused === "email" ? "#fff" : "#F8FAFC", border: `1.5px solid ${focused === "email" ? "#0A1F44" : "#E2E8F0"}`, borderRadius: "10px", padding: "0 16px", color: "#0A1F44", fontSize: "15px", outline: "none", boxSizing: "border-box" as const, transition: "all 0.15s" }}
+                  />
                 </div>
-                <button type="submit" disabled={loading || phone.length < 7}
-                  style={{ width: "100%", height: "50px", background: loading || phone.length < 7 ? "#E2E8F0" : "#3D7BFF", border: "none", borderRadius: "10px", color: loading || phone.length < 7 ? "#aaa" : "#FFFFFF", fontSize: "15px", fontWeight: "700", cursor: loading || phone.length < 7 ? "not-allowed" : "pointer", transition: "all 0.2s" }}>
+                <button type="submit" disabled={loading || !email.trim()}
+                  style={{ width: "100%", height: "50px", background: loading || !email.trim() ? "#E2E8F0" : "#3D7BFF", border: "none", borderRadius: "10px", color: loading || !email.trim() ? "#aaa" : "#FFFFFF", fontSize: "15px", fontWeight: "700", cursor: loading || !email.trim() ? "not-allowed" : "pointer", transition: "all 0.2s" }}>
                   {loading ? "Sending..." : "Send Reset Code →"}
                 </button>
               </form>
@@ -221,12 +215,12 @@ export default function ForgotPasswordPage() {
               </div>
               <h2 style={{ fontSize: "24px", fontWeight: "800", color: "#0A1F44", margin: "0 0 8px", letterSpacing: "-0.5px" }}>Enter reset code</h2>
               <p style={{ color: "#94A3B8", fontSize: "14px", margin: "0 0 32px", lineHeight: "1.6" }}>
-                We sent a 6-digit code to your registered email for <strong style={{ color: "#0A1F44" }}>{fullPhone}</strong>
+                We sent a 6-digit code to <strong style={{ color: "#0A1F44" }}>{normalizedEmail()}</strong>
               </p>
 
               {error && <div style={{ background: "#fff5f5", border: "1px solid #fecaca", borderRadius: "10px", padding: "12px 16px", color: "#dc2626", fontSize: "14px", marginBottom: "20px" }}>{error}</div>}
 
-              <div style={{ display: "flex", gap: "10px", marginBottom: "28px" }}>
+              <div style={{ display: "flex", gap: "10px", marginBottom: "28px" }} onPaste={handleOtpPaste}>
                 {otp.map((digit, i) => (
                   <input key={i} ref={(el) => { inputs.current[i] = el; }} type="text" inputMode="numeric" maxLength={1} value={digit}
                     onChange={(e) => handleOtpChange(i, e.target.value)} onKeyDown={(e) => handleOtpKeyDown(i, e)}
@@ -243,8 +237,16 @@ export default function ForgotPasswordPage() {
                 {countdown > 0 ? (
                   <p style={{ color: "#94A3B8", fontSize: "14px", margin: 0 }}>Resend code in <span style={{ fontWeight: "700", color: "#0A1F44" }}>{countdown}s</span></p>
                 ) : (
-                  <button onClick={() => handleSendCode()} style={{ background: "none", border: "none", color: "#3D7BFF", fontSize: "14px", fontWeight: "700", cursor: "pointer" }}>Resend code</button>
+                  <button type="button" onClick={handleResend} disabled={resending} style={{ background: "none", border: "none", color: "#3D7BFF", fontSize: "14px", fontWeight: "700", cursor: resending ? "not-allowed" : "pointer" }}>
+                    {resending ? "Sending..." : "Resend code"}
+                  </button>
                 )}
+              </div>
+
+              <div style={{ marginTop: "20px", paddingTop: "20px", borderTop: "1px solid #E2E8F0", textAlign: "center" as const }}>
+                <button type="button" onClick={() => { setStep("email"); setError(""); }} style={{ background: "none", border: "none", color: "#94A3B8", fontSize: "13px", cursor: "pointer" }}>
+                  Wrong email? <span style={{ color: "#3D7BFF", fontWeight: "600" }}>Change it</span>
+                </button>
               </div>
             </Card>
           )}
@@ -291,6 +293,24 @@ export default function ForgotPasswordPage() {
                   {loading ? "Saving..." : "Reset Password →"}
                 </button>
               </form>
+            </Card>
+          )}
+
+          {/* ── STEP 4: Success ── */}
+          {step === "success" && (
+            <Card>
+              <div style={{ width: "56px", height: "56px", background: "#E8F0FF", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "24px" }}>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3D7BFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </div>
+              <h2 style={{ fontSize: "24px", fontWeight: "800", color: "#0A1F44", margin: "0 0 8px", letterSpacing: "-0.5px" }}>Password reset</h2>
+              <p style={{ color: "#94A3B8", fontSize: "14px", margin: "0 0 24px", lineHeight: "1.6" }}>
+                Your password has been updated. Redirecting you to sign in…
+              </p>
+              <a href="/auth/login?reset=success" style={{ display: "block", width: "100%", height: "50px", lineHeight: "50px", background: "#3D7BFF", borderRadius: "10px", color: "#FFFFFF", fontSize: "15px", fontWeight: "700", textAlign: "center" as const, textDecoration: "none" }}>
+                Go to sign in →
+              </a>
             </Card>
           )}
 
