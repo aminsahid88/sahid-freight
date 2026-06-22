@@ -5,7 +5,6 @@ import { randomInt } from "crypto";
 import dotenv from "dotenv";
 import path from "path";
 import prisma from "../utils/prisma";
-import { verifyFirebaseToken } from "../utils/firebase";
 import { sendOTPEmail } from "../utils/email";
 import { OAuth2Client } from "google-auth-library";
 import * as appleSignin from "apple-signin-auth";
@@ -168,30 +167,41 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-// ── RESET PASSWORD (Firebase phone-verified) ──────────────────────────────
+// ── RESET PASSWORD (server-side email-OTP verified) ───────────────────────
 export const resetPassword = async (req: Request, res: Response) => {
   try {
-    const { firebaseIdToken, newPassword } = req.body;
-    if (!firebaseIdToken || !newPassword) {
-      return res.status(400).json({ message: "firebaseIdToken and newPassword required" });
+    const { verificationToken, newPassword } = req.body;
+    if (!verificationToken || !newPassword) {
+      return res.status(400).json({ message: "verificationToken and newPassword required" });
+    }
+    if (typeof newPassword !== "string" || newPassword.length < 8) {
+      return res.status(400).json({ message: "Password must be at least 8 characters" });
     }
 
-    let phone: string;
+    // Verify the email-OTP verification token (issued by /auth/verify-otp).
+    // The signed JWT carries the canonical email and purpose — trust those, not the request body.
+    let email: string;
     try {
-      const result = await verifyFirebaseToken(firebaseIdToken);
-      phone = result.phone;
+      const decoded = jwt.verify(verificationToken, JWT_SECRET) as any;
+      if (decoded?.type !== "otp_verification" || decoded?.purpose !== "RESET_PASSWORD") {
+        throw new Error("Token has wrong type or purpose");
+      }
+      if (!decoded?.identifier || typeof decoded.identifier !== "string") {
+        throw new Error("Token missing identifier");
+      }
+      email = decoded.identifier;
     } catch (err: any) {
-      console.error("Firebase token verification failed:", err);
-      return res.status(401).json({ message: "Phone verification failed. Please try again." });
+      console.error("resetPassword token verification failed:", err?.message);
+      return res.status(401).json({ message: "Verification expired or invalid. Please verify your email again." });
     }
 
-    const user = await prisma.user.findUnique({ where: { phone } });
-    if (!user) return res.status(404).json({ message: "No account found with this phone number" });
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) return res.status(404).json({ message: "No account found with this email." });
 
     const passwordHash = await bcrypt.hash(newPassword, 12);
     const updated = await prisma.user.update({
-      where: { phone },
-      data: { passwordHash, phoneVerified: true },
+      where: { email },
+      data: { passwordHash },
     });
 
     const { accessToken, refreshToken } = await issueTokens(updated.id, updated.role);
@@ -535,7 +545,3 @@ export const verifyOtp = async (req: Request, res: Response) => {
   }
 };
 
-// Legacy stub kept until Stage 4 swaps the forgot-password flow too.
-export const forgotPassword = async (_req: Request, res: Response) => {
-  return res.status(410).json({ message: "Password reset is being upgraded. Please use the latest app version." });
-};

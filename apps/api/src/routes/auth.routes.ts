@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { register, login, logout, refresh, requestOtp, verifyOtp, forgotPassword, resetPassword, googleAuth, appleAuth, deleteAccount, setRole } from "../controllers/auth.controller";
+import { register, login, logout, refresh, requestOtp, verifyOtp, resetPassword, googleAuth, appleAuth, deleteAccount, setRole } from "../controllers/auth.controller";
 import { protect } from "../middleware/auth.middleware";
 const router = Router();
 router.post("/register", register);
@@ -8,7 +8,6 @@ router.post("/logout", logout);
 router.post("/refresh", refresh);
 router.post("/request-otp", requestOtp);
 router.post("/verify-otp", verifyOtp);
-router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 router.post("/google", googleAuth);
 router.post("/apple", appleAuth);
