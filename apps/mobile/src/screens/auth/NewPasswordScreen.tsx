@@ -4,14 +4,12 @@ import {
   ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Alert, StatusBar,
 } from "react-native";
 import ScreenWrapper from "../../components/ScreenWrapper";
-import { useAuthStore } from "../../store/auth";
 import api from "../../lib/api";
 import { formatApiError } from "../../lib/errors";
 import { theme } from "../../theme";
 
 export default function NewPasswordScreen({ route, navigation }: any) {
-  const { firebaseIdToken, phone } = route?.params || {};
-  const { setAuth } = useAuthStore();
+  const { verificationToken, email } = route?.params || {};
 
   const [password, setPassword] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
@@ -32,18 +30,35 @@ export default function NewPasswordScreen({ route, navigation }: any) {
       setErrors(newErrors);
       return;
     }
+    if (!verificationToken) {
+      Alert.alert("Verification missing", "Please go back and verify your email again.");
+      return;
+    }
     setErrors({});
 
     setLoading(true);
     try {
-      const res = await api.post("/auth/reset-password", {
-        firebaseIdToken,
+      await api.post("/auth/reset-password", {
+        verificationToken,
         newPassword: password,
       });
-      await setAuth(res.data.user, res.data.accessToken, res.data.refreshToken);
-      Alert.alert("Success", "Password reset successfully");
+      Alert.alert(
+        "Password reset",
+        "Your password has been updated. Please sign in with your new password.",
+        [{ text: "OK", onPress: () => navigation.navigate("Login") }],
+      );
     } catch (err: any) {
-      Alert.alert("Reset failed", formatApiError(err, "Could not reset password."));
+      const status = err?.response?.status;
+      const msg = formatApiError(err, "Could not reset password.");
+      if (status === 401) {
+        Alert.alert(
+          "Verification expired",
+          msg,
+          [{ text: "Start over", onPress: () => navigation.navigate("ForgotPassword") }],
+        );
+      } else {
+        Alert.alert("Reset failed", msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -57,7 +72,7 @@ export default function NewPasswordScreen({ route, navigation }: any) {
 
           <View style={styles.header}>
             <Text style={styles.title}>Create new password</Text>
-            <Text style={styles.subtitle}>Set a new password for {phone}</Text>
+            <Text style={styles.subtitle}>Reset password for{email ? ` ${email}` : " your account"}</Text>
           </View>
 
           <View style={styles.card}>

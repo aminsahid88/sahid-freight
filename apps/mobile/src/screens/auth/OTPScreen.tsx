@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View, Text, TouchableOpacity, StyleSheet, Image,
   ActivityIndicator, Alert, StatusBar,
@@ -8,12 +8,10 @@ import { OtpInput } from "../../components/OtpInput";
 import { theme } from "../../theme";
 import api from "../../lib/api";
 import { formatApiError } from "../../lib/errors";
-import auth from "@react-native-firebase/auth";
 
 export default function OTPScreen({ route, navigation }: any) {
   const params = route?.params || {};
   const {
-    confirmation: initialConfirmation,
     flow,
     phone,
     email,
@@ -22,7 +20,6 @@ export default function OTPScreen({ route, navigation }: any) {
     country,
   } = params;
 
-  const confirmationRef = useRef(initialConfirmation);
   const [loading, setLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(60);
   const [resending, setResending] = useState(false);
@@ -53,20 +50,18 @@ export default function OTPScreen({ route, navigation }: any) {
           phone, fullName, password, country, email,
         });
       } else if (flow === "reset") {
-        await confirmationRef.current.confirm(code);
-        const idToken = await auth().currentUser?.getIdToken();
-        navigation.navigate("NewPassword", { firebaseIdToken: idToken, phone });
+        const res = await api.post("/auth/verify-otp", {
+          identifier: email,
+          code,
+          purpose: "RESET_PASSWORD",
+        });
+        navigation.navigate("NewPassword", {
+          verificationToken: res.data.verificationToken,
+          email,
+        });
       }
     } catch (err: any) {
-      if (flow === "signup") {
-        Alert.alert("Verification failed", formatApiError(err, "Incorrect code. Please try again."));
-      } else if (err.code === "auth/invalid-verification-code") {
-        Alert.alert("Invalid code", "The code you entered is incorrect. Please try again.");
-      } else if (err.code === "auth/session-expired") {
-        Alert.alert("Code expired", "The verification code has expired. Please request a new one.");
-      } else {
-        Alert.alert("Verification failed", err.message || "Please try again.");
-      }
+      Alert.alert("Verification failed", formatApiError(err, "Incorrect code. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -76,25 +71,16 @@ export default function OTPScreen({ route, navigation }: any) {
     if (resendTimer > 0 || resending) return;
     setResending(true);
     try {
-      if (flow === "signup") {
-        await api.post("/auth/request-otp", { identifier: email, purpose: "REGISTER" });
-        setResendTimer(60);
-        Alert.alert("Code sent", "A new code has been sent to your email.");
-      } else if (flow === "reset") {
-        const newConfirmation = await auth().signInWithPhoneNumber(phone);
-        confirmationRef.current = newConfirmation;
-        setResendTimer(60);
-        Alert.alert("Code sent", "A new verification code has been sent.");
-      }
+      const purpose = flow === "reset" ? "RESET_PASSWORD" : "REGISTER";
+      await api.post("/auth/request-otp", { identifier: email, purpose });
+      setResendTimer(60);
+      Alert.alert("Code sent", "A new code has been sent to your email.");
     } catch (err: any) {
       Alert.alert("Error", formatApiError(err, "Could not resend code."));
     } finally {
       setResending(false);
     }
   };
-
-  const sentToLabel = flow === "signup" ? (email || "your email") : (phone || "your phone");
-  const screenTitle = flow === "signup" ? "Verify your email" : "Verify your number";
 
   return (
     <ScreenWrapper backgroundColor={theme.bg}>
@@ -103,10 +89,10 @@ export default function OTPScreen({ route, navigation }: any) {
 
         <Image source={require('../../../assets/logo.png')} style={styles.logoImage} />
 
-        <Text style={styles.title}>{screenTitle}</Text>
+        <Text style={styles.title}>Verify your email</Text>
         <Text style={styles.subtitle}>
           We sent a 6-digit code to{"\n"}
-          <Text style={styles.phoneHighlight}>{sentToLabel}</Text>
+          <Text style={styles.phoneHighlight}>{email || "your email"}</Text>
         </Text>
 
         <View style={styles.card}>
