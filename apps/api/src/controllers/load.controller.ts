@@ -13,14 +13,19 @@ export const createLoad = async (req: AuthRequest, res: Response) => {
     console.log("createLoad — user:", req.user?.userId, "role:", req.user?.role);
 
     // Role guard (belt-and-suspenders alongside route middleware)
-    if (req.user?.role !== "CARGO_SENDER") {
-      return res.status(403).json({ message: "Only cargo sender accounts can post loads." });
+    const isBroker = req.user?.role === "BROKER";
+    if (!isBroker && req.user?.role !== "CARGO_SENDER") {
+      return res.status(403).json({ message: "Only cargo senders and brokers can post loads." });
     }
 
-    // Verification check
-    const sender = await prisma.user.findUnique({ where: { id: req.user!.userId } });
-    if (!sender?.isVerified) {
-      return res.status(403).json({ message: "Your account must be verified before posting loads." });
+    // Verification check — required for senders posting their own loads.
+    // Brokers are gated by the BROKER role itself (no document-verification flow), so they
+    // can post on behalf of offline cargo owners without their account being marked verified.
+    if (!isBroker) {
+      const sender = await prisma.user.findUnique({ where: { id: req.user!.userId } });
+      if (!sender?.isVerified) {
+        return res.status(403).json({ message: "Your account must be verified before posting loads." });
+      }
     }
 
     const {
@@ -28,6 +33,7 @@ export const createLoad = async (req: AuthRequest, res: Response) => {
       pickupCity, pickupCountry, pickupLat, pickupLng,
       deliveryCity, deliveryCountry, deliveryLat, deliveryLng,
       offeredPrice, currency, scheduledDate,
+      externalOwnerName, externalOwnerPhone,
     } = req.body;
 
     // ── Validate required fields ──
@@ -70,6 +76,9 @@ export const createLoad = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ message: "Invalid scheduled date." });
     }
 
+    // Broker-posted loads anchor senderId to the broker (Load.senderId is NOT NULL),
+    // while externalOwnerName/Phone capture the real offline cargo owner's contact.
+    // Sender-posted loads leave the external* fields null — no behavior change.
     const load = await prisma.load.create({
       data: {
         senderId: req.user!.userId,
@@ -88,6 +97,8 @@ export const createLoad = async (req: AuthRequest, res: Response) => {
         offeredPrice: parsedPrice,
         currency: currency || "USD",
         scheduledDate: parsedDate,
+        externalOwnerName:  isBroker ? (externalOwnerName?.trim()  || null) : null,
+        externalOwnerPhone: isBroker ? (externalOwnerPhone?.trim() || null) : null,
       },
     });
 

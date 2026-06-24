@@ -307,6 +307,10 @@ model Load {
   currency        String     @default("USD")
   status          LoadStatus @default(OPEN)
   scheduledDate   DateTime
+  // When a broker posts a load on behalf of an offline cargo owner who doesn't
+  // have an account, these capture the real contact. NULL on sender-posted loads.
+  externalOwnerName  String?
+  externalOwnerPhone String?
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
 

@@ -45,11 +45,12 @@ import DriverActiveScreen from '../screens/driver/DriverActiveScreen';
 import DriverHistoryScreen from '../screens/driver/DriverHistoryScreen';
 import ProofOfDeliveryScreen from '../screens/driver/ProofOfDeliveryScreen';
 
-// Broker screens (P3a — skeletons, real content lands in P3b-d)
+// Broker screens (P3a foundation + P3b-d real content)
 import BrokerDashboardScreen from '../screens/broker/BrokerDashboardScreen';
 import BrokerLoadsScreen from '../screens/broker/BrokerLoadsScreen';
 import BrokerTrucksScreen from '../screens/broker/BrokerTrucksScreen';
 import FindTruckScreen from '../screens/broker/FindTruckScreen';
+import BrokerCreateLoadScreen from '../screens/broker/BrokerCreateLoadScreen';
 
 // Shared screens
 import ProfileScreen from '../screens/shared/ProfileScreen';
@@ -243,10 +244,10 @@ function BrokerStack() {
       <Stack.Screen name="BrokerTabs" component={BrokerTabs} />
       {/* Broker-specific modal: match a load to a truck (P3c) */}
       <Stack.Screen name="FindTruck" component={FindTruckScreen} options={{ presentation: 'modal' }} />
-      {/* Reused screens — broker views load detail (sender-flavored read-only for now)
-          and creates loads using the existing PostLoad form. P3b may swap these for broker-specific variants. */}
+      {/* Broker-flavored create-load form (P3c-2) — includes the "Who is this cargo for?" externalOwner fields */}
+      <Stack.Screen name="CreateLoad" component={BrokerCreateLoadScreen} options={{ presentation: 'modal' }} />
+      {/* Load detail still reuses the sender screen (read-only for brokers — bidding hidden by P2 flag, status cards render) */}
       <Stack.Screen name="LoadDetail" component={LoadDetailScreen} options={{ presentation: 'card' }} />
-      <Stack.Screen name="CreateLoad" component={PostLoadScreen} options={{ presentation: 'modal' }} />
       {/* Shared screens */}
       <Stack.Screen name="Tracking" component={TrackingScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ presentation: 'card' }} />
