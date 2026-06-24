@@ -16,19 +16,39 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
 
     const truck = await prisma.truck.findUnique({ where: { id: truckId } });
     if (!truck) return res.status(404).json({ message: "Truck not found" });
-    if (truck.ownerId !== req.user!.userId) return res.status(403).json({ message: "Not your truck" });
 
+    // Truck owners may only book their own trucks; brokers can dispatch any truck.
+    const isBroker = req.user!.role === "BROKER";
+    if (!isBroker && truck.ownerId !== req.user!.userId) {
+      return res.status(403).json({ message: "Not your truck" });
+    }
+
+    // Dedupe per (load, truck owner). For TRUCK_OWNER callers truck.ownerId === req.user.userId,
+    // preserving the prior "owner can't apply twice on same load" rule; for BROKER callers it
+    // prevents a broker from dispatching two trucks from the same owner to the same load.
     const existing = await prisma.booking.findFirst({
-      where: { loadId, ownerId: req.user!.userId },
+      where: { loadId, ownerId: truck.ownerId },
     });
-    if (existing) return res.status(400).json({ message: "You already applied for this load" });
+    if (existing) return res.status(400).json({ message: "This truck owner already has a booking for this load" });
 
     const booking = await prisma.booking.create({
-      data: { loadId, truckId, senderId: load.senderId, ownerId: req.user!.userId, agreedPrice, currency: currency || "USD" },
+      data: {
+        loadId,
+        truckId,
+        senderId: load.senderId,
+        ownerId: truck.ownerId,
+        agreedPrice,
+        currency: currency || "USD",
+        brokerId: isBroker ? req.user!.userId : null,
+      },
     });
 
-    try { await notify(load.senderId, "NEW_LOAD", "New Booking Request", `A truck owner has applied for your load: ${load.title}`); }
-    catch (err) { console.error("Notify failed (booking still created):", err); }
+    try {
+      const message = isBroker
+        ? `A truck has been dispatched for your load: ${load.title}`
+        : `A truck owner has applied for your load: ${load.title}`;
+      await notify(load.senderId, "NEW_LOAD", "New Booking Request", message);
+    } catch (err) { console.error("Notify failed (booking still created):", err); }
 
     return res.status(201).json({ message: "Booking request sent", booking });
   } catch (error) {

@@ -65,6 +65,26 @@ export const fleetManagerOnly = (req: AuthRequest, res: Response, next: NextFunc
 };
 
 // ─────────────────────────────────────────
+// TRUCK OWNER OR BROKER — for direct-assignment booking creation
+// ─────────────────────────────────────────
+export const truckOwnerOrBrokerOnly = (req: AuthRequest, res: Response, next: NextFunction) => {
+  if (!["TRUCK_OWNER", "BROKER"].includes(req.user?.role || "")) {
+    return res.status(403).json({ message: "Access denied, truck owners and brokers only" });
+  }
+  next();
+};
+
+// ─────────────────────────────────────────
+// BROKER ONLY — broker dispatch endpoints (cross-owner truck marketplace)
+// ─────────────────────────────────────────
+export const brokerOnly = (req: AuthRequest, res: Response, next: NextFunction) => {
+  if (req.user?.role !== "BROKER") {
+    return res.status(403).json({ message: "Access denied, brokers only" });
+  }
+  next();
+};
+
+// ─────────────────────────────────────────
 // CARGO SENDER ONLY
 // ─────────────────────────────────────────
 export const cargoSenderOnly = (req: AuthRequest, res: Response, next: NextFunction) => {

@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import multer from "multer";
 import { createBooking, getBookingsForLoad, acceptBooking, rejectBooking, getMyBookings, getBookingById, startJourney, markDelivered, assignDriver, getMyBookingsAsDriver, rateBooking, updateBookingLocation, getMySenderBookings, submitProofOfDelivery } from "../controllers/booking.controller";
-import { protect, cargoSenderOnly, truckOwnerOnly } from "../middleware/auth.middleware";
+import { protect, cargoSenderOnly, truckOwnerOnly, truckOwnerOrBrokerOnly } from "../middleware/auth.middleware";
 
 const router = Router();
 
@@ -19,7 +19,7 @@ const podPhotosMiddleware = (req: Request, res: Response, next: NextFunction) =>
   podUpload.array("photos", 4)(req as any, res as any, next);
 };
 
-router.post("/", protect, truckOwnerOnly, createBooking);
+router.post("/", protect, truckOwnerOrBrokerOnly, createBooking);
 router.get("/my", protect, truckOwnerOnly, getMyBookings);
 router.get("/driver/my", protect, getMyBookingsAsDriver);
 router.get("/sender/my", protect, cargoSenderOnly, getMySenderBookings);

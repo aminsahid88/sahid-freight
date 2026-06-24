@@ -16,6 +16,7 @@ enum UserRole {
   TRUCK_OWNER
   DRIVER
   ADMIN
+  BROKER
 }
 
 enum UserStatus {
@@ -205,6 +206,7 @@ model User {
   bookingsAsSender  Booking[]          @relation("SenderBookings")
   bookingsAsOwner   Booking[]          @relation("OwnerBookings")
   bookingsAsDriver  Booking[]          @relation("DriverBookings")
+  bookingsAsBroker  Booking[]          @relation("BrokerBookings")
   invitedById       String?
   fleetConfirmed    Boolean            @default(false)
   invitedBy         User?              @relation("DriverInvites", fields: [invitedById], references: [id])
@@ -348,6 +350,8 @@ model Booking {
   owner       User          @relation("OwnerBookings", fields: [ownerId], references: [id])
   driverId    String?
   driver      User?         @relation("DriverBookings", fields: [driverId], references: [id])
+  brokerId    String?
+  broker      User?         @relation("BrokerBookings", fields: [brokerId], references: [id])
   status      BookingStatus @default(PENDING)
   agreedPrice Float
   currency    String        @default("USD")

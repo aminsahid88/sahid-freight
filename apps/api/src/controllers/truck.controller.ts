@@ -52,21 +52,30 @@ export const getMyTrucks = async (req: AuthRequest, res: Response) => {
 };
 
 // ─────────────────────────────────────────
-// GET ALL AVAILABLE TRUCKS
+// GET ALL AVAILABLE TRUCKS — broker marketplace (cross-owner truck list)
 // ─────────────────────────────────────────
 export const getAvailableTrucks = async (req: AuthRequest, res: Response) => {
   try {
-    const { country, truckType, city } = req.query;
+    const { country, truckType, city, available } = req.query;
+
+    // Default to available-only; explicit ?available=false (or =all) shows the full fleet.
+    const availabilityFilter =
+      available === undefined || available === "true"
+        ? { isAvailable: true }
+        : available === "all" || available === "false"
+        ? {}
+        : { isAvailable: true };
 
     const trucks = await prisma.truck.findMany({
       where: {
-        isAvailable: true,
+        ...availabilityFilter,
         ...(country && { currentCountry: country as any }),
         ...(truckType && { truckType: truckType as any }),
         ...(city && { currentCity: { contains: city as string, mode: "insensitive" } }),
       },
       include: {
         owner: { select: { id: true, fullName: true, phone: true, isVerified: true } },
+        driver: { select: { id: true, fullName: true, phone: true, licenseNumber: true } },
       },
       orderBy: { createdAt: "desc" },
     });
