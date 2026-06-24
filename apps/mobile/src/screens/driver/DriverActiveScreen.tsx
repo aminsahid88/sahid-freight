@@ -1,31 +1,56 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  StatusBar, Alert, RefreshControl, Linking, Platform,
+  StatusBar, Alert, RefreshControl, Linking, Platform, ActivityIndicator,
 } from 'react-native';
-import ScreenWrapper from '../../components/ScreenWrapper';
 import * as Location from 'expo-location';
+import ScreenWrapper from '../../components/ScreenWrapper';
+import { NotificationBell } from '../../components/NotificationBell';
+import { useAuthStore } from '../../store/auth';
 import api from '../../lib/api';
 import { formatApiError } from '../../lib/errors';
-import { theme } from '../../theme';
-import { formatPrice } from '../../lib/constants';
-import { useAuthStore } from '../../store/auth';
-import { StatusBadge } from '../../components/StatusBadge';
-import { SlideButton } from '../../components/SlideButton';
-import { SkeletonList } from '../../components/LoadingSkeleton';
-import { EmptyState } from '../../components/EmptyState';
-import { NotificationBell } from '../../components/NotificationBell';
+
+// Light/airy palette — locked, matches the broker surface for consistency
+// across both roles (low cognitive load when drivers + brokers coordinate).
+const BG       = '#F8FAFC';
+const NAVY     = '#0A1F44';
+const BLUE     = '#3D7BFF';
+const TEXT     = '#0A1F44';
+const MUTED    = '#64748B';
+const SUBTLE   = '#94A3B8';
+const CARD     = '#FFFFFF';
+const BORDER   = '#E2E8F0';
+const TEAL_BG  = '#ECFDF5';
+const TEAL_FG  = '#047857';
+const TEAL_BD  = '#A7F3D0';
+const AMBER_BG = '#FFF7ED';
+const AMBER_FG = '#C2791A';
+const AMBER_BD = '#FED7AA';
+const DANGER   = '#DC2626';
+const DANGER_BG = '#FEF2F2';
 
 export default function DriverActiveScreen({ navigation }: any) {
   const { user } = useAuthStore();
+  const firstName = (user?.fullName || 'Driver').split(' ')[0];
+
+  // ── core state ──────────────────────────────────────────────────────
+  const [isOnline, setIsOnline] = useState(false);            // driver's manual availability toggle
+  const [locationAllowed, setLocationAllowed] = useState(false);
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [locationAllowed, setLocationAllowed] = useState(false);
-  const [currentLocation, setCurrentLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [acting, setActing] = useState(false);                 // mid-start / mid-deliver lockout
+
   const locationWatcher = useRef<Location.LocationSubscription | null>(null);
   const lastPushRef = useRef<number>(0);
 
+  // The driver does ONE job at a time. IN_TRANSIT wins; else first ACCEPTED.
+  const primary =
+    bookings.find((b: any) => b.status === 'IN_TRANSIT') ||
+    bookings.find((b: any) => b.status === 'ACCEPTED') ||
+    null;
+
+  // ── fetches ─────────────────────────────────────────────────────────
   const fetchBookings = useCallback(async () => {
     try {
       const res = await api.get('/bookings/driver/my');
@@ -33,73 +58,89 @@ export default function DriverActiveScreen({ navigation }: any) {
       const active = all.filter((b: any) => b.status === 'ACCEPTED' || b.status === 'IN_TRANSIT');
       setBookings(active);
     } catch (e) {
-      console.warn('Fetch error', e);
+      console.warn('Driver fetch error', e);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   }, []);
 
-  const requestLocationPermission = useCallback(async () => {
+  useEffect(() => { fetchBookings(); }, [fetchBookings]);
+
+  // ── online toggle (the driver's ONE primary action) ─────────────────
+  const goOnline = async () => {
+    if (locationAllowed) {
+      setIsOnline(true);
+      return;
+    }
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status === 'granted') {
       setLocationAllowed(true);
+      setIsOnline(true);
+    } else {
+      Alert.alert(
+        'Location permission needed',
+        'To go online and share your trip with the cargo sender, allow location access in your phone settings.',
+        [{ text: 'OK' }],
+      );
     }
-  }, []);
+  };
 
+  const goOffline = () => {
+    if (primary?.status === 'IN_TRANSIT') {
+      Alert.alert(
+        'You have a trip in progress',
+        'Going offline will stop sharing your location with the sender. Continue?',
+        [
+          { text: 'Stay online', style: 'cancel' },
+          { text: 'Go offline', style: 'destructive', onPress: () => setIsOnline(false) },
+        ],
+      );
+      return;
+    }
+    setIsOnline(false);
+  };
+
+  const toggleOnline = () => (isOnline ? goOffline() : goOnline());
+
+  // ── location watcher: only runs when ONLINE + permission + IN_TRANSIT ──
   useEffect(() => {
-    fetchBookings();
-    requestLocationPermission();
-  }, [fetchBookings, requestLocationPermission]);
-
-  // Pick the primary booking: IN_TRANSIT first, then first ACCEPTED
-  const primary = bookings.find((b: any) => b.status === 'IN_TRANSIT')
-    || bookings.find((b: any) => b.status === 'ACCEPTED')
-    || null;
-  const upNext = bookings.filter((b: any) => b.id !== primary?.id);
-
-  // GPS tracking for in-transit booking
-  useEffect(() => {
-    if (!locationAllowed || !primary || primary.status !== 'IN_TRANSIT') {
+    const shouldWatch = isOnline && locationAllowed && primary?.status === 'IN_TRANSIT';
+    if (!shouldWatch) {
       locationWatcher.current?.remove();
       locationWatcher.current = null;
       return;
     }
-
     const startWatching = async () => {
       locationWatcher.current = await Location.watchPositionAsync(
         { accuracy: Location.Accuracy.High, timeInterval: 5000, distanceInterval: 10 },
         async (loc) => {
-          const { latitude, longitude } = loc.coords;
-          setCurrentLocation({ latitude, longitude });
-
           const now = Date.now();
           if (now - lastPushRef.current >= 10000) {
             lastPushRef.current = now;
             try {
-              await api.patch(`/bookings/${primary.id}/location`, { latitude, longitude });
+              await api.patch(`/bookings/${primary.id}/location`, {
+                latitude: loc.coords.latitude,
+                longitude: loc.coords.longitude,
+              });
             } catch (e) {
-              console.warn('Failed to push location', e);
+              console.warn('Location push failed', e);
             }
           }
-        }
+        },
       );
     };
-
     startWatching();
-    return () => {
-      locationWatcher.current?.remove();
-      locationWatcher.current = null;
-    };
-  }, [locationAllowed, primary?.id, primary?.status]);
+    return () => { locationWatcher.current?.remove(); locationWatcher.current = null; };
+  }, [isOnline, locationAllowed, primary?.id, primary?.status]);
 
-  const onRefresh = () => { setRefreshing(true); fetchBookings(); };
-
-  const handleStart = async (bookingId: string) => {
+  // ── actions ─────────────────────────────────────────────────────────
+  const handleStart = async () => {
+    if (!primary) return;
     if (!user?.isVerified) {
       Alert.alert(
-        'Complete your verification',
-        'You need to upload all required documents and have them approved before you can start a journey.',
+        'Account not verified',
+        'You need verified documents before starting a trip.',
         [
           { text: 'Go to Verification', onPress: () => navigation.navigate('Verification') },
           { text: 'Cancel', style: 'cancel' },
@@ -107,241 +148,244 @@ export default function DriverActiveScreen({ navigation }: any) {
       );
       return;
     }
-    // Check truck verification
-    const booking = bookings.find(b => b.id === bookingId);
-    if (booking?.truck && !booking.truck.isVerified) {
+    if (primary.truck && !primary.truck.isVerified) {
+      Alert.alert('Truck not verified', "This truck's documents need verification before it can be used.");
+      return;
+    }
+    if (!locationAllowed || !isOnline) {
       Alert.alert(
-        'Truck not verified',
-        "This truck's documents need verification before it can be used.",
+        'Go online first',
+        'You need to be online (sharing your location) before starting a trip.',
         [{ text: 'OK' }],
       );
       return;
     }
-    if (__DEV__) console.log('[DriverActive] handleStart called, bookingId:', bookingId);
-    setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'IN_TRANSIT' } : b));
-    try {
-      if (__DEV__) console.log('[DriverActive] calling PATCH /bookings/start');
-      const res = await api.patch(`/bookings/${bookingId}/start`);
-      if (__DEV__) console.log('[DriverActive] API returned:', res.status, res.data?.message);
-      await fetchBookings();
-    } catch (e: any) {
-      if (__DEV__) console.error('[DriverActive] startJourney failed:', e?.response?.status, e?.response?.data);
-      Alert.alert('Could not start journey', formatApiError(e, 'Please try again.'));
-      await fetchBookings();
-    }
+    Alert.alert('Start the trip?', 'Live tracking will begin.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Start',
+        onPress: async () => {
+          setActing(true);
+          setBookings((prev) => prev.map((b) => b.id === primary.id ? { ...b, status: 'IN_TRANSIT' } : b));
+          try {
+            await api.patch(`/bookings/${primary.id}/start`);
+            await fetchBookings();
+          } catch (e: any) {
+            Alert.alert('Could not start', formatApiError(e, 'Please try again.'));
+            await fetchBookings();
+          } finally { setActing(false); }
+        },
+      },
+    ]);
   };
 
-  const handleDeliver = async (bookingId: string) => {
-    if (__DEV__) console.log('[DriverActive] handleDeliver called, bookingId:', bookingId);
-    setBookings(prev => prev.filter(b => b.id !== bookingId));
-    locationWatcher.current?.remove();
-    locationWatcher.current = null;
-    try {
-      const res = await api.patch(`/bookings/${bookingId}/deliver`);
-      if (__DEV__) console.log('[DriverActive] deliver returned:', res.status, res.data?.message);
-      await fetchBookings();
-    } catch (e: any) {
-      if (__DEV__) console.error('[DriverActive] deliver failed:', e?.response?.status, e?.response?.data);
-      Alert.alert('Could not mark as delivered', formatApiError(e, 'Please try again.'));
-      await fetchBookings();
-    }
+  const handleDeliver = () => {
+    if (!primary) return;
+    Alert.alert('Mark as delivered?', 'Confirm only after the cargo has been handed over.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Yes, delivered',
+        onPress: async () => {
+          setActing(true);
+          // Optimistic: remove from active list
+          setBookings((prev) => prev.filter((b) => b.id !== primary.id));
+          locationWatcher.current?.remove();
+          locationWatcher.current = null;
+          try {
+            await api.patch(`/bookings/${primary.id}/deliver`);
+            await fetchBookings();
+          } catch (e: any) {
+            Alert.alert('Could not mark delivered', formatApiError(e, 'Please try again.'));
+            await fetchBookings();
+          } finally { setActing(false); }
+        },
+      },
+    ]);
   };
 
-  const openNavigation = (address: string) => {
-    const encoded = encodeURIComponent(address);
-    const url = Platform.select({
-      ios: `maps:?daddr=${encoded}`,
-      android: `geo:0,0?q=${encoded}`,
-    }) || `https://www.google.com/maps/dir/?api=1&destination=${encoded}`;
-    Linking.openURL(url).catch(() => {
-      Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${encoded}`);
-    });
+  const openMaps = (city: string) => {
+    const q = encodeURIComponent(city);
+    const url = Platform.select({ ios: `maps:?daddr=${q}`, android: `geo:0,0?q=${q}` })
+      || `https://www.google.com/maps/dir/?api=1&destination=${q}`;
+    Linking.openURL(url).catch(() => Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${q}`));
   };
 
-  const canAct = user?.role === 'DRIVER';
+  const onRefresh = useCallback(() => { setRefreshing(true); fetchBookings(); }, [fetchBookings]);
 
-  const initials = (user?.fullName || 'D')
-    .split(' ')
-    .map((w: string) => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
+  // ── derived display ─────────────────────────────────────────────────
+  const senderName = primary?.sender?.fullName || primary?.load?.sender?.fullName;
+  const senderPhone = primary?.sender?.phone || primary?.load?.sender?.phone;
+  const senderId = primary?.sender?.id || primary?.load?.sender?.id;
 
-  if (loading) {
-    return <ScreenWrapper><SkeletonList count={3} /></ScreenWrapper>;
-  }
+  /* ── render ─────────────────────────────────────────────────────── */
 
   return (
-    <ScreenWrapper>
-      <StatusBar barStyle="dark-content" backgroundColor={theme.bg} />
+    <ScreenWrapper backgroundColor={BG}>
+      <StatusBar barStyle="dark-content" backgroundColor={BG} />
 
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>{initials}</Text>
-          </View>
-          <View>
-            <Text style={styles.driverLabel}>Driver</Text>
-            <Text style={styles.driverName}>{user?.fullName || 'Driver'}</Text>
-          </View>
-        </View>
+      {/* Header — minimal */}
+      <View style={styles.topBar}>
+        <Text style={styles.topBarTitle}>Hi, {firstName}</Text>
         <NotificationBell navigation={navigation} />
       </View>
 
       <ScrollView
-        style={styles.scrollView}
         contentContainerStyle={styles.content}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.accent} />}
         showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={NAVY} />}
       >
-        {!primary ? (
-          <EmptyState
-            emoji="🚛"
-            title="No active trips"
-            subtitle="You have no assigned or in-transit bookings right now. Pull to refresh."
-          />
+        {/* ── BIG ONLINE TOGGLE — the centerpiece ────────────────────── */}
+        <TouchableOpacity
+          onPress={toggleOnline}
+          activeOpacity={0.85}
+          style={[styles.toggleCard, isOnline ? styles.toggleCardOn : styles.toggleCardOff]}
+        >
+          <View style={styles.toggleRow}>
+            <View style={[styles.dot, isOnline ? styles.dotOn : styles.dotOff]} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.toggleTitle, isOnline ? styles.toggleTitleOn : styles.toggleTitleOff]}>
+                {isOnline ? "You're online" : "You're offline"}
+              </Text>
+              <Text style={[styles.toggleSub, isOnline ? styles.toggleSubOn : styles.toggleSubOff]}>
+                {isOnline
+                  ? (primary?.status === 'IN_TRANSIT'
+                      ? 'Sharing location with the sender'
+                      : 'Waiting for a load')
+                  : 'Tap to go online and share location'}
+              </Text>
+            </View>
+            <View style={[styles.pill, isOnline ? styles.pillOn : styles.pillOff]}>
+              <Text style={[styles.pillText, isOnline ? styles.pillTextOn : styles.pillTextOff]}>
+                {isOnline ? 'ON' : 'OFF'}
+              </Text>
+            </View>
+          </View>
+        </TouchableOpacity>
+
+        {/* ── JOB CARD or EMPTY STATE ─────────────────────────────── */}
+        {loading ? (
+          <View style={styles.skelCard}>
+            <View style={styles.skelLine} />
+            <View style={[styles.skelLine, { width: '60%', marginTop: 10 }]} />
+            <View style={[styles.skelLine, { width: '100%', height: 48, marginTop: 24, borderRadius: 12 }]} />
+          </View>
+        ) : !primary ? (
+          <View style={styles.emptyCard}>
+            <Text style={styles.emptyEmoji}>🚛</Text>
+            <Text style={styles.emptyTitle}>
+              {isOnline ? 'No job yet' : 'Go online to receive loads'}
+            </Text>
+            <Text style={styles.emptyBody}>
+              {isOnline
+                ? "When a broker assigns you a load, it'll show up here."
+                : 'Tap the toggle above. Loads come straight to this screen.'}
+            </Text>
+          </View>
         ) : (
-          <>
-            {/* Live tracking card */}
+          <View style={styles.jobCard}>
             {primary.status === 'IN_TRANSIT' && (
-              <View style={styles.trackingCard}>
-                <View style={styles.trackingHeader}>
-                  <View style={styles.trackingDot} />
-                  <Text style={styles.trackingTitle}>Live tracking active</Text>
-                </View>
-                <Text style={styles.trackingRoute}>
-                  {primary.load?.pickupCity} → {primary.load?.deliveryCity}
-                </Text>
-                {currentLocation ? (
-                  <View style={styles.coordRow}>
-                    <Text style={styles.coordLabel}>GPS</Text>
-                    <Text style={styles.coordValue}>
-                      {currentLocation.latitude.toFixed(4)}, {currentLocation.longitude.toFixed(4)}
-                    </Text>
-                  </View>
-                ) : (
-                  <View style={styles.locatingBox}>
-                    <Text style={styles.locatingText}>Getting your location...</Text>
-                  </View>
-                )}
-                <Text style={styles.trackingHint}>
-                  Your location is being shared with the cargo sender every 10 seconds.
-                </Text>
+              <View style={styles.liveStrip}>
+                <View style={styles.liveDot} />
+                <Text style={styles.liveText}>LIVE — TRIP IN PROGRESS</Text>
               </View>
             )}
 
-            {/* Primary booking card */}
-            <View style={styles.card}>
-              <View style={styles.cardTopRow}>
-                <Text style={styles.loadTitle} numberOfLines={2}>{primary.load?.title}</Text>
-                <View style={styles.cardTopActions}>
-                  {primary.load?.deliveryCity && (
-                    <TouchableOpacity
-                      style={styles.navBtn}
-                      onPress={() => openNavigation(primary.load.deliveryCity)}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.navBtnEmoji}>🧭</Text>
-                    </TouchableOpacity>
-                  )}
-                  <StatusBadge status={primary.status} />
-                </View>
-              </View>
-              <Text style={styles.route}>{primary.load?.pickupCity} → {primary.load?.deliveryCity}</Text>
+            <Text style={styles.jobTitle} numberOfLines={2}>{primary.load?.title}</Text>
+            <Text style={styles.jobRoute}>
+              {primary.load?.pickupCity} → {primary.load?.deliveryCity}
+            </Text>
 
-              <View style={styles.divider} />
-
-              <Row label="Truck" value={primary.truck?.plateNumber} />
-              <Row label="Cargo weight" value={`${primary.load?.weightTons}t`} />
-              <Row label="Your pay" value={formatPrice(primary.agreedPrice, primary.load?.currency)} bold />
-              {primary.load?.description && (
-                <Row label="Notes" value={primary.load.description} />
+            <View style={styles.metaRow}>
+              {primary.load?.weightTons != null && (
+                <View style={styles.metaPill}><Text style={styles.metaPillText}>{primary.load.weightTons}t</Text></View>
               )}
-
-              {(primary.sender?.phone || primary.load?.sender?.phone) && (
-                <View style={styles.callSection}>
-                  <Text style={styles.senderLabel}>
-                    Cargo sender: {primary.sender?.fullName || primary.load?.sender?.fullName || 'Sender'}
-                  </Text>
-                  <TouchableOpacity
-                    style={styles.callBtn}
-                    onPress={() => Linking.openURL('tel:' + (primary.sender?.phone || primary.load?.sender?.phone))}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.callBtnText}>📞  Call sender</Text>
-                  </TouchableOpacity>
-                </View>
+              {primary.truck?.plateNumber && (
+                <View style={styles.metaPill}><Text style={styles.metaPillText}>{primary.truck.plateNumber}</Text></View>
               )}
             </View>
 
-            {/* Location permission warning */}
-            {!locationAllowed && (
-              <View style={styles.permWarn}>
-                <Text style={styles.permWarnText}>
-                  Location permission denied. Enable it in settings to share your live position.
-                </Text>
-                <TouchableOpacity onPress={requestLocationPermission} activeOpacity={0.7}>
-                  <Text style={styles.permWarnLink}>Grant permission</Text>
-                </TouchableOpacity>
-              </View>
+            {/* Contact + nav row — big, obvious */}
+            {senderName && (
+              <>
+                <View style={styles.divider} />
+                <Text style={styles.contactLabel}>Cargo sender</Text>
+                <Text style={styles.contactName}>{senderName}</Text>
+                <View style={styles.contactRow}>
+                  {senderPhone && (
+                    <TouchableOpacity
+                      style={styles.contactBtn}
+                      onPress={() => Linking.openURL('tel:' + senderPhone)}
+                      activeOpacity={0.85}
+                    >
+                      <Text style={styles.contactBtnText}>📞  Call</Text>
+                    </TouchableOpacity>
+                  )}
+                  {senderId && (
+                    <TouchableOpacity
+                      style={styles.contactBtnSecondary}
+                      onPress={() => navigation.navigate('Chat', { userId: senderId, userName: senderName, phone: senderPhone })}
+                      activeOpacity={0.85}
+                    >
+                      <Text style={styles.contactBtnSecondaryText}>💬  Message</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+                {primary.load?.deliveryCity && (
+                  <TouchableOpacity
+                    onPress={() => openMaps(primary.load.deliveryCity)}
+                    style={styles.mapsBtn}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={styles.mapsBtnText}>🧭  Open delivery in maps</Text>
+                  </TouchableOpacity>
+                )}
+              </>
             )}
 
-            {/* Action buttons */}
-            {primary.status === 'ACCEPTED' && canAct && (
-              <View style={styles.actions}>
-                <Text style={styles.actionHint}>Ready to pick up the cargo? Start the journey to begin live tracking.</Text>
-                <SlideButton
-                  label="Slide to start journey"
-                  color={theme.warning}
-                  onConfirm={() => handleStart(primary.id)}
-                  disabled={!locationAllowed}
-                />
-              </View>
+            {/* PRIMARY ACTION — big, obvious */}
+            <View style={styles.divider} />
+            {primary.status === 'ACCEPTED' && (
+              <TouchableOpacity
+                style={[styles.primaryBtn, acting && { opacity: 0.6 }]}
+                onPress={handleStart}
+                disabled={acting}
+                activeOpacity={0.85}
+              >
+                {acting
+                  ? <ActivityIndicator color="#FFFFFF" />
+                  : <Text style={styles.primaryBtnText}>Start trip</Text>}
+              </TouchableOpacity>
             )}
-
-            {primary.status === 'IN_TRANSIT' && canAct && (
-              <View style={styles.actions}>
-                <Text style={styles.actionHint}>Cargo is on the road. Update status as you go.</Text>
+            {primary.status === 'IN_TRANSIT' && (
+              <>
                 <TouchableOpacity
-                  style={styles.deliverBtn}
-                  activeOpacity={0.8}
-                  onPress={() => {
-                    Alert.alert(
-                      'Confirm delivery',
-                      'Are you sure the cargo has been delivered?',
-                      [
-                        { text: 'Cancel', style: 'cancel' },
-                        { text: 'Yes, delivered', onPress: () => handleDeliver(primary.id) },
-                      ]
-                    );
-                  }}
+                  style={[styles.primaryBtn, acting && { opacity: 0.6 }]}
+                  onPress={handleDeliver}
+                  disabled={acting}
+                  activeOpacity={0.85}
                 >
-                  <Text style={styles.deliverBtnText}>Mark as delivered</Text>
+                  {acting
+                    ? <ActivityIndicator color="#FFFFFF" />
+                    : <Text style={styles.primaryBtnText}>Mark delivered</Text>}
                 </TouchableOpacity>
-              </View>
+                <TouchableOpacity
+                  style={styles.podBtn}
+                  onPress={() => navigation.navigate('ProofOfDelivery', { bookingId: primary.id })}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.podBtnText}>📷  Upload delivery photos</Text>
+                </TouchableOpacity>
+              </>
             )}
-          </>
+          </View>
         )}
 
-        {/* Up next section */}
-        {upNext.length > 0 && (
-          <View style={styles.upNextSection}>
-            <Text style={styles.sectionLabel}>UP NEXT</Text>
-            {upNext.map(b => (
-              <TouchableOpacity
-                key={b.id}
-                style={styles.upNextCard}
-                onPress={() => navigation.navigate('BookingDetail', { bookingId: b.id })}
-                activeOpacity={0.75}
-              >
-                <View style={styles.upNextInfo}>
-                  <Text style={styles.upNextTitle} numberOfLines={1}>{b.load?.title}</Text>
-                  <Text style={styles.upNextRoute}>{b.load?.pickupCity} → {b.load?.deliveryCity}</Text>
-                </View>
-                <Text style={styles.upNextPrice}>{formatPrice(b.agreedPrice, b.load?.currency)}</Text>
-              </TouchableOpacity>
-            ))}
+        {/* Location-permission warning when toggle was tapped but never granted */}
+        {!locationAllowed && isOnline && (
+          <View style={styles.warnCard}>
+            <Text style={styles.warnText}>
+              Location permission isn't granted. Open phone settings to enable it.
+            </Text>
           </View>
         )}
       </ScrollView>
@@ -349,334 +393,74 @@ export default function DriverActiveScreen({ navigation }: any) {
   );
 }
 
-function Row({ label, value, bold }: { label: string; value: any; bold?: boolean }) {
-  return (
-    <View style={rowS.row}>
-      <Text style={rowS.label}>{label}</Text>
-      <Text style={[rowS.value, bold && rowS.boldValue]}>{value}</Text>
-    </View>
-  );
-}
-
-const rowS = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 0.5,
-    borderBottomColor: theme.border,
-  },
-  label: {
-    fontSize: 13,
-    color: theme.textMuted,
-    fontWeight: '400',
-  },
-  value: {
-    fontSize: 13,
-    color: theme.text,
-    fontWeight: '400',
-    maxWidth: '60%',
-    textAlign: 'right',
-  },
-  boldValue: {
-    fontWeight: '600',
-    color: theme.accent,
-  },
-});
+/* ── styles ───────────────────────────────────────────────────────── */
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: theme.bg,
-    borderBottomWidth: 0.5,
-    borderBottomColor: theme.border,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: theme.accent,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: theme.accent,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  avatarText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: theme.accentText,
-  },
-  driverLabel: {
-    fontSize: 11,
-    color: theme.textMuted,
-    fontWeight: '500',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  driverName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: theme.text,
-    marginTop: 1,
-  },
-  scrollView: {
-    flex: 1,
-    backgroundColor: theme.bg,
-  },
-  content: {
-    padding: 20,
-    paddingBottom: 40,
-  },
-  trackingCard: {
-    backgroundColor: theme.blueDim,
-    borderRadius: 16,
-    padding: 18,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: theme.accentBorder,
-  },
-  trackingHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 10,
-  },
-  trackingDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: theme.accent,
-  },
-  trackingTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: theme.accent,
-  },
-  trackingRoute: {
-    fontSize: 14,
-    fontWeight: '400',
-    color: theme.text,
-    marginBottom: 12,
-  },
-  coordRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderTopWidth: 0.5,
-    borderTopColor: theme.accentBorder,
-  },
-  coordLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: theme.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  coordValue: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: theme.text,
-    fontVariant: ['tabular-nums'] as any,
-  },
-  trackingHint: {
-    fontSize: 11,
-    color: theme.textMuted,
-    marginTop: 10,
-    textAlign: 'center',
-    lineHeight: 16,
-  },
-  locatingBox: {
-    backgroundColor: theme.warningDim,
-    borderRadius: 12,
-    padding: 12,
-    alignItems: 'center',
-    borderWidth: 0.5,
-    borderColor: theme.warning,
-  },
-  locatingText: {
-    fontSize: 13,
-    color: theme.warning,
-    fontWeight: '500',
-  },
-  card: {
-    backgroundColor: theme.bg,
-    borderRadius: 16,
-    padding: 18,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: theme.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  cardTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 6,
-  },
-  cardTopActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  loadTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: theme.text,
-    flex: 1,
-    marginRight: 12,
-  },
-  route: {
-    fontSize: 14,
-    color: theme.textSecondary,
-    marginBottom: 14,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: theme.border,
-    marginBottom: 4,
-  },
-  callSection: {
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: theme.border,
-  },
-  senderLabel: {
-    fontSize: 13,
-    color: theme.textMuted,
-    marginBottom: 10,
-    fontWeight: '400',
-  },
-  callBtn: {
-    backgroundColor: theme.accentDim,
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: theme.accentBorder,
-  },
-  callBtnText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: theme.accent,
-  },
-  permWarn: {
-    backgroundColor: theme.dangerDim,
-    borderRadius: 14,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: theme.danger,
-    marginBottom: 16,
-  },
-  permWarnText: {
-    fontSize: 13,
-    color: theme.danger,
-    lineHeight: 19,
-  },
-  permWarnLink: {
-    fontSize: 13,
-    color: theme.danger,
-    fontWeight: '600',
-    marginTop: 10,
-    textDecorationLine: 'underline',
-  },
-  navBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: theme.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: theme.border,
-  },
-  navBtnEmoji: {
-    fontSize: 16,
-  },
-  actions: {
-    gap: 12,
-    marginBottom: 16,
-  },
-  actionHint: {
-    fontSize: 13,
-    color: theme.textMuted,
-    textAlign: 'center',
-    lineHeight: 19,
-    marginBottom: 4,
-  },
-  deliverBtn: {
-    backgroundColor: theme.accent,
-    borderRadius: 14,
-    paddingVertical: 15,
-    alignItems: 'center',
-    shadowColor: theme.accent,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  deliverBtnText: {
-    color: theme.accentText,
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  upNextSection: {
-    marginTop: 12,
-  },
-  sectionLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: theme.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 12,
-  },
-  upNextCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.bg,
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 10,
-    gap: 12,
-    borderWidth: 1,
-    borderColor: theme.border,
-  },
-  upNextInfo: {
-    flex: 1,
-  },
-  upNextTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: theme.text,
-  },
-  upNextRoute: {
-    fontSize: 13,
-    color: theme.textMuted,
-    marginTop: 3,
-  },
-  upNextPrice: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: theme.accent,
-  },
+  /* top bar */
+  topBar:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 14, paddingBottom: 12, backgroundColor: BG },
+  topBarTitle:   { fontSize: 20, fontWeight: '700', color: TEXT, letterSpacing: -0.3 },
+
+  content:       { padding: 20, paddingTop: 4, paddingBottom: 40 },
+
+  /* TOGGLE — the centerpiece. Big, full-width tap target. */
+  toggleCard:    { borderRadius: 18, padding: 22, marginBottom: 24, borderWidth: 1, shadowColor: NAVY, shadowOpacity: 0.06, shadowRadius: 16, shadowOffset: { width: 0, height: 6 }, elevation: 2 },
+  toggleCardOn:  { backgroundColor: TEAL_BG, borderColor: TEAL_BD },
+  toggleCardOff: { backgroundColor: CARD, borderColor: BORDER },
+  toggleRow:     { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  dot:           { width: 14, height: 14, borderRadius: 7 },
+  dotOn:         { backgroundColor: TEAL_FG },
+  dotOff:        { backgroundColor: SUBTLE },
+  toggleTitle:   { fontSize: 20, fontWeight: '700', letterSpacing: -0.3, marginBottom: 2 },
+  toggleTitleOn: { color: TEAL_FG },
+  toggleTitleOff:{ color: TEXT },
+  toggleSub:     { fontSize: 14, fontWeight: '500' },
+  toggleSubOn:   { color: TEAL_FG, opacity: 0.85 },
+  toggleSubOff:  { color: MUTED },
+  pill:          { borderRadius: 99, paddingHorizontal: 14, paddingVertical: 6, borderWidth: 1 },
+  pillOn:        { backgroundColor: TEAL_FG, borderColor: TEAL_FG },
+  pillOff:       { backgroundColor: '#FFFFFF', borderColor: BORDER },
+  pillText:      { fontSize: 12, fontWeight: '800', letterSpacing: 1 },
+  pillTextOn:    { color: '#FFFFFF' },
+  pillTextOff:   { color: SUBTLE },
+
+  /* JOB CARD */
+  jobCard:       { backgroundColor: CARD, borderRadius: 16, padding: 22, borderWidth: 1, borderColor: BORDER, shadowColor: NAVY, shadowOpacity: 0.04, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 1 },
+  liveStrip:     { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: TEAL_BG, borderColor: TEAL_BD, borderWidth: 1, borderRadius: 99, alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 5, marginBottom: 14 },
+  liveDot:       { width: 7, height: 7, borderRadius: 3.5, backgroundColor: TEAL_FG },
+  liveText:      { fontSize: 10, fontWeight: '800', color: TEAL_FG, letterSpacing: 1.2 },
+  jobTitle:      { fontSize: 19, fontWeight: '700', color: TEXT, letterSpacing: -0.3, marginBottom: 4 },
+  jobRoute:      { fontSize: 15, color: MUTED, marginBottom: 14 },
+  metaRow:       { flexDirection: 'row', gap: 8, flexWrap: 'wrap', marginBottom: 4 },
+  metaPill:      { backgroundColor: BG, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6 },
+  metaPillText:  { fontSize: 12, fontWeight: '600', color: MUTED },
+
+  divider:       { height: 1, backgroundColor: BORDER, marginVertical: 18 },
+
+  contactLabel:  { fontSize: 11, fontWeight: '700', color: SUBTLE, letterSpacing: 1.2, marginBottom: 4 },
+  contactName:   { fontSize: 15, fontWeight: '600', color: TEXT, marginBottom: 14 },
+  contactRow:    { flexDirection: 'row', gap: 10, marginBottom: 10 },
+  contactBtn:    { flex: 1, backgroundColor: BLUE, borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
+  contactBtnText:{ color: '#FFFFFF', fontSize: 15, fontWeight: '600' },
+  contactBtnSecondary:     { flex: 1, backgroundColor: BG, borderColor: BORDER, borderWidth: 1, borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
+  contactBtnSecondaryText: { color: NAVY, fontSize: 15, fontWeight: '600' },
+  mapsBtn:       { backgroundColor: BG, borderColor: BORDER, borderWidth: 1, borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
+  mapsBtnText:   { color: NAVY, fontSize: 14, fontWeight: '600' },
+
+  /* PRIMARY ACTION BUTTONS — large, obvious */
+  primaryBtn:      { backgroundColor: BLUE, borderRadius: 14, paddingVertical: 18, alignItems: 'center', shadowColor: BLUE, shadowOpacity: 0.25, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 3 },
+  primaryBtnText:  { color: '#FFFFFF', fontSize: 17, fontWeight: '700', letterSpacing: 0.2 },
+  podBtn:          { marginTop: 12, backgroundColor: BG, borderColor: BORDER, borderWidth: 1, borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
+  podBtnText:      { color: NAVY, fontSize: 14, fontWeight: '600' },
+
+  /* EMPTY + SKEL */
+  emptyCard:     { backgroundColor: CARD, borderRadius: 16, padding: 36, alignItems: 'center', borderWidth: 1, borderColor: BORDER },
+  emptyEmoji:    { fontSize: 52, marginBottom: 16 },
+  emptyTitle:    { fontSize: 17, fontWeight: '600', color: TEXT, marginBottom: 8, textAlign: 'center' },
+  emptyBody:     { fontSize: 14, color: MUTED, textAlign: 'center', lineHeight: 22, maxWidth: 300 },
+  skelCard:      { backgroundColor: CARD, borderRadius: 16, padding: 22, borderWidth: 1, borderColor: BORDER },
+  skelLine:      { height: 16, width: '80%', backgroundColor: '#F1F5F9', borderRadius: 6 },
+
+  /* WARN */
+  warnCard:      { marginTop: 16, backgroundColor: DANGER_BG, borderColor: '#FECACA', borderWidth: 1, borderRadius: 12, padding: 14 },
+  warnText:      { color: DANGER, fontSize: 13, lineHeight: 19 },
 });

@@ -168,6 +168,11 @@ function BrokerTabs() {
 
 function DriverTabs() {
   const tabBarStyle = useTabBarStyle();
+  // P4: driver tabs radically simplified. Low-tech drivers don't browse —
+  // History (a list of past trips) and Chat (a list of conversations) are
+  // hidden. Chat is still reachable as a per-job button on the Home card,
+  // which keeps the capability contextual instead of as a top-level browse.
+  // DriverHistoryScreen + ConversationsScreen files are retained; just unwired.
   return (
     <Tab.Navigator screenOptions={{
       headerShown: false,
@@ -178,10 +183,6 @@ function DriverTabs() {
     }}>
       <Tab.Screen name="DriverActive" component={DriverActiveScreen}
         options={{ tabBarLabel: 'Home', tabBarIcon: ({ focused }) => <TabIcon emoji="🏠" focused={focused} /> }} />
-      <Tab.Screen name="DriverHistory" component={DriverHistoryScreen}
-        options={{ tabBarLabel: 'History', tabBarIcon: ({ focused }) => <TabIcon emoji="📋" focused={focused} /> }} />
-      <Tab.Screen name="DriverChat" component={ConversationsScreen}
-        options={{ tabBarLabel: 'Chat', tabBarIcon: ({ focused }) => <TabIcon emoji="💬" focused={focused} /> }} />
       <Tab.Screen name="DriverProfile" component={ProfileScreen}
         options={{ tabBarLabel: 'Profile', tabBarIcon: ({ focused }) => <TabIcon emoji="👤" focused={focused} /> }} />
     </Tab.Navigator>
