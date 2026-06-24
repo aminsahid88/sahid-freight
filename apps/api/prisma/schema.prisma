@@ -359,6 +359,13 @@ model Booking {
   status      BookingStatus @default(PENDING)
   agreedPrice Float
   currency    String        @default("USD")
+  // Broker record-only ledger (Option B). All nullable; broker writes them
+  // after collecting cash from the cargo owner / paying the truck owner offline.
+  // Does NOT replace the Payment model (which is sender→gateway processing).
+  brokerCutAmount     Float?
+  ownerPayoutAmount   Float?
+  brokerCollectedAt   DateTime?
+  ownerPaidOutAt      DateTime?
   pickedUpAt      DateTime?
   deliveredAt     DateTime?
   senderRating    Int?

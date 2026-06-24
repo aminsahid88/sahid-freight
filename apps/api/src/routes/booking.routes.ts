@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from "express";
 import multer from "multer";
-import { createBooking, getBookingsForLoad, acceptBooking, rejectBooking, getMyBookings, getBookingById, startJourney, markDelivered, assignDriver, getMyBookingsAsDriver, getMyBookingsAsBroker, rateBooking, updateBookingLocation, getMySenderBookings, submitProofOfDelivery } from "../controllers/booking.controller";
+import { createBooking, getBookingsForLoad, acceptBooking, rejectBooking, getMyBookings, getBookingById, startJourney, markDelivered, assignDriver, getMyBookingsAsDriver, getMyBookingsAsBroker, rateBooking, updateBookingLocation, getMySenderBookings, submitProofOfDelivery, recordBrokerCollection, recordBrokerPayout } from "../controllers/booking.controller";
 import { protect, cargoSenderOnly, truckOwnerOnly, truckOwnerOrBrokerOnly, brokerOnly } from "../middleware/auth.middleware";
 
 const router = Router();
@@ -33,6 +33,8 @@ router.patch("/:id/deliver", protect, markDelivered);
 router.patch("/:id/assign-driver", protect, truckOwnerOnly, assignDriver);
 router.patch("/:id/rate", protect, rateBooking);
 router.patch("/:id/location", protect, updateBookingLocation);
+router.patch("/:id/record-collection", protect, brokerOnly, recordBrokerCollection);
+router.patch("/:id/record-payout",     protect, brokerOnly, recordBrokerPayout);
 router.post("/:id/proof-of-delivery", protect, podPhotosMiddleware, submitProofOfDelivery);
 
 export default router;

@@ -430,6 +430,86 @@ export const updateBookingLocation = async (req: AuthRequest, res: Response) => 
 };
 
 // ─────────────────────────────────────────
+// RECORD COLLECTION — broker confirms he received cash from the cargo owner.
+// Sets brokerCollectedAt = now(), stores brokerCutAmount and optional ownerPayoutAmount.
+// Pure record-only; does NOT touch the Payment model (which is for sender-gateway flows).
+// ─────────────────────────────────────────
+export const recordBrokerCollection = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { brokerCutAmount, ownerPayoutAmount } = req.body;
+
+    const cut = Number(brokerCutAmount);
+    if (!Number.isFinite(cut) || cut < 0) {
+      return res.status(400).json({ message: "brokerCutAmount must be a non-negative number" });
+    }
+    let payout: number | undefined;
+    if (ownerPayoutAmount !== undefined && ownerPayoutAmount !== null) {
+      payout = Number(ownerPayoutAmount);
+      if (!Number.isFinite(payout) || payout < 0) {
+        return res.status(400).json({ message: "ownerPayoutAmount must be a non-negative number" });
+      }
+    }
+
+    const booking = await prisma.booking.findUnique({ where: { id } });
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
+    if ((booking as any).brokerId !== req.user!.userId) {
+      return res.status(403).json({ message: "Not your booking" });
+    }
+
+    const updated = await prisma.booking.update({
+      where: { id },
+      data: {
+        brokerCutAmount: cut,
+        ...(payout !== undefined && { ownerPayoutAmount: payout }),
+        brokerCollectedAt: new Date(),
+      },
+    });
+    return res.status(200).json({ message: "Collection recorded", booking: updated });
+  } catch (error) {
+    console.error("recordBrokerCollection failed:", error);
+    return res.status(500).json({ message: "Failed to record collection." });
+  }
+};
+
+// ─────────────────────────────────────────
+// RECORD PAYOUT — broker confirms he paid the truck owner.
+// Sets ownerPaidOutAt = now(); optionally updates ownerPayoutAmount.
+// ─────────────────────────────────────────
+export const recordBrokerPayout = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { ownerPayoutAmount } = req.body;
+
+    let payout: number | undefined;
+    if (ownerPayoutAmount !== undefined && ownerPayoutAmount !== null) {
+      payout = Number(ownerPayoutAmount);
+      if (!Number.isFinite(payout) || payout < 0) {
+        return res.status(400).json({ message: "ownerPayoutAmount must be a non-negative number" });
+      }
+    }
+
+    const booking = await prisma.booking.findUnique({ where: { id } });
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
+    if ((booking as any).brokerId !== req.user!.userId) {
+      return res.status(403).json({ message: "Not your booking" });
+    }
+
+    const updated = await prisma.booking.update({
+      where: { id },
+      data: {
+        ...(payout !== undefined && { ownerPayoutAmount: payout }),
+        ownerPaidOutAt: new Date(),
+      },
+    });
+    return res.status(200).json({ message: "Payout recorded", booking: updated });
+  } catch (error) {
+    console.error("recordBrokerPayout failed:", error);
+    return res.status(500).json({ message: "Failed to record payout." });
+  }
+};
+
+// ─────────────────────────────────────────
 // GET MY BOOKINGS AS BROKER (every booking this broker dispatched)
 // Optional ?status=IN_TRANSIT (or any BookingStatus value) narrows the result.
 // ─────────────────────────────────────────
