@@ -4,6 +4,11 @@ import { useRouter, useParams } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
 import api from "@/lib/api";
 
+// P2: bidding flow hidden during broker-direct-assignment pivot.
+// When true, the bids panel + accept/reject buttons render and the bid fetch runs.
+// Handlers (handleAcceptBid, handleRejectBid) are kept for easy revert.
+const BIDDING_ENABLED = false;
+
 const P = "var(--primary)";
 const A = "var(--accent)";
 
@@ -47,7 +52,7 @@ export default function LoadDetailPage() {
     try {
       const [loadRes, bidsRes, bookingsRes] = await Promise.all([
         api.get(`/loads/${id}`),
-        user?.role === "CARGO_SENDER" ? api.get(`/bids/load/${id}`) : Promise.resolve({ data: { bids: [] } }),
+        BIDDING_ENABLED && user?.role === "CARGO_SENDER" ? api.get(`/bids/load/${id}`) : Promise.resolve({ data: { bids: [] } }),
         user?.role === "CARGO_SENDER" ? api.get(`/bookings/load/${id}`) : Promise.resolve({ data: { bookings: [] } }),
       ]);
       setLoad(loadRes.data.load || loadRes.data);
@@ -201,8 +206,8 @@ export default function LoadDetailPage() {
           )}
         </div>
 
-        {/* ── BIDS PANEL (cargo sender only) ── */}
-        {user?.role === "CARGO_SENDER" && (
+        {/* ── BIDS PANEL — hidden during broker pivot (P2) ── */}
+        {BIDDING_ENABLED && user?.role === "CARGO_SENDER" && (
           <div style={{ background: "var(--surface)", borderRadius: "16px", border: "1px solid var(--border)", overflow: "hidden" }}>
             <div style={{ padding: "18px 24px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ fontSize: "14px", fontWeight: "700", color: P }}>

@@ -14,23 +14,33 @@ import { StarRating } from '../../components/StarRating';
 import { formatApiError } from '../../lib/errors';
 import { useAuthStore } from '../../store/auth';
 
+// P2: bidding flow hidden during broker-direct-assignment pivot.
+// When true, the bids section + accept/reject buttons render and the bid fetch runs.
+// Handlers (handleAccept, handleReject) are kept in place for easy revert.
+const BIDDING_ENABLED = false;
+
 export default function LoadDetailScreen({ route, navigation }: any) {
   const { user } = useAuthStore();
   const { loadId } = route.params;
   const [load, setLoad] = useState<any>(null);
   const [bids, setBids] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const fetch = useCallback(async () => {
     try {
-      const [loadRes, bidsRes] = await Promise.all([
+      const [loadRes, bidsRes, bookingsRes] = await Promise.all([
         api.get(`/loads/${loadId}`),
-        api.get(`/bids/load/${loadId}`),
+        BIDDING_ENABLED
+          ? api.get(`/bids/load/${loadId}`)
+          : Promise.resolve({ data: { bids: [] } }),
+        api.get(`/bookings/load/${loadId}`).catch(() => ({ data: { bookings: [] } })),
       ]);
       setLoad(loadRes.data?.load || loadRes.data);
       setBids(bidsRes.data?.bids || bidsRes.data || []);
+      setBookings(bookingsRes.data?.bookings || []);
     } catch (e) {
       console.warn('Fetch error', e);
     } finally {
@@ -117,6 +127,17 @@ export default function LoadDetailScreen({ route, navigation }: any) {
     ['ACCEPTED', 'IN_TRANSIT', 'COMPLETED', 'DELIVERED'].includes(b.status)
   );
 
+  // Dispatched booking (from the broker-aware bookings fetch — has truck + owner + driver).
+  // Used for the sender-facing status card. Read-only; no accept/reject here.
+  const dispatchedBooking = bookings.find((b: any) =>
+    ['ACCEPTED', 'IN_TRANSIT', 'COMPLETED'].includes(b.status)
+  );
+  const isLookingForTruck = load.status === 'OPEN' && bookings.length === 0;
+  const dispatchTitle =
+    dispatchedBooking?.status === 'IN_TRANSIT' ? 'In transit' :
+    dispatchedBooking?.status === 'COMPLETED' ? 'Delivered' :
+    'Truck assigned';
+
   return (
     <ScreenWrapper>
       <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
@@ -148,6 +169,56 @@ export default function LoadDetailScreen({ route, navigation }: any) {
           {load.description && <Row label="Notes" value={load.description} />}
         </View>
 
+        {/* Sender-facing dispatch status card (broker-pivot replacement for the bids panel) */}
+        {isLookingForTruck && (
+          <View style={styles.statusCard}>
+            <Text style={styles.statusEmoji}>🔍</Text>
+            <Text style={styles.statusTitle}>Finding you a truck</Text>
+            <Text style={styles.statusBody}>
+              A broker is matching your load with the right truck. You'll be notified as soon as one is dispatched.
+            </Text>
+          </View>
+        )}
+
+        {dispatchedBooking && (
+          <View style={styles.statusCard}>
+            <View style={styles.statusHeader}>
+              <Text style={styles.statusEmoji}>🚛</Text>
+              <Text style={styles.statusTitle}>{dispatchTitle}</Text>
+            </View>
+            <View style={styles.statusRow}>
+              <Text style={styles.statusLabel}>Truck</Text>
+              <Text style={styles.statusValue}>
+                {dispatchedBooking.truck?.plateNumber}
+                {dispatchedBooking.truck?.truckType ? ` · ${dispatchedBooking.truck.truckType.replace(/_/g, ' ')}` : ''}
+              </Text>
+            </View>
+            {dispatchedBooking.owner?.fullName && (
+              <View style={styles.statusRow}>
+                <Text style={styles.statusLabel}>Owner</Text>
+                <Text style={styles.statusValue}>{dispatchedBooking.owner.fullName}</Text>
+              </View>
+            )}
+            {dispatchedBooking.truck?.driver?.fullName && (
+              <View style={styles.statusRow}>
+                <Text style={styles.statusLabel}>Driver</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <Text style={styles.statusValue}>{dispatchedBooking.truck.driver.fullName}</Text>
+                  {dispatchedBooking.truck.driver.phone && (
+                    <TouchableOpacity
+                      onPress={() => Linking.openURL('tel:' + dispatchedBooking.truck.driver.phone)}
+                      style={styles.callBtn}
+                    >
+                      <Text style={styles.callBtnText}>📞</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+            )}
+            <Text style={styles.statusAgreedPrice}>{formatPrice(dispatchedBooking.agreedPrice, dispatchedBooking.currency || load.currency)}</Text>
+          </View>
+        )}
+
         {/* Track button if in transit */}
         {(load.status === 'IN_TRANSIT' || load.status === 'BOOKED') && activeBooking && (
           <TouchableOpacity
@@ -158,7 +229,8 @@ export default function LoadDetailScreen({ route, navigation }: any) {
           </TouchableOpacity>
         )}
 
-        {/* BIDS */}
+        {/* BIDS — hidden during broker pivot (P2). Section renders only when BIDDING_ENABLED. */}
+        {BIDDING_ENABLED && (<>
         <Text style={styles.sectionLabel}>BIDS ({bids.length})</Text>
 
         {bids.length === 0 ? (
@@ -237,6 +309,7 @@ export default function LoadDetailScreen({ route, navigation }: any) {
             </View>
           ))
         )}
+        </>)}
       </ScrollView>
     </ScreenWrapper>
   );
@@ -268,6 +341,15 @@ const styles = StyleSheet.create({
   sectionLabel: { fontSize: 11, fontWeight: '500', color: theme.textMuted, textTransform: 'uppercase', letterSpacing: 0.9, marginBottom: 12, marginTop: 8 },
   trackBtn:     { backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 13, alignItems: 'center', marginBottom: 20 },
   trackBtnText: { color: theme.darkGreen, fontSize: 13, fontWeight: '500' },
+  statusCard:   { backgroundColor: theme.surface, borderRadius: 14, padding: 16, marginBottom: 16, borderWidth: 0.5, borderColor: theme.border },
+  statusHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
+  statusEmoji:  { fontSize: 22 },
+  statusTitle:  { fontSize: 15, fontWeight: '500', color: theme.text },
+  statusBody:   { fontSize: 13, color: theme.textMuted, marginTop: 6, lineHeight: 20 },
+  statusRow:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderTopWidth: 0.5, borderTopColor: theme.border },
+  statusLabel:  { fontSize: 12, color: theme.textMuted },
+  statusValue:  { fontSize: 13, color: theme.text, fontWeight: '400' },
+  statusAgreedPrice: { fontSize: 16, fontWeight: '500', color: theme.accent, marginTop: 12, textAlign: 'right' },
   bidCard:      { backgroundColor: theme.surface, borderRadius: 14, padding: 16, marginBottom: 10 },
   bidHeader:    { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 10 },
   bidOwner:     { fontSize: 14, fontWeight: '500', color: theme.text },

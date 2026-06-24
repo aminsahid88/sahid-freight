@@ -58,6 +58,11 @@ import VerificationScreen from '../screens/shared/VerificationScreen';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
+// P2: bidding flow hidden during broker-direct-assignment pivot.
+// Flip to true to restore the Sender Bids tab, Owner AvailableLoads tab,
+// and the LoadBid stack screen. Underlying screens + API endpoints are intact.
+const BIDDING_ENABLED = false;
+
 type AppState = 'loading' | 'onboarding' | 'auth' | 'app';
 
 function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
@@ -92,8 +97,10 @@ function SenderTabs() {
         options={{ tabBarLabel: 'Home', tabBarIcon: ({ focused }) => <TabIcon emoji="🏠" focused={focused} /> }} />
       <Tab.Screen name="MyLoads" component={MyLoadsScreen}
         options={{ tabBarLabel: 'My Loads', tabBarIcon: ({ focused }) => <TabIcon emoji="📦" focused={focused} /> }} />
-      <Tab.Screen name="SenderBookings" component={SenderBookingsScreen}
-        options={{ tabBarLabel: 'Bids', tabBarIcon: ({ focused }) => <TabIcon emoji="🤝" focused={focused} /> }} />
+      {BIDDING_ENABLED && (
+        <Tab.Screen name="SenderBookings" component={SenderBookingsScreen}
+          options={{ tabBarLabel: 'Bids', tabBarIcon: ({ focused }) => <TabIcon emoji="🤝" focused={focused} /> }} />
+      )}
       <Tab.Screen name="SenderChat" component={ConversationsScreen}
         options={{ tabBarLabel: 'Chat', tabBarIcon: ({ focused }) => <TabIcon emoji="💬" focused={focused} /> }} />
       <Tab.Screen name="SenderProfile" component={ProfileScreen}
@@ -114,8 +121,10 @@ function OwnerTabs() {
     }}>
       <Tab.Screen name="OwnerOverview" component={OwnerOverviewScreen}
         options={{ tabBarLabel: 'Home', tabBarIcon: ({ focused }) => <TabIcon emoji="🏠" focused={focused} /> }} />
-      <Tab.Screen name="AvailableLoads" component={AvailableLoadsScreen}
-        options={{ tabBarLabel: 'Loads', tabBarIcon: ({ focused }) => <TabIcon emoji="🔍" focused={focused} /> }} />
+      {BIDDING_ENABLED && (
+        <Tab.Screen name="AvailableLoads" component={AvailableLoadsScreen}
+          options={{ tabBarLabel: 'Loads', tabBarIcon: ({ focused }) => <TabIcon emoji="🔍" focused={focused} /> }} />
+      )}
       <Tab.Screen name="OwnerBookings" component={OwnerBookingsScreen}
         options={{ tabBarLabel: 'Bookings', tabBarIcon: ({ focused }) => <TabIcon emoji="📋" focused={focused} /> }} />
       <Tab.Screen name="OwnerChat" component={ConversationsScreen}
@@ -182,7 +191,9 @@ function OwnerStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="OwnerTabs" component={OwnerTabs} />
-      <Stack.Screen name="LoadBid" component={LoadBidScreen} options={{ presentation: 'card' }} />
+      {BIDDING_ENABLED && (
+        <Stack.Screen name="LoadBid" component={LoadBidScreen} options={{ presentation: 'card' }} />
+      )}
       <Stack.Screen name="AddTruck" component={AddTruckScreen} options={{ presentation: 'modal' }} />
       <Stack.Screen name="EditTruck" component={EditTruckScreen} options={{ presentation: 'modal' }} />
       <Stack.Screen name="Drivers" component={DriversScreen} options={{ presentation: 'card' }} />

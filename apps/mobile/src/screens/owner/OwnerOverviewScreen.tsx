@@ -14,6 +14,10 @@ import { NotificationBell } from '../../components/NotificationBell';
 import { theme } from '../../theme';
 import { formatPrice } from '../../lib/constants';
 
+// P2: bidding flow hidden during broker-direct-assignment pivot.
+// Hides the "Find Loads" CTAs (empty-state button + new-sheet option) that lead to bidding.
+const BIDDING_ENABLED = false;
+
 function getGreeting(): string {
   const h = new Date().getHours();
   if (h < 12) return 'Good morning,';
@@ -123,9 +127,12 @@ export default function OwnerOverviewScreen({ navigation }: any) {
           <EmptyState
             emoji="📋"
             title="No bookings yet"
-            subtitle="Browse available loads and place bids to get started."
-            buttonLabel="Find Loads"
-            onButton={() => navigation.navigate('AvailableLoads')}
+            subtitle={BIDDING_ENABLED
+              ? "Browse available loads and place bids to get started."
+              : "When a broker dispatches a load to one of your trucks, it will show up here."}
+            {...(BIDDING_ENABLED
+              ? { buttonLabel: "Find Loads", onButton: () => navigation.navigate('AvailableLoads') }
+              : {})}
           />
         ) : (
           recentBookings.map(booking => (
@@ -188,19 +195,21 @@ export default function OwnerOverviewScreen({ navigation }: any) {
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.sheetOption, styles.sheetOptionLast]}
-            activeOpacity={0.7}
-            onPress={() => { setShowNewSheet(false); navigation.navigate('AvailableLoads'); }}
-          >
-            <View style={[styles.sheetIcon, { backgroundColor: theme.orangeDim }]}>
-              <Text style={styles.sheetIconText}>📦</Text>
-            </View>
-            <View style={styles.sheetOptionContent}>
-              <Text style={styles.sheetOptionLabel}>Find loads</Text>
-              <Text style={styles.sheetOptionSub}>Browse available loads to bid on</Text>
-            </View>
-          </TouchableOpacity>
+          {BIDDING_ENABLED && (
+            <TouchableOpacity
+              style={[styles.sheetOption, styles.sheetOptionLast]}
+              activeOpacity={0.7}
+              onPress={() => { setShowNewSheet(false); navigation.navigate('AvailableLoads'); }}
+            >
+              <View style={[styles.sheetIcon, { backgroundColor: theme.orangeDim }]}>
+                <Text style={styles.sheetIconText}>📦</Text>
+              </View>
+              <View style={styles.sheetOptionContent}>
+                <Text style={styles.sheetOptionLabel}>Find loads</Text>
+                <Text style={styles.sheetOptionSub}>Browse available loads to bid on</Text>
+              </View>
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity style={styles.sheetDismiss} onPress={() => setShowNewSheet(false)} activeOpacity={0.7}>
             <Text style={styles.sheetDismissText}>Cancel</Text>

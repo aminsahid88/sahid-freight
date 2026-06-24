@@ -102,7 +102,7 @@ export default function SenderOverviewScreen({ navigation }: any) {
           <EmptyState
             emoji="📭"
             title="No loads yet"
-            subtitle="Post your first load to start getting bids from truck owners."
+            subtitle="Post your first load and a broker will match it with a truck."
             buttonLabel="Post a Load"
             onButton={() => navigation.navigate('PostLoad')}
           />

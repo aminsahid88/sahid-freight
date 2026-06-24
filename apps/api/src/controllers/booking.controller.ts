@@ -31,17 +31,29 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
     });
     if (existing) return res.status(400).json({ message: "This truck owner already has a booking for this load" });
 
-    const booking = await prisma.booking.create({
-      data: {
-        loadId,
-        truckId,
-        senderId: load.senderId,
-        ownerId: truck.ownerId,
-        agreedPrice,
-        currency: currency || "USD",
-        brokerId: isBroker ? req.user!.userId : null,
-      },
-    });
+    const bookingData = {
+      loadId,
+      truckId,
+      senderId: load.senderId,
+      ownerId: truck.ownerId,
+      agreedPrice,
+      currency: currency || "USD",
+      brokerId: isBroker ? req.user!.userId : null,
+    };
+
+    // Broker dispatches skip sender approval — the broker decides on the sender's behalf,
+    // so the booking is created ACCEPTED and the load flips to BOOKED atomically.
+    // Truck-owner applications keep the legacy PENDING flow that requires the sender to accept.
+    let booking;
+    if (isBroker) {
+      const [created] = await prisma.$transaction([
+        prisma.booking.create({ data: { ...bookingData, status: "ACCEPTED" } }),
+        prisma.load.update({ where: { id: loadId }, data: { status: "BOOKED" } }),
+      ]);
+      booking = created;
+    } else {
+      booking = await prisma.booking.create({ data: bookingData });
+    }
 
     try {
       const message = isBroker
@@ -69,7 +81,11 @@ export const getBookingsForLoad = async (req: AuthRequest, res: Response) => {
       where: { loadId },
       include: {
         owner: { select: { id: true, fullName: true, phone: true, isVerified: true } },
-        truck: true,
+        truck: {
+          include: {
+            driver: { select: { id: true, fullName: true, phone: true, licenseNumber: true } },
+          },
+        },
       },
       orderBy: { createdAt: "desc" },
     });

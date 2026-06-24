@@ -171,7 +171,7 @@ export default function MyLoadsScreen({ navigation }: any) {
         <EmptyState
           emoji="📦"
           title={filter === 'ALL' ? 'No loads yet' : `No ${filter.replace(/_/g, ' ')} loads`}
-          subtitle="Post a load to start receiving bids from truck owners."
+          subtitle="Post a load and a broker will match it with a truck."
           buttonLabel="Post a Load"
           onButton={() => navigation.navigate('PostLoad')}
         />
