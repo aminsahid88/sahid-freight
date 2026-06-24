@@ -45,6 +45,12 @@ import DriverActiveScreen from '../screens/driver/DriverActiveScreen';
 import DriverHistoryScreen from '../screens/driver/DriverHistoryScreen';
 import ProofOfDeliveryScreen from '../screens/driver/ProofOfDeliveryScreen';
 
+// Broker screens (P3a — skeletons, real content lands in P3b-d)
+import BrokerDashboardScreen from '../screens/broker/BrokerDashboardScreen';
+import BrokerLoadsScreen from '../screens/broker/BrokerLoadsScreen';
+import BrokerTrucksScreen from '../screens/broker/BrokerTrucksScreen';
+import FindTruckScreen from '../screens/broker/FindTruckScreen';
+
 // Shared screens
 import ProfileScreen from '../screens/shared/ProfileScreen';
 import NotificationsScreen from '../screens/shared/NotificationsScreen';
@@ -135,6 +141,30 @@ function OwnerTabs() {
   );
 }
 
+function BrokerTabs() {
+  const tabBarStyle = useTabBarStyle();
+  return (
+    <Tab.Navigator screenOptions={{
+      headerShown: false,
+      tabBarStyle,
+      tabBarActiveTintColor: theme.accent,
+      tabBarInactiveTintColor: theme.textMuted,
+      tabBarLabelStyle: { fontSize: 10, fontWeight: '500' as const },
+    }}>
+      <Tab.Screen name="BrokerDashboard" component={BrokerDashboardScreen}
+        options={{ tabBarLabel: 'Home', tabBarIcon: ({ focused }) => <TabIcon emoji="🧭" focused={focused} /> }} />
+      <Tab.Screen name="BrokerLoads" component={BrokerLoadsScreen}
+        options={{ tabBarLabel: 'Loads', tabBarIcon: ({ focused }) => <TabIcon emoji="📦" focused={focused} /> }} />
+      <Tab.Screen name="BrokerTrucks" component={BrokerTrucksScreen}
+        options={{ tabBarLabel: 'Trucks', tabBarIcon: ({ focused }) => <TabIcon emoji="🚛" focused={focused} /> }} />
+      <Tab.Screen name="BrokerChat" component={ConversationsScreen}
+        options={{ tabBarLabel: 'Chat', tabBarIcon: ({ focused }) => <TabIcon emoji="💬" focused={focused} /> }} />
+      <Tab.Screen name="BrokerProfile" component={ProfileScreen}
+        options={{ tabBarLabel: 'Profile', tabBarIcon: ({ focused }) => <TabIcon emoji="👤" focused={focused} /> }} />
+    </Tab.Navigator>
+  );
+}
+
 function DriverTabs() {
   const tabBarStyle = useTabBarStyle();
   return (
@@ -203,6 +233,25 @@ function OwnerStack() {
       <Stack.Screen name="Chat" component={ChatScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="BookingDetail" component={BookingDetailScreen} options={{ presentation: 'card' }} />
       <Stack.Screen name="Verification" component={VerificationScreen} options={{ presentation: 'modal' }} />
+    </Stack.Navigator>
+  );
+}
+
+function BrokerStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="BrokerTabs" component={BrokerTabs} />
+      {/* Broker-specific modal: match a load to a truck (P3c) */}
+      <Stack.Screen name="FindTruck" component={FindTruckScreen} options={{ presentation: 'modal' }} />
+      {/* Reused screens — broker views load detail (sender-flavored read-only for now)
+          and creates loads using the existing PostLoad form. P3b may swap these for broker-specific variants. */}
+      <Stack.Screen name="LoadDetail" component={LoadDetailScreen} options={{ presentation: 'card' }} />
+      <Stack.Screen name="CreateLoad" component={PostLoadScreen} options={{ presentation: 'modal' }} />
+      {/* Shared screens */}
+      <Stack.Screen name="Tracking" component={TrackingScreen} options={{ presentation: 'card' }} />
+      <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ presentation: 'card' }} />
+      <Stack.Screen name="Chat" component={ChatScreen} options={{ presentation: 'card' }} />
+      <Stack.Screen name="BookingDetail" component={BookingDetailScreen} options={{ presentation: 'card' }} />
     </Stack.Navigator>
   );
 }
@@ -291,6 +340,8 @@ export default function AppNavigator() {
         <SenderStack />
       ) : user.role === 'TRUCK_OWNER' ? (
         <OwnerStack />
+      ) : user.role === 'BROKER' ? (
+        <BrokerStack />
       ) : (
         <DriverStack />
       )}
