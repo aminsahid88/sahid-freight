@@ -430,6 +430,37 @@ export const updateBookingLocation = async (req: AuthRequest, res: Response) => 
 };
 
 // ─────────────────────────────────────────
+// GET MY BOOKINGS AS BROKER (every booking this broker dispatched)
+// Optional ?status=IN_TRANSIT (or any BookingStatus value) narrows the result.
+// ─────────────────────────────────────────
+export const getMyBookingsAsBroker = async (req: AuthRequest, res: Response) => {
+  try {
+    const { status } = req.query;
+    const where: any = { brokerId: req.user!.userId };
+    if (typeof status === "string" && status.length > 0) where.status = status;
+
+    const bookings = await prisma.booking.findMany({
+      where,
+      include: {
+        load: true,
+        truck: {
+          include: {
+            driver: { select: { id: true, fullName: true, phone: true, licenseNumber: true } },
+          },
+        },
+        owner: { select: { id: true, fullName: true, phone: true, isVerified: true } },
+        driver: { select: { id: true, fullName: true, phone: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    return res.status(200).json({ bookings });
+  } catch (error) {
+    console.error("getMyBookingsAsBroker failed:", error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+// ─────────────────────────────────────────
 // GET MY BOOKINGS AS DRIVER
 // ─────────────────────────────────────────
 export const getMyBookingsAsDriver = async (req: AuthRequest, res: Response) => {

@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import multer from "multer";
-import { createBooking, getBookingsForLoad, acceptBooking, rejectBooking, getMyBookings, getBookingById, startJourney, markDelivered, assignDriver, getMyBookingsAsDriver, rateBooking, updateBookingLocation, getMySenderBookings, submitProofOfDelivery } from "../controllers/booking.controller";
-import { protect, cargoSenderOnly, truckOwnerOnly, truckOwnerOrBrokerOnly } from "../middleware/auth.middleware";
+import { createBooking, getBookingsForLoad, acceptBooking, rejectBooking, getMyBookings, getBookingById, startJourney, markDelivered, assignDriver, getMyBookingsAsDriver, getMyBookingsAsBroker, rateBooking, updateBookingLocation, getMySenderBookings, submitProofOfDelivery } from "../controllers/booking.controller";
+import { protect, cargoSenderOnly, truckOwnerOnly, truckOwnerOrBrokerOnly, brokerOnly } from "../middleware/auth.middleware";
 
 const router = Router();
 
@@ -23,6 +23,7 @@ router.post("/", protect, truckOwnerOrBrokerOnly, createBooking);
 router.get("/my", protect, truckOwnerOnly, getMyBookings);
 router.get("/driver/my", protect, getMyBookingsAsDriver);
 router.get("/sender/my", protect, cargoSenderOnly, getMySenderBookings);
+router.get("/broker/my", protect, brokerOnly, getMyBookingsAsBroker);
 router.get("/load/:loadId", protect, cargoSenderOnly, getBookingsForLoad);
 router.get("/:id", protect, getBookingById);
 router.patch("/:id/accept", protect, cargoSenderOnly, acceptBooking);
