@@ -51,6 +51,7 @@ import BrokerLoadsScreen from '../screens/broker/BrokerLoadsScreen';
 import BrokerTrucksScreen from '../screens/broker/BrokerTrucksScreen';
 import FindTruckScreen from '../screens/broker/FindTruckScreen';
 import BrokerCreateLoadScreen from '../screens/broker/BrokerCreateLoadScreen';
+import BrokerEarningsScreen from '../screens/broker/BrokerEarningsScreen';
 
 // Shared screens
 import ProfileScreen from '../screens/shared/ProfileScreen';
@@ -158,8 +159,10 @@ function BrokerTabs() {
         options={{ tabBarLabel: 'Loads', tabBarIcon: ({ focused }) => <TabIcon emoji="📦" focused={focused} /> }} />
       <Tab.Screen name="BrokerTrucks" component={BrokerTrucksScreen}
         options={{ tabBarLabel: 'Trucks', tabBarIcon: ({ focused }) => <TabIcon emoji="🚛" focused={focused} /> }} />
-      <Tab.Screen name="BrokerChat" component={ConversationsScreen}
-        options={{ tabBarLabel: 'Chat', tabBarIcon: ({ focused }) => <TabIcon emoji="💬" focused={focused} /> }} />
+      {/* P5b: BrokerChat replaced by BrokerEarnings. Chat stays reachable via
+          navigation.navigate('Chat', …) from booking/load contexts. */}
+      <Tab.Screen name="BrokerEarnings" component={BrokerEarningsScreen}
+        options={{ tabBarLabel: 'Earnings', tabBarIcon: ({ focused }) => <TabIcon emoji="💰" focused={focused} /> }} />
       <Tab.Screen name="BrokerProfile" component={ProfileScreen}
         options={{ tabBarLabel: 'Profile', tabBarIcon: ({ focused }) => <TabIcon emoji="👤" focused={focused} /> }} />
     </Tab.Navigator>
