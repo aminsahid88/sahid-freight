@@ -43,11 +43,23 @@ export const createBooking = async (req: AuthRequest, res: Response) => {
 
     // Broker dispatches skip sender approval — the broker decides on the sender's behalf,
     // so the booking is created ACCEPTED and the load flips to BOOKED atomically.
+    // Also auto-copy truck.driverId → booking.driverId so the driver app (which filters
+    // /bookings/driver/my by driverId) immediately shows the new job. The truck owner had to
+    // confirm the driver to attach them in the first place (fleetConfirmed gate at
+    // truck.controller.ts updateTruck), so propagating that assignment is not a cross-fleet
+    // violation. If the truck has no attached driver, leave booking.driverId null —
+    // the owner can call PATCH /bookings/:id/assign-driver afterwards.
     // Truck-owner applications keep the legacy PENDING flow that requires the sender to accept.
     let booking;
     if (isBroker) {
       const [created] = await prisma.$transaction([
-        prisma.booking.create({ data: { ...bookingData, status: "ACCEPTED" } }),
+        prisma.booking.create({
+          data: {
+            ...bookingData,
+            status: "ACCEPTED",
+            ...(truck.driverId && { driverId: truck.driverId }),
+          },
+        }),
         prisma.load.update({ where: { id: loadId }, data: { status: "BOOKED" } }),
       ]);
       booking = created;
@@ -395,10 +407,13 @@ export const rateBooking = async (req: AuthRequest, res: Response) => {
 export const updateBookingLocation = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { lat, lng } = req.body;
+    // Accept both shapes — web sends { lat, lng }, mobile sends { latitude, longitude }.
+    const { lat, lng, latitude, longitude } = req.body;
+    const finalLat = lat ?? latitude;
+    const finalLng = lng ?? longitude;
 
-    if (lat === undefined || lng === undefined) {
-      return res.status(400).json({ message: "lat and lng are required" });
+    if (finalLat === undefined || finalLng === undefined) {
+      return res.status(400).json({ message: "lat/latitude and lng/longitude are required" });
     }
 
     const booking = await prisma.booking.findUnique({ where: { id } });
@@ -411,13 +426,13 @@ export const updateBookingLocation = async (req: AuthRequest, res: Response) => 
     }
 
     await prisma.truckLocation.create({
-      data: { truckId: booking.truckId, lat: Number(lat), lng: Number(lng) },
+      data: { truckId: booking.truckId, lat: Number(finalLat), lng: Number(finalLng) },
     });
 
     // Broadcast to anyone watching this booking on the tracking page
     getIO()?.to(`tracking_${id}`).emit("location_updated", {
-      lat: Number(lat),
-      lng: Number(lng),
+      lat: Number(finalLat),
+      lng: Number(finalLng),
       speed: 0,
       timestamp: new Date().toISOString(),
     });
