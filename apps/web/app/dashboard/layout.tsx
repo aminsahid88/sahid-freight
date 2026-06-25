@@ -18,6 +18,7 @@ const IconTruck    = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill
 const IconUsers    = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>);
 const IconLogout   = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>);
 const IconShield   = () => (<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>);
+const IconMoney    = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>);
 
 function timeAgo(date: string) {
   const s = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
@@ -59,10 +60,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     if (!user) { router.push("/auth/login"); return; }
     if (user.role === "DRIVER") { router.push("/driver"); return; }
+    // BROKER: confine to /dashboard/broker/* plus a few shared account pages.
+    // The sender/owner nav items (My Loads, Trucks, Drivers, Bookings) hit
+    // role-gated endpoints that 403 for brokers, so we bounce them home.
+    if (user.role === "BROKER") {
+      const brokerAllowed =
+        pathname.startsWith("/dashboard/broker") ||
+        pathname === "/dashboard/profile" ||
+        pathname === "/dashboard/notifications" ||
+        pathname === "/dashboard/verify";
+      if (!brokerAllowed) { router.push("/dashboard/broker"); return; }
+    }
     fetchUnread();
     const id = setInterval(fetchUnread, 15000);
     return () => clearInterval(id);
-  }, [user]);
+  }, [user, pathname]);
 
   // Close bell dropdown when clicking outside
   useEffect(() => {
@@ -89,16 +101,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   // Sidebar nav — role-specific items
-  const navItems = mounted ? [
-    { key: "/dashboard",           label: tr("overview", language),   icon: <IconGrid /> },
-    { key: "/dashboard/loads",     label: user?.role === "CARGO_SENDER" ? tr("my_loads", language) : tr("loads", language), icon: <IconPackage /> },
-    ...(user?.role === "TRUCK_OWNER" ? [
-      { key: "/dashboard/trucks",  label: "My Trucks",  icon: <IconTruck /> },
-      { key: "/dashboard/drivers", label: "Drivers",    icon: <IconUsers /> },
-    ] : []),
-    { key: "/dashboard/bookings",  label: tr("bookings", language),   icon: <IconBookmark /> },
-    { key: "/dashboard/profile",   label: tr("profile", language),    icon: <IconUser /> },
-  ] : [];
+  const navItems = mounted
+    ? user?.role === "BROKER"
+      ? [
+          { key: "/dashboard/broker",            label: tr("dashboard", language), icon: <IconGrid /> },
+          { key: "/dashboard/broker/loads/new",  label: tr("new_load", language),  icon: <IconPackage /> },
+          { key: "/dashboard/broker/earnings",   label: tr("earnings", language),  icon: <IconMoney /> },
+          { key: "/dashboard/profile",           label: tr("profile", language),   icon: <IconUser /> },
+        ]
+      : [
+          { key: "/dashboard",           label: tr("overview", language),   icon: <IconGrid /> },
+          { key: "/dashboard/loads",     label: user?.role === "CARGO_SENDER" ? tr("my_loads", language) : tr("loads", language), icon: <IconPackage /> },
+          ...(user?.role === "TRUCK_OWNER" ? [
+            { key: "/dashboard/trucks",  label: "My Trucks",  icon: <IconTruck /> },
+            { key: "/dashboard/drivers", label: "Drivers",    icon: <IconUsers /> },
+          ] : []),
+          { key: "/dashboard/bookings",  label: tr("bookings", language),   icon: <IconBookmark /> },
+          { key: "/dashboard/profile",   label: tr("profile", language),    icon: <IconUser /> },
+        ]
+    : [];
 
   const active   = (key: string) => key === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(key);
   const navigate = (key: string) => router.push(key);

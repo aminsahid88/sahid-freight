@@ -1,6 +1,9 @@
 export const t: Record<string, Record<string, string>> = {
   // Navigation
   overview:        { en: "Overview",     am: "አጠቃላይ",      so: "Guud ahaan" },
+  dashboard:       { en: "Dashboard",    am: "ዳሽቦርድ",       so: "Dashboard" },
+  new_load:        { en: "New Load",     am: "አዲስ ጭነት",     so: "Xamuul cusub" },
+  earnings:        { en: "Earnings",     am: "ገቢ",          so: "Faa'iidooyinka" },
   loads:           { en: "Loads",        am: "ጭነቶች",        so: "Xamuulada" },
   my_loads:        { en: "My Loads",     am: "ጭነቶቼ",        so: "Xamuuladayda" },
   fleet:           { en: "Fleet",        am: "መርሃ ግብር",     so: "Gawaari" },

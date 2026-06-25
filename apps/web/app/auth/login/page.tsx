@@ -20,7 +20,10 @@ export default function LoginPage() {
     if (stored && token) {
       try {
         const parsed = JSON.parse(stored);
-        router.push(parsed.role === "DRIVER" ? "/driver" : "/dashboard");
+        const dest = parsed.role === "DRIVER" ? "/driver"
+                   : parsed.role === "BROKER" ? "/dashboard/broker"
+                   : "/dashboard";
+        router.push(dest);
       } catch { router.push("/dashboard"); }
     }
   }, []);
@@ -58,6 +61,8 @@ export default function LoginPage() {
         router.push("/auth/verify");
       } else if (res.data.user.role === "DRIVER") {
         router.push("/driver");
+      } else if (res.data.user.role === "BROKER") {
+        router.push("/dashboard/broker");
       } else {
         router.push("/dashboard");
       }
