@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
 import api from "@/lib/api";
+import { formatApiError } from "@/lib/errors";
 
 export default function VerifyPage() {
   const router = useRouter();
@@ -50,8 +51,8 @@ export default function VerifyPage() {
       startCountdown();
       setOtp(["", "", "", "", "", ""]);
       inputs.current[0]?.focus();
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to resend OTP");
+    } catch (err) {
+      setError(formatApiError(err, "We couldn't resend your code. Please try again.", "auth"));
     } finally {
       setResending(false);
     }
@@ -90,8 +91,8 @@ export default function VerifyPage() {
       const res = await api.post("/auth/verify-otp", { phone: user?.phone, otp: finalOtp });
       setAuth(res.data.user, res.data.accessToken, res.data.refreshToken);
       router.push("/dashboard");
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Invalid OTP");
+    } catch (err) {
+      setError(formatApiError(err, "That code doesn't look right. Check your email and try again.", "auth"));
       setOtp(["", "", "", "", "", ""]);
       inputs.current[0]?.focus();
     } finally {
@@ -142,7 +143,7 @@ export default function VerifyPage() {
             <span style={{ color: "#3D7BFF" }}>away.</span>
           </h1>
           <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "15px", lineHeight: "1.8", maxWidth: "300px" }}>
-            We sent a 6-digit code to your email. Enter it to verify your account and start using Sahid Freight.
+            Enter the 6-digit code we sent to your email to finish setting up your account.
           </p>
 
           <div style={{ marginTop: "48px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "12px", padding: "20px" }}>
@@ -152,7 +153,7 @@ export default function VerifyPage() {
         </div>
 
         <div style={{ position: "relative", zIndex: 1, borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "24px" }}>
-          <p style={{ color: "rgba(255,255,255,0.2)", fontSize: "12px", margin: 0 }}>© 2025 Sahid Freight.et</p>
+          <p style={{ color: "rgba(255,255,255,0.2)", fontSize: "12px", margin: 0 }}>© {new Date().getFullYear()} Sahid Freight</p>
         </div>
       </div>
 
@@ -165,10 +166,10 @@ export default function VerifyPage() {
             <div style={{ width: "56px", height: "56px", background: "var(--bg)", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "24px", color: P }}><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div>
 
             <h2 style={{ fontSize: "24px", fontWeight: "800", color: P, margin: "0 0 8px", letterSpacing: "-0.5px" }}>
-              Verify your number
+              Enter your code
             </h2>
             <p style={{ color: "var(--text-secondary)", fontSize: "14px", margin: "0 0 36px", lineHeight: "1.6" }}>
-              Enter the 6-digit code sent to <strong style={{ color: P }}>{user?.email}</strong>
+              Check <strong style={{ color: P }}>{user?.email}</strong> for a 6-digit code, then type it below.
             </p>
 
             {/* OTP inputs */}
@@ -212,17 +213,17 @@ export default function VerifyPage() {
               disabled={loading || otp.some((d) => d === "")}
               style={{ width: "100%", background: loading || otp.some((d) => d === "") ? "var(--border)" : A, border: "none", borderRadius: "10px", padding: "15px", color: loading || otp.some((d) => d === "") ? "#aaa" : "#FFFFFF", fontSize: "15px", fontWeight: "700", cursor: loading || otp.some((d) => d === "") ? "not-allowed" : "pointer", transition: "all 0.2s", marginBottom: "20px" }}
             >
-              {loading ? "Verifying..." : "Verify"}
+              {loading ? "Checking code…" : "Verify code"}
             </button>
 
             <div style={{ textAlign: "center" as const }}>
               {canResend ? (
                 <button onClick={handleResend} disabled={resending} style={{ background: "none", border: "none", color: A, fontSize: "14px", fontWeight: "700", cursor: "pointer" }}>
-                  {resending ? "Sending..." : "Resend code"}
+                  {resending ? "Sending a new code…" : "Send a new code"}
                 </button>
               ) : (
                 <p style={{ color: "var(--text-secondary)", fontSize: "14px", margin: 0 }}>
-                  Resend code in <span style={{ fontWeight: "700", color: P }}>{countdown}s</span>
+                  Didn't get it? Try again in <span style={{ fontWeight: "700", color: P }}>{countdown}s</span>
                 </p>
               )}
             </div>

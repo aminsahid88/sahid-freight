@@ -4,6 +4,7 @@ import { Truck, Package } from "lucide-react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
+import { formatApiError } from "@/lib/errors";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -56,8 +57,8 @@ export default function RegisterPage() {
       setStep(2);
       startCountdown();
       setTimeout(() => otpInputs.current[0]?.focus(), 50);
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Couldn't send the code, please try again.");
+    } catch (err) {
+      setError(formatApiError(err, "We couldn't send your code. Please try again.", "auth"));
     } finally {
       setLoading(false);
     }
@@ -72,8 +73,8 @@ export default function RegisterPage() {
       setOtp(["", "", "", "", "", ""]);
       startCountdown();
       otpInputs.current[0]?.focus();
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to resend code");
+    } catch (err) {
+      setError(formatApiError(err, "We couldn't resend your code. Please try again.", "auth"));
     } finally {
       setResending(false);
     }
@@ -92,8 +93,8 @@ export default function RegisterPage() {
       });
       setVerificationToken(res.data.verificationToken);
       setStep(3);
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Incorrect code");
+    } catch (err) {
+      setError(formatApiError(err, "That code doesn't look right. Check your email and try again.", "auth"));
       setOtp(["", "", "", "", "", ""]);
       otpInputs.current[0]?.focus();
     } finally {
@@ -145,8 +146,8 @@ export default function RegisterPage() {
       } else {
         router.push("/dashboard");
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Something went wrong");
+    } catch (err) {
+      setError(formatApiError(err, "We couldn't create your account. Please try again.", "auth"));
     } finally {
       setLoading(false);
     }
@@ -155,7 +156,7 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (step === 1) {
-      if (form.password !== form.confirmPassword) { setError("Passwords do not match"); return; }
+      if (form.password !== form.confirmPassword) { setError("The two passwords don't match."); return; }
       return requestOtp();
     }
     if (step === 2) return verifyOtp();
@@ -188,21 +189,21 @@ export default function RegisterPage() {
     letterSpacing: "0.2px",
   };
 
-  const stepLabels: Record<number, string> = { 1: "Your Info", 2: "Verify Email", 3: "Account Details" };
-  const headerTitle = step === 1 ? "Create your account" : step === 2 ? "Verify your email" : "Almost done";
+  const stepLabels: Record<number, string> = { 1: "Your info", 2: "Verify email", 3: "Account details" };
+  const headerTitle = step === 1 ? "Create your account" : step === 2 ? "Verify your email" : "Almost there";
   const headerSub =
-    step === 1 ? "Step 1 of 3 — Basic information" :
-    step === 2 ? "Step 2 of 3 — Enter the 6-digit code" :
-    "Step 3 of 3 — Choose your role";
+    step === 1 ? "A few basics to get you started." :
+    step === 2 ? "We just sent a 6-digit code to your inbox." :
+    "Pick your role and where you're based.";
   const submitDisabled =
     loading ||
     (step === 2 && otp.some((d) => !d)) ||
     (step === 3 && !form.role);
   const submitLabel =
-    loading ? (step === 3 ? "Creating account..." : step === 2 ? "Verifying..." : "Sending code...") :
+    loading ? (step === 3 ? "Creating your account…" : step === 2 ? "Checking code…" : "Sending code…") :
     step === 1 ? "Continue" :
-    step === 2 ? "Verify" :
-    "Create Account";
+    step === 2 ? "Verify code" :
+    "Create account";
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", fontFamily: "'Inter, system-ui, sans-serif", background: "var(--bg)" }}>
@@ -228,14 +229,14 @@ export default function RegisterPage() {
             <span style={{ color: "#3D7BFF" }}>network.</span>
           </h1>
           <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "15px", lineHeight: "1.8", maxWidth: "300px", margin: "0 0 48px" }}>
-            Whether you own trucks or need to move cargo — Sahid Freight connects you with the right partner instantly.
+            Whether you move cargo, drive a truck, or dispatch loads for others — you belong on Sahid.
           </p>
 
           {/* Role cards */}
           <div style={{ display: "flex", flexDirection: "column" as const, gap: "12px" }}>
             {[
-              { icon: "truck", title: "Truck Owner", desc: "List your trucks, accept load requests" },
-              { icon: "package", title: "Cargo Sender", desc: "Post loads, find trucks, track delivery" },
+              { icon: "truck", title: "Truck owner", desc: "List your trucks and accept dispatched loads." },
+              { icon: "package", title: "Cargo owner", desc: "Post loads and track them from pickup to delivery." },
             ].map((r) => (
               <div key={r.title} style={{ display: "flex", alignItems: "center", gap: "14px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "10px", padding: "14px 16px" }}>
                 {r.icon === "truck" ? <Truck size={22} color="#3D7BFF" />  : <Package size={22} color="#3D7BFF" />}
@@ -249,7 +250,7 @@ export default function RegisterPage() {
         </div>
 
         <div style={{ position: "relative", zIndex: 1, borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "24px" }}>
-          <p style={{ color: "rgba(255,255,255,0.2)", fontSize: "12px", margin: 0 }}>© 2025 Sahid Freight.et</p>
+          <p style={{ color: "rgba(255,255,255,0.2)", fontSize: "12px", margin: 0 }}>© {new Date().getFullYear()} Sahid Freight</p>
         </div>
       </div>
 
@@ -294,31 +295,33 @@ export default function RegisterPage() {
               {step === 1 && (
                 <div style={{ display: "flex", flexDirection: "column" as const, gap: "18px" }}>
                   <div>
-                    <label style={labelStyle}>Full Name</label>
-                    <input type="text" value={form.fullName} onChange={(e) => update("fullName", e.target.value)} placeholder="Your full name" required onFocus={() => setFocused("fullName")} onBlur={() => setFocused(null)} style={inputStyle("fullName")} />
+                    <label style={labelStyle}>Full name</label>
+                    <input type="text" value={form.fullName} onChange={(e) => update("fullName", e.target.value)} placeholder="Ahmed Hassan" required onFocus={() => setFocused("fullName")} onBlur={() => setFocused(null)} style={inputStyle("fullName")} />
                   </div>
                   <div>
-                    <label style={labelStyle}>Phone Number</label>
+                    <label style={labelStyle}>Phone number</label>
                     <div style={{ display: "flex", gap: "8px" }}>
                       <select value={form.countryCode} onChange={(e) => { update("countryCode", e.target.value); update("phone", e.target.value + form.phoneNumber.replace(/^0/, "")); }} style={{ ...inputStyle("countryCode"), width: "140px", flexShrink: 0, appearance: "none" as const, fontFamily: "monospace" }}>
                         <option value="+251">🇪🇹 +251</option>
                         <option value="+252">🇸🇴 +252</option>
                         <option value="+253">🇩🇯 +253</option>
                       </select>
-                      <input type="tel" value={form.phoneNumber} onChange={(e) => { const clean = e.target.value.replace(/[^0-9]/g, ""); update("phoneNumber", clean); update("phone", form.countryCode + clean.replace(/^0+/, "")); }} placeholder="900 000 000" required onFocus={() => setFocused("phone")} onBlur={() => setFocused(null)} style={{ ...inputStyle("phone"), fontFamily: "monospace", flex: 1 }} />
+                      <input type="tel" value={form.phoneNumber} onChange={(e) => { const clean = e.target.value.replace(/[^0-9]/g, ""); update("phoneNumber", clean); update("phone", form.countryCode + clean.replace(/^0+/, "")); }} placeholder="911 234 567" required onFocus={() => setFocused("phone")} onBlur={() => setFocused(null)} style={{ ...inputStyle("phone"), fontFamily: "monospace", flex: 1 }} />
                     </div>
+                    <p style={{ fontSize: "12px", color: "var(--text-secondary)", margin: "6px 0 0 0" }}>Skip the country code — it's already selected.</p>
                   </div>
                   <div>
-                    <label style={labelStyle}>Email Address</label>
+                    <label style={labelStyle}>Email</label>
                     <input type="email" value={form.email} onChange={(e) => update("email", e.target.value)} placeholder="you@example.com" required onFocus={() => setFocused("email")} onBlur={() => setFocused(null)} style={inputStyle("email")} />
+                    <p style={{ fontSize: "12px", color: "var(--text-secondary)", margin: "6px 0 0 0" }}>We'll send a 6-digit code here to confirm it's you.</p>
                   </div>
                   <div>
                     <label style={labelStyle}>Password</label>
-                    <input type="password" value={form.password} onChange={(e) => update("password", e.target.value)} placeholder="Min. 8 characters" required onFocus={() => setFocused("password")} onBlur={() => setFocused(null)} style={inputStyle("password")} />
+                    <input type="password" value={form.password} onChange={(e) => update("password", e.target.value)} placeholder="At least 8 characters" required onFocus={() => setFocused("password")} onBlur={() => setFocused(null)} style={inputStyle("password")} />
                   </div>
                   <div>
-                    <label style={labelStyle}>Confirm Password</label>
-                    <input type="password" value={form.confirmPassword} onChange={(e) => update("confirmPassword", e.target.value)} placeholder="Repeat your password" required onFocus={() => setFocused("confirm")} onBlur={() => setFocused(null)} style={inputStyle("confirm")} />
+                    <label style={labelStyle}>Confirm password</label>
+                    <input type="password" value={form.confirmPassword} onChange={(e) => update("confirmPassword", e.target.value)} placeholder="Type it again" required onFocus={() => setFocused("confirm")} onBlur={() => setFocused(null)} style={inputStyle("confirm")} />
                   </div>
                 </div>
               )}
@@ -326,7 +329,7 @@ export default function RegisterPage() {
               {step === 2 && (
                 <div style={{ display: "flex", flexDirection: "column" as const, gap: "20px" }}>
                   <p style={{ color: "var(--text-secondary)", fontSize: "14px", margin: 0, lineHeight: 1.6 }}>
-                    We sent a 6-digit code to <strong style={{ color: P }}>{form.email}</strong>. Enter it below to continue.
+                    Check <strong style={{ color: P }}>{form.email}</strong> for a 6-digit code. Enter it below to continue.
                   </p>
 
                   <div style={{ display: "flex", gap: "10px" }} onPaste={handleOtpPaste}>
@@ -361,11 +364,11 @@ export default function RegisterPage() {
                   <div style={{ textAlign: "center" as const }}>
                     {canResend ? (
                       <button type="button" onClick={handleResend} disabled={resending} style={{ background: "none", border: "none", color: A, fontSize: "14px", fontWeight: "700", cursor: resending ? "not-allowed" : "pointer" }}>
-                        {resending ? "Sending..." : "Resend code"}
+                        {resending ? "Sending a new code…" : "Send a new code"}
                       </button>
                     ) : (
                       <p style={{ color: "var(--text-secondary)", fontSize: "14px", margin: 0 }}>
-                        Resend code in <span style={{ fontWeight: "700", color: P }}>{countdown}s</span>
+                        Didn't get it? Try again in <span style={{ fontWeight: "700", color: P }}>{countdown}s</span>
                       </p>
                     )}
                   </div>
@@ -376,21 +379,22 @@ export default function RegisterPage() {
                 <div style={{ display: "flex", flexDirection: "column" as const, gap: "18px" }}>
                   {/* Role selection */}
                   <div>
-                    <label style={labelStyle}>I am a...</label>
+                    <label style={labelStyle}>I am a…</label>
                     <div style={{ display: "flex", gap: "12px" }}>
-                      {[{ value: "CARGO_SENDER", label: "Cargo Sender" }, { value: "TRUCK_OWNER", label: "Truck Owner" }].map((r) => (
+                      {[{ value: "CARGO_SENDER", label: "Cargo owner" }, { value: "TRUCK_OWNER", label: "Truck owner" }].map((r) => (
                         <div key={r.value} onClick={() => update("role", r.value)} style={{ flex: 1, padding: "14px", borderRadius: "10px", border: `2px solid ${form.role === r.value ? P : "var(--border)"}`, background: form.role === r.value ? "var(--bg)" : "var(--surface)", cursor: "pointer", textAlign: "center" as const, fontSize: "14px", fontWeight: "600", color: form.role === r.value ? P : "var(--text-secondary)", transition: "all 0.15s" }}>
                           {r.label}
                         </div>
                       ))}
                     </div>
+                    <p style={{ fontSize: "12px", color: "var(--text-secondary)", margin: "8px 0 0 0" }}>Brokers are added by the Sahid team — reach out from your inbox to request a broker account.</p>
                   </div>
 
                   {/* Country */}
                   <div>
                     <label style={labelStyle}>Country</label>
                     <select value={form.country} onChange={(e) => update("country", e.target.value)} required onFocus={() => setFocused("country")} onBlur={() => setFocused(null)} style={{ ...inputStyle("country"), appearance: "none" as const }}>
-                      <option value="">Select country</option>
+                      <option value="">Select a country</option>
                       <option value="ETHIOPIA">Ethiopia</option>
                       <option value="SOMALIA">Somalia</option>
                       <option value="DJIBOUTI">Djibouti</option>
@@ -400,7 +404,7 @@ export default function RegisterPage() {
                   {/* City */}
                   <div>
                     <label style={labelStyle}>City</label>
-                    <input type="text" value={form.city} onChange={(e) => update("city", e.target.value)} placeholder="e.g. Addis Ababa" required onFocus={() => setFocused("city")} onBlur={() => setFocused(null)} style={inputStyle("city")} />
+                    <input type="text" value={form.city} onChange={(e) => update("city", e.target.value)} placeholder="Addis Ababa" required onFocus={() => setFocused("city")} onBlur={() => setFocused(null)} style={inputStyle("city")} />
                   </div>
                 </div>
               )}
@@ -418,7 +422,7 @@ export default function RegisterPage() {
             </form>
 
             <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid #E2E8F0", textAlign: "center" as const }}>
-              <span style={{ color: "var(--text-secondary)", fontSize: "14px" }}>Already have an account? </span>
+              <span style={{ color: "var(--text-secondary)", fontSize: "14px" }}>Already registered? </span>
               <a href="/auth/login" style={{ color: A, fontSize: "14px", fontWeight: "700", textDecoration: "none" }}>Sign in</a>
             </div>
           </div>

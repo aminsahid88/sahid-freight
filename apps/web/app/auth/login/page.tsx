@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
+import { formatApiError } from "@/lib/errors";
 
 const COUNTRIES = [
   { code: "ET", name: "Ethiopia",  dial: "+251", flag: "🇪🇹" },
@@ -26,7 +27,7 @@ export default function LoginPage() {
         router.push(dest);
       } catch { router.push("/dashboard"); }
     }
-  }, []);
+  }, [router]);
 
   const [country, setCountry] = useState(COUNTRIES[0]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -66,8 +67,8 @@ export default function LoginPage() {
       } else {
         router.push("/dashboard");
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Invalid credentials");
+    } catch (err) {
+      setError(formatApiError(err, "We couldn't sign you in. Please try again.", "auth"));
     } finally {
       setLoading(false);
     }
@@ -93,14 +94,14 @@ export default function LoginPage() {
         <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", position: "relative", zIndex: 1 }}>
           <div style={{ width: "48px", height: "3px", background: "#3D7BFF", borderRadius: "2px", marginBottom: "32px" }} />
           <h1 style={{ fontSize: "50px", fontWeight: "800", color: "#FFFFFF", lineHeight: "1.12", margin: "0 0 24px", letterSpacing: "-2px" }}>
-            Move freight.<br />
-            <span style={{ color: "#3D7BFF" }}>Move forward.</span>
+            Move a load.<br />
+            <span style={{ color: "#3D7BFF" }}>Watch it move.</span>
           </h1>
           <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "16px", lineHeight: "1.75", maxWidth: "360px", margin: "0 0 48px" }}>
-            Connect with verified truck owners. Post loads. Track shipments live across Ethiopia, Somalia, and Djibouti.
+            A broker dispatches a verified truck. You see live GPS from pickup to delivery across Ethiopia, Somalia, and Djibouti.
           </p>
           <div style={{ display: "flex", gap: "0" }}>
-            {[["3", "Countries"], ["Live", "GPS"], ["100%", "Verified"]].map(([val, label], i) => (
+            {[["3", "Countries"], ["Live", "GPS"], ["Verified", "Fleet"]].map(([val, label], i) => (
               <div key={label} style={{ paddingRight: "32px", marginRight: "32px", borderRight: i < 2 ? "1px solid rgba(255,255,255,0.08)" : "none" }}>
                 <div style={{ fontSize: "26px", fontWeight: "800", color: "#FFFFFF", letterSpacing: "-1px" }}>{val}</div>
                 <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)", letterSpacing: "2px", textTransform: "uppercase" as const, marginTop: "4px" }}>{label}</div>
@@ -109,7 +110,7 @@ export default function LoginPage() {
           </div>
         </div>
         <div style={{ position: "relative", zIndex: 1, borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "24px" }}>
-          <p style={{ color: "rgba(255,255,255,0.2)", fontSize: "12px", margin: 0 }}>© 2025 Sahid Freight.et · Ethiopia · Somalia · Djibouti</p>
+          <p style={{ color: "rgba(255,255,255,0.2)", fontSize: "12px", margin: 0 }}>© {new Date().getFullYear()} Sahid Freight · Ethiopia · Somalia · Djibouti</p>
         </div>
       </div>
 
@@ -120,7 +121,7 @@ export default function LoginPage() {
 
             <div style={{ marginBottom: "36px" }}>
               <h2 style={{ fontSize: "26px", fontWeight: "800", color: P, margin: "0 0 8px", letterSpacing: "-0.5px" }}>Welcome back</h2>
-              <p style={{ color: "var(--text-secondary)", fontSize: "14px", margin: 0 }}>Sign in to your account</p>
+              <p style={{ color: "var(--text-secondary)", fontSize: "14px", margin: 0 }}>Sign in to keep dispatching loads.</p>
             </div>
 
             {error && (
@@ -133,7 +134,7 @@ export default function LoginPage() {
 
               {/* Phone Number */}
               <div>
-                <label style={{ display: "block", fontSize: "13px", fontWeight: "700", color: P, marginBottom: "8px" }}>Phone Number</label>
+                <label style={{ display: "block", fontSize: "13px", fontWeight: "700", color: P, marginBottom: "8px" }}>Phone number</label>
                 <div style={{ display: "flex", gap: "8px" }}>
 
                   {/* Country dropdown */}
@@ -195,7 +196,7 @@ export default function LoginPage() {
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ""))}
-                    placeholder="900 000 000"
+                    placeholder="911 234 567"
                     required
                     onFocus={() => setFocused("phone")}
                     onBlur={() => setFocused(null)}
@@ -211,7 +212,7 @@ export default function LoginPage() {
                   />
                 </div>
               </div>
-              <p style={{ fontSize: "12px", color: "var(--text-secondary)", margin: "6px 0 0 0" }}>Do not include the country code — it is already selected above.</p>
+              <p style={{ fontSize: "12px", color: "var(--text-secondary)", margin: "6px 0 0 0" }}>Skip the country code — it's already selected on the left.</p>
 
               {/* Password */}
               <div>
@@ -224,7 +225,7 @@ export default function LoginPage() {
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
+                    placeholder="Your password"
                     required
                     onFocus={() => setFocused("password")}
                     onBlur={() => setFocused(null)}
@@ -297,14 +298,14 @@ export default function LoginPage() {
                   display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
                 }}
               >
-                {loading ? "Signing in..." : "Sign In →"}
+                {loading ? "Signing in…" : "Sign in →"}
               </button>
 
             </form>
 
             <div style={{ marginTop: "28px", paddingTop: "24px", borderTop: "1px solid #E2E8F0", textAlign: "center" as const }}>
-              <span style={{ color: "var(--text-secondary)", fontSize: "14px" }}>No account? </span>
-              <a href="/auth/register" style={{ color: A, fontSize: "14px", fontWeight: "700", textDecoration: "none" }}>Register here</a>
+              <span style={{ color: "var(--text-secondary)", fontSize: "14px" }}>New here? </span>
+              <a href="/auth/register" style={{ color: A, fontSize: "14px", fontWeight: "700", textDecoration: "none" }}>Create an account</a>
             </div>
 
           </div>
