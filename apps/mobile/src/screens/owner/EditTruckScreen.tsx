@@ -7,6 +7,7 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import api from '../../lib/api';
 import { theme } from '../../theme';
 import { TRUCK_TYPES, COUNTRIES } from '../../lib/constants';
+import { formatApiError } from '../../lib/errors';
 
 function Field({ label, value, onChangeText, placeholder, keyboardType = 'default' }: any) {
   return (
@@ -84,8 +85,8 @@ export default function EditTruckScreen({ route, navigation }: any) {
   const set = (key: string) => (val: string) => setForm(f => ({ ...f, [key]: val }));
 
   const handleSubmit = async () => {
-    if (!form.plateNumber.trim()) { Alert.alert('Missing Info', 'Please enter plate number.'); return; }
-    if (!form.capacityTons || isNaN(parseFloat(form.capacityTons))) { Alert.alert('Missing Info', 'Please enter valid capacity.'); return; }
+    if (!form.plateNumber.trim()) { Alert.alert('Missing info', 'Please enter a plate number.'); return; }
+    if (!form.capacityTons || isNaN(parseFloat(form.capacityTons))) { Alert.alert('Missing info', 'Please enter a valid capacity in tons.'); return; }
     setSubmitting(true);
     try {
       await api.patch(`/trucks/${truckId}`, {
@@ -95,11 +96,11 @@ export default function EditTruckScreen({ route, navigation }: any) {
         currentCity: form.currentCity,
         currentCountry: form.currentCountry,
       });
-      Alert.alert('Truck Updated!', 'Your truck details have been saved.', [
-        { text: 'OK', onPress: () => navigation.goBack() },
+      Alert.alert('Changes saved', 'Your truck details are up to date.', [
+        { text: 'Done', onPress: () => navigation.goBack() },
       ]);
-    } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message || 'Failed to update truck. Try again.');
+    } catch (err: any) {
+      Alert.alert("Couldn't save changes", formatApiError(err, "We couldn't update this truck. Please try again.", 'truck'));
     } finally {
       setSubmitting(false);
     }
@@ -123,17 +124,25 @@ export default function EditTruckScreen({ route, navigation }: any) {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Text style={styles.cancel}>Cancel</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Edit Truck</Text>
+          <Text style={styles.headerTitle}>Edit truck</Text>
           <View style={{ width: 56 }} />
         </View>
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          <Field label="Plate Number *" value={form.plateNumber} onChangeText={set('plateNumber')} placeholder="e.g. AA-12345" />
-          <PickerRow label="Truck Type" value={form.truckType} options={TRUCK_TYPES} onChange={set('truckType')} />
+          <Text style={styles.subtitle}>Update your truck's details.</Text>
+          <Field label="Plate number *" value={form.plateNumber} onChangeText={set('plateNumber')} placeholder="e.g. AA-12345" />
+          <PickerRow label="Truck type" value={form.truckType} options={TRUCK_TYPES} onChange={set('truckType')} />
           <Field label="Capacity (tons) *" value={form.capacityTons} onChangeText={set('capacityTons')} placeholder="e.g. 30" keyboardType="decimal-pad" />
-          <Field label="Current City" value={form.currentCity} onChangeText={set('currentCity')} placeholder="e.g. Addis Ababa" />
-          <PickerRow label="Current Country" value={form.currentCountry} options={COUNTRIES} onChange={set('currentCountry')} />
+          <Field label="Current city" value={form.currentCity} onChangeText={set('currentCity')} placeholder="e.g. Addis Ababa" />
+          <PickerRow label="Current country" value={form.currentCountry} options={COUNTRIES} onChange={set('currentCountry')} />
           <TouchableOpacity style={[styles.submitBtn, submitting && { opacity: 0.6 }]} onPress={handleSubmit} disabled={submitting}>
-            {submitting ? <ActivityIndicator color={theme.darkGreen} /> : <Text style={styles.submitText}>Save Changes</Text>}
+            {submitting ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <ActivityIndicator color={theme.darkGreen} />
+                <Text style={styles.submitText}>Saving changes...</Text>
+              </View>
+            ) : (
+              <Text style={styles.submitText}>Save changes</Text>
+            )}
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -147,12 +156,13 @@ const styles = StyleSheet.create({
   cancel:         { fontSize: 15, color: theme.accent, fontWeight: '500' },
   content:        { padding: 16, paddingBottom: 40 },
   field:          { marginBottom: 16 },
-  fieldLabel:     { fontSize: 11, fontWeight: '500', color: theme.textMuted, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.9 },
+  fieldLabel:     { fontSize: 12, fontWeight: '600', color: theme.textMuted, marginBottom: 8 },
+  subtitle:       { fontSize: 13, color: theme.textMuted, marginBottom: 20 },
   input:          { backgroundColor: theme.surface, color: theme.text, borderRadius: 12, paddingHorizontal: 14, height: 52, fontSize: 15 },
   chip:           { borderRadius: 999, paddingHorizontal: 16, height: 36, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.surface2 },
   chipActive:     { backgroundColor: theme.accent },
   chipText:       { fontSize: 13, fontWeight: '500', color: theme.textMuted },
   chipTextActive: { color: theme.darkGreen },
   submitBtn:      { backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 13, alignItems: 'center', marginTop: 10 },
-  submitText:     { color: theme.darkGreen, fontSize: 13, fontWeight: '500' },
+  submitText:     { color: theme.darkGreen, fontSize: 14, fontWeight: '600' },
 });

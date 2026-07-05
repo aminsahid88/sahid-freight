@@ -4,6 +4,7 @@ import {
   StatusBar, Alert, ActivityIndicator, TextInput,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { Feather } from '@expo/vector-icons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import api from '../../lib/api';
 import { theme } from '../../theme';
@@ -19,13 +20,13 @@ export default function ProofOfDeliveryScreen({ route, navigation }: any) {
 
   const pickPhoto = async () => {
     if (photos.length >= MAX_PHOTOS) {
-      Alert.alert('Limit reached', `You can upload up to ${MAX_PHOTOS} photos.`);
+      Alert.alert('Photo limit reached', `You can attach up to ${MAX_PHOTOS} photos.`);
       return;
     }
 
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Please allow access to your photo library.');
+      Alert.alert('Photo access needed', 'Allow photo library access in your phone settings so you can pick delivery photos.');
       return;
     }
 
@@ -43,13 +44,13 @@ export default function ProofOfDeliveryScreen({ route, navigation }: any) {
 
   const takePhoto = async () => {
     if (photos.length >= MAX_PHOTOS) {
-      Alert.alert('Limit reached', `You can upload up to ${MAX_PHOTOS} photos.`);
+      Alert.alert('Photo limit reached', `You can attach up to ${MAX_PHOTOS} photos.`);
       return;
     }
 
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Please allow access to your camera.');
+      Alert.alert('Camera access needed', 'Allow camera access in your phone settings so you can take delivery photos.');
       return;
     }
 
@@ -68,7 +69,7 @@ export default function ProofOfDeliveryScreen({ route, navigation }: any) {
 
   const handleSubmit = async () => {
     if (photos.length === 0) {
-      Alert.alert('Add photos', 'Please add at least one proof-of-delivery photo.');
+      Alert.alert('Add a photo', 'Add at least one delivery photo before confirming.');
       return;
     }
 
@@ -89,12 +90,11 @@ export default function ProofOfDeliveryScreen({ route, navigation }: any) {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      Alert.alert('Submitted', 'Proof of delivery uploaded successfully.', [
-        { text: 'OK', onPress: () => navigation.goBack() },
+      Alert.alert('Delivered — great work.', 'Proof of delivery uploaded.', [
+        { text: 'Done', onPress: () => navigation.goBack() },
       ]);
     } catch (e: any) {
-      // Endpoint may not exist yet — show the real error
-      Alert.alert('Upload failed', formatApiError(e, 'Could not upload proof of delivery. The server may not support this yet.'));
+      Alert.alert('Upload failed', formatApiError(e, "We couldn't upload the delivery photos.", 'booking'));
     } finally {
       setSubmitting(false);
     }
@@ -106,15 +106,18 @@ export default function ProofOfDeliveryScreen({ route, navigation }: any) {
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>‹ Back</Text>
+          <Text style={styles.backText}>{'‹'} Back</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Proof of delivery</Text>
+        <View style={styles.headerCenter}>
+          <Text style={styles.headerTitle}>Confirm delivery</Text>
+          <Text style={styles.headerSub}>Take photos as proof for the cargo owner.</Text>
+        </View>
         <View style={{ width: 56 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.subtitle}>
-          Take photos of the delivered cargo as proof. You can add up to {MAX_PHOTOS} photos.
+          Snap the cargo where it was dropped off. You can add up to {MAX_PHOTOS} photos.
         </Text>
 
         {/* Photo grid */}
@@ -123,19 +126,19 @@ export default function ProofOfDeliveryScreen({ route, navigation }: any) {
             <View key={i} style={styles.photoWrap}>
               <Image source={{ uri }} style={styles.photo} />
               <TouchableOpacity style={styles.removeBtn} onPress={() => removePhoto(i)}>
-                <Text style={styles.removeBtnText}>✕</Text>
+                <Feather name="x" size={14} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
           ))}
           {photos.length < MAX_PHOTOS && (
             <View style={styles.addPhotoWrap}>
               <TouchableOpacity style={styles.addPhoto} onPress={takePhoto}>
-                <Text style={styles.addPhotoIcon}>📷</Text>
-                <Text style={styles.addPhotoText}>Camera</Text>
+                <Feather name="camera" size={26} color={theme.textMuted} />
+                <Text style={styles.addPhotoText}>Take photo</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.addPhoto} onPress={pickPhoto}>
-                <Text style={styles.addPhotoIcon}>🖼</Text>
-                <Text style={styles.addPhotoText}>Gallery</Text>
+                <Feather name="image" size={26} color={theme.textMuted} />
+                <Text style={styles.addPhotoText}>From gallery</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -147,7 +150,7 @@ export default function ProofOfDeliveryScreen({ route, navigation }: any) {
           style={styles.notesInput}
           value={notes}
           onChangeText={setNotes}
-          placeholder="Any notes about the delivery..."
+          placeholder="Anything the cargo owner should know…"
           placeholderTextColor={theme.textMuted}
           multiline
           maxLength={500}
@@ -165,7 +168,7 @@ export default function ProofOfDeliveryScreen({ route, navigation }: any) {
         >
           {submitting
             ? <ActivityIndicator color={theme.darkGreen} />
-            : <Text style={styles.submitText}>Submit proof ({photos.length} photo{photos.length !== 1 ? 's' : ''})</Text>
+            : <Text style={styles.submitText}>Confirm delivery ({photos.length} photo{photos.length !== 1 ? 's' : ''})</Text>
           }
         </TouchableOpacity>
       </View>
@@ -176,17 +179,17 @@ export default function ProofOfDeliveryScreen({ route, navigation }: any) {
 const styles = StyleSheet.create({
   header:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 },
   backText:      { fontSize: 15, color: theme.accent, fontWeight: '500' },
-  headerTitle:   { fontSize: 15, fontWeight: '500', color: theme.text },
+  headerCenter:  { flex: 1, alignItems: 'center' },
+  headerTitle:   { fontSize: 15, fontWeight: '600', color: theme.text },
+  headerSub:     { fontSize: 11, color: theme.textMuted, marginTop: 1 },
   content:       { padding: 16 },
   subtitle:      { fontSize: 13, color: theme.textMuted, lineHeight: 20, marginBottom: 20, fontWeight: '400' },
   grid:          { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 24 },
   photoWrap:     { width: '47%' as any, aspectRatio: 1, borderRadius: 12, overflow: 'hidden', position: 'relative' },
   photo:         { width: '100%', height: '100%' },
   removeBtn:     { position: 'absolute', top: 6, right: 6, width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center' },
-  removeBtnText: { color: '#fff', fontSize: 14, fontWeight: '500' },
   addPhotoWrap:  { flexDirection: 'row', gap: 10 },
-  addPhoto:      { flex: 1, aspectRatio: 1.2, backgroundColor: theme.surface, borderRadius: 12, borderWidth: 1, borderColor: theme.border, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', gap: 6 },
-  addPhotoIcon:  { fontSize: 28 },
+  addPhoto:      { flex: 1, aspectRatio: 1.2, backgroundColor: theme.surface, borderRadius: 12, borderWidth: 1, borderColor: theme.border, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center', gap: 8 },
   addPhotoText:  { fontSize: 13, color: theme.textMuted, fontWeight: '400' },
   fieldLabel:    { fontSize: 11, fontWeight: '500', color: theme.textMuted, textTransform: 'uppercase', letterSpacing: 0.9, marginBottom: 8 },
   notesInput:    { backgroundColor: theme.surface, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13, fontSize: 15, color: theme.text, height: 90, textAlignVertical: 'top', fontWeight: '400' },

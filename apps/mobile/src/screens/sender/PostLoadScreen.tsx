@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity,
-  StatusBar, Alert, ActivityIndicator, KeyboardAvoidingView, Platform,
+  StatusBar, Alert, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import api from '../../lib/api';
 import { theme } from '../../theme';
 import { TRUCK_TYPES, COUNTRIES, CURRENCIES } from '../../lib/constants';
+import { formatApiError } from '../../lib/errors';
 
 // Fallback formula constants for when no historical data exists
 const PRICE_CONFIG = {
@@ -133,11 +134,11 @@ export default function PostLoadScreen({ navigation, route }: any) {
   }, [fetchSuggestion]);
 
   const validate = () => {
-    if (!form.title.trim()) return 'Please enter a load title.';
-    if (!form.pickupCity.trim()) return 'Please enter a pickup city.';
-    if (!form.deliveryCity.trim()) return 'Please enter a delivery city.';
-    if (!form.weightTons || isNaN(parseFloat(form.weightTons))) return 'Please enter valid weight in tons.';
-    if (!form.offeredPrice || isNaN(parseFloat(form.offeredPrice))) return 'Please enter a valid offered price.';
+    if (!form.title.trim()) return 'Add a short title for this load.';
+    if (!form.pickupCity.trim()) return 'Enter the pickup city.';
+    if (!form.deliveryCity.trim()) return 'Enter the delivery city.';
+    if (!form.weightTons || isNaN(parseFloat(form.weightTons))) return 'Enter the cargo weight in tons.';
+    if (!form.offeredPrice || isNaN(parseFloat(form.offeredPrice))) return 'Enter your offered price.';
     return null;
   };
 
@@ -156,7 +157,7 @@ export default function PostLoadScreen({ navigation, route }: any) {
 
   const handleSubmit = async () => {
     const err = validate();
-    if (err) { Alert.alert('Missing Info', err); return; }
+    if (err) { Alert.alert('Missing details', err); return; }
     setLoading(true);
     try {
       await api.post('/loads', {
@@ -166,11 +167,11 @@ export default function PostLoadScreen({ navigation, route }: any) {
         scheduledDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       });
       resetForm();
-      Alert.alert('Success!', 'Your load has been posted. Truck owners will start bidding soon.', [
-        { text: 'OK', onPress: () => navigation.goBack() },
+      Alert.alert('Load posted', 'A broker will dispatch a verified truck shortly. We\'ll notify you when it happens.', [
+        { text: 'Done', onPress: () => navigation.goBack() },
       ]);
     } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message || 'Failed to post load. Try again.');
+      Alert.alert('Load not posted', formatApiError(e, "We couldn't post your load. Please try again.", 'load'));
     } finally {
       setLoading(false);
     }
@@ -191,7 +192,7 @@ export default function PostLoadScreen({ navigation, route }: any) {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Text style={styles.cancel}>Cancel</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>{isDuplicate ? `New load (from ${prefill.pickupCity || 'copy'})` : 'Post a load'}</Text>
+          <Text style={styles.headerTitle}>{isDuplicate ? 'Duplicate load' : 'Post a new load'}</Text>
           <View style={{ width: 56 }} />
         </View>
 
@@ -201,18 +202,25 @@ export default function PostLoadScreen({ navigation, route }: any) {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <Field label="Load Title *" value={form.title} onChangeText={set('title')} placeholder="e.g. Cement bags \u2013 Addis to Djibouti" />
-          <Field label="Description / Notes" value={form.description} onChangeText={set('description')} placeholder="Optional details about the cargo..." multiline />
+          <Text style={styles.introTitle}>{isDuplicate ? 'Review and post' : 'Tell us about your load'}</Text>
+          <Text style={styles.introSubtitle}>
+            {isDuplicate
+              ? `Prefilled from your ${prefill?.pickupCity || 'previous'} load. Adjust anything that changed.`
+              : 'Fill in the details — a broker will dispatch a verified truck.'}
+          </Text>
 
-          <Field label="Pickup City *" value={form.pickupCity} onChangeText={set('pickupCity')} placeholder="e.g. Addis Ababa" />
-          <PickerRow label="Pickup Country" value={form.pickupCountry} options={COUNTRIES} onChange={set('pickupCountry')} />
+          <Field label="Load title" value={form.title} onChangeText={set('title')} placeholder="e.g. Cement bags — Addis to Djibouti" />
+          <Field label="Description or notes" value={form.description} onChangeText={set('description')} placeholder="Optional details about the cargo" multiline />
 
-          <Field label="Delivery City *" value={form.deliveryCity} onChangeText={set('deliveryCity')} placeholder="e.g. Djibouti City" />
-          <PickerRow label="Delivery Country" value={form.deliveryCountry} options={COUNTRIES} onChange={set('deliveryCountry')} />
+          <Field label="Pickup city" value={form.pickupCity} onChangeText={set('pickupCity')} placeholder="e.g. Addis Ababa" />
+          <PickerRow label="Pickup country" value={form.pickupCountry} options={COUNTRIES} onChange={set('pickupCountry')} />
 
-          <PickerRow label="Truck Type Needed" value={form.truckTypeNeeded} options={TRUCK_TYPES} onChange={set('truckTypeNeeded')} />
+          <Field label="Delivery city" value={form.deliveryCity} onChangeText={set('deliveryCity')} placeholder="e.g. Djibouti City" />
+          <PickerRow label="Delivery country" value={form.deliveryCountry} options={COUNTRIES} onChange={set('deliveryCountry')} />
 
-          <Field label="Weight (tons) *" value={form.weightTons} onChangeText={set('weightTons')} placeholder="e.g. 20" keyboardType="decimal-pad" />
+          <PickerRow label="Truck type needed" value={form.truckTypeNeeded} options={TRUCK_TYPES} onChange={set('truckTypeNeeded')} />
+
+          <Field label="Weight (tons)" value={form.weightTons} onChangeText={set('weightTons')} placeholder="e.g. 20" keyboardType="decimal-pad" />
 
           {/* Suggested price indicator */}
           {suggestion && (
@@ -224,17 +232,17 @@ export default function PostLoadScreen({ navigation, route }: any) {
                 </TouchableOpacity>
               </View>
               <Text style={styles.suggestionRange}>
-                ${suggestion.min.toLocaleString()} \u2013 ${suggestion.max.toLocaleString()} USD
+                ${suggestion.min.toLocaleString()} – ${suggestion.max.toLocaleString()} USD
               </Text>
               <Text style={styles.suggestionHint}>
                 {suggestion.source === 'api'
-                  ? 'Based on similar loads on similar routes'
-                  : 'Estimated based on route distance and cargo weight'}
+                  ? 'Based on recent loads on similar routes.'
+                  : 'Estimated from route distance and cargo weight.'}
               </Text>
             </View>
           )}
 
-          <Field label="Offered Price *" value={form.offeredPrice} onChangeText={set('offeredPrice')} placeholder="e.g. 4500" keyboardType="decimal-pad" />
+          <Field label="Offered price" value={form.offeredPrice} onChangeText={set('offeredPrice')} placeholder="e.g. 4500" keyboardType="decimal-pad" />
           <PickerRow label="Currency" value={form.currency} options={CURRENCIES} onChange={set('currency')} />
 
           <View style={{ height: 20 }} />
@@ -248,8 +256,8 @@ export default function PostLoadScreen({ navigation, route }: any) {
             disabled={loading}
           >
             {loading
-              ? <ActivityIndicator color={theme.darkGreen} />
-              : <Text style={styles.submitText}>Post Load</Text>
+              ? <Text style={styles.submitText}>Posting your load…</Text>
+              : <Text style={styles.submitText}>Post load</Text>
             }
           </TouchableOpacity>
         </View>
@@ -263,6 +271,8 @@ const styles = StyleSheet.create({
   headerTitle:    { fontSize: 15, fontWeight: '500', color: theme.text },
   cancel:         { fontSize: 15, color: theme.accent, fontWeight: '500' },
   content:        { padding: 16 },
+  introTitle:     { fontSize: 20, fontWeight: '600', color: theme.text, marginBottom: 4 },
+  introSubtitle:  { fontSize: 13, color: theme.textMuted, lineHeight: 20, marginBottom: 20 },
   fieldWrap:      { marginBottom: 16 },
   fieldLabel:     { fontSize: 11, fontWeight: '500', color: theme.textMuted, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.9 },
   fieldInput:     { backgroundColor: theme.inputBg, borderWidth: 0.5, borderColor: theme.inputBorder, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, fontWeight: '400', color: theme.inputText },

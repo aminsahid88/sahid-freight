@@ -4,6 +4,7 @@ import {
   RefreshControl, StatusBar, Alert, TextInput, Modal,
   ActivityIndicator, KeyboardAvoidingView, Platform,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import api from '../../lib/api';
 import { SkeletonList } from '../../components/LoadingSkeleton';
@@ -39,40 +40,40 @@ export default function DriversScreen({ navigation, route }: any) {
   const onRefresh = () => { setRefreshing(true); fetch(); };
 
   const handleInvite = async () => {
-    if (!phone.trim()) { Alert.alert('Enter Phone', 'Please enter the driver\'s phone number.'); return; }
+    if (!phone.trim()) { Alert.alert('Enter phone number', "Please enter the driver's phone number."); return; }
     setInviting(true);
     try {
       await api.post('/drivers/invite', { phone: phone.trim() });
       setShowInvite(false);
       setPhone('');
       await fetch();
-      Alert.alert('Success', 'Driver added to your fleet!');
-    } catch (e: any) {
-      const data = e?.response?.data;
+      Alert.alert('Driver added', 'This driver is now part of your fleet.');
+    } catch (err: any) {
+      const data = err?.response?.data;
       if (data?.code === 'USER_NOT_FOUND' && data?.canInvite) {
         // User not registered — offer to send SMS invite
         Alert.alert(
           "This number isn't on Sahid Freight yet",
-          'Want to send them an SMS invite to join as your driver?',
+          "Send them an SMS invite to join as your driver — they'll be linked to your fleet when they register.",
           [
             { text: 'Cancel', style: 'cancel' },
             {
-              text: 'Send Invite',
+              text: 'Send invite',
               onPress: async () => {
                 try {
                   await api.post('/drivers/send-invite', { phone: phone.trim() });
                   setShowInvite(false);
                   setPhone('');
-                  Alert.alert('Invite Sent', 'The driver will be linked to your fleet when they register.');
-                } catch {
-                  Alert.alert('Error', 'Could not send invite. Try again later.');
+                  Alert.alert('Invite sent', "We'll link them to your fleet as soon as they register.");
+                } catch (inviteErr: any) {
+                  Alert.alert("Couldn't send invite", formatApiError(inviteErr, "We couldn't send the SMS invite. Please try again.", 'generic'));
                 }
               },
             },
           ]
         );
       } else {
-        Alert.alert('Error', data?.message || 'Could not invite driver. Check the phone number and try again.');
+        Alert.alert("Couldn't add driver", formatApiError(err, "We couldn't add this driver. Check the phone number and try again.", 'generic'));
       }
     } finally {
       setInviting(false);
@@ -80,20 +81,24 @@ export default function DriversScreen({ navigation, route }: any) {
   };
 
   const handleRemove = (driverId: string, driverName: string) => {
-    Alert.alert('Remove driver', `Remove ${driverName || 'this driver'} from your fleet?`, [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Remove', style: 'destructive',
-        onPress: async () => {
-          try {
-            await api.delete(`/drivers/${driverId}`);
-            setDrivers(prev => prev.filter(d => d.id !== driverId));
-          } catch (e: any) {
-            Alert.alert('Error', formatApiError(e, 'Could not remove driver.'));
-          }
+    Alert.alert(
+      `Remove ${driverName || 'this driver'}?`,
+      "They'll be unassigned from any trucks and lose access to your fleet.",
+      [
+        { text: 'Keep driver', style: 'cancel' },
+        {
+          text: 'Remove', style: 'destructive',
+          onPress: async () => {
+            try {
+              await api.delete(`/drivers/${driverId}`);
+              setDrivers(prev => prev.filter(d => d.id !== driverId));
+            } catch (err: any) {
+              Alert.alert("Couldn't remove driver", formatApiError(err, "We couldn't remove this driver. Please try again.", 'generic'));
+            }
+          },
         },
-      },
-    ]);
+      ]
+    );
   };
 
   const handleAssign = async (driverId: string, driverName: string) => {
@@ -101,10 +106,10 @@ export default function DriversScreen({ navigation, route }: any) {
     setAssigning(driverId);
     try {
       await api.patch(`/bookings/${bookingId}/assign-driver`, { driverId });
-      Alert.alert('Assigned', `${driverName || 'Driver'} has been assigned to this booking.`);
+      Alert.alert('Driver assigned', `${driverName || 'The driver'} is now driving this load.`);
       navigation.goBack();
-    } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message || 'Could not assign driver.');
+    } catch (err: any) {
+      Alert.alert("Couldn't assign driver", formatApiError(err, "We couldn't assign this driver. Please try again.", 'booking'));
     } finally {
       setAssigning(null);
     }
@@ -117,11 +122,16 @@ export default function DriversScreen({ navigation, route }: any) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
-          <Text style={styles.backText}>‹ Back</Text>
+          <Feather name="chevron-left" size={20} color={theme.accent} />
+          <Text style={styles.backText}>Back</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>{bookingId ? 'Assign Driver' : 'My Drivers'}</Text>
+        <View style={{ flex: 1, alignItems: 'center' }}>
+          <Text style={styles.title}>{bookingId ? 'Assign driver' : 'Drivers'}</Text>
+          {!bookingId && <Text style={styles.subtitle}>People who drive your trucks.</Text>}
+        </View>
         <TouchableOpacity style={styles.inviteBtn} onPress={() => setShowInvite(true)}>
-          <Text style={styles.inviteBtnText}>+ Add</Text>
+          <Feather name="plus" size={14} color={theme.darkGreen} />
+          <Text style={styles.inviteBtnText}>Add</Text>
         </TouchableOpacity>
       </View>
 
@@ -129,10 +139,10 @@ export default function DriversScreen({ navigation, route }: any) {
         <SkeletonList count={4} />
       ) : drivers.length === 0 ? (
         <EmptyState
-          emoji="👥"
+          icon="users"
           title="No drivers yet"
-          subtitle="Add drivers to your fleet so you can assign them to trucks."
-          buttonLabel="Add Driver"
+          subtitle="Add drivers to assign them to your trucks."
+          buttonLabel="Add driver"
           onButton={() => setShowInvite(true)}
         />
       ) : (
@@ -162,8 +172,8 @@ export default function DriversScreen({ navigation, route }: any) {
                     disabled={!!assigning}
                   >
                     {assigning === item.id
-                      ? <ActivityIndicator size="small" color={theme.accent} />
-                      : <Text style={styles.assignDriverText}>Assign</Text>
+                      ? <Text style={styles.assignDriverText}>Assigning...</Text>
+                      : <Text style={styles.assignDriverText}>Assign driver</Text>
                     }
                   </TouchableOpacity>
                 ) : (
@@ -188,11 +198,11 @@ export default function DriversScreen({ navigation, route }: any) {
               <TouchableOpacity onPress={() => { setShowInvite(false); setPhone(''); }}>
                 <Text style={styles.modalCancel}>Cancel</Text>
               </TouchableOpacity>
-              <Text style={styles.modalTitle}>Add Driver</Text>
+              <Text style={styles.modalTitle}>Add a driver</Text>
               <View style={{ width: 60 }} />
             </View>
             <View style={styles.modalBody}>
-              <Text style={styles.fieldLabel}>DRIVER PHONE NUMBER</Text>
+              <Text style={styles.fieldLabel}>Driver phone number</Text>
               <TextInput
                 style={styles.phoneInput}
                 value={phone}
@@ -203,17 +213,21 @@ export default function DriversScreen({ navigation, route }: any) {
                 autoFocus
               />
               <Text style={styles.hint}>
-                The driver must have a Sahid Freight account. They will be linked to your fleet.
+                If they already have a Sahid Freight account, they'll be linked to your fleet right away. Otherwise we'll offer to send them an SMS invite.
               </Text>
               <TouchableOpacity
                 style={[styles.submitBtn, inviting && { opacity: 0.6 }]}
                 onPress={handleInvite}
                 disabled={inviting}
               >
-                {inviting
-                  ? <ActivityIndicator color={theme.darkGreen} />
-                  : <Text style={styles.submitText}>Add Driver</Text>
-                }
+                {inviting ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <ActivityIndicator color={theme.darkGreen} />
+                    <Text style={styles.submitText}>Adding driver...</Text>
+                  </View>
+                ) : (
+                  <Text style={styles.submitText}>Add driver</Text>
+                )}
               </TouchableOpacity>
             </View>
           </ScreenWrapper>
@@ -224,12 +238,13 @@ export default function DriversScreen({ navigation, route }: any) {
 }
 
 const styles = StyleSheet.create({
-  header:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 },
-  back:         { padding: 4 },
+  header:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
+  back:         { padding: 4, flexDirection: 'row', alignItems: 'center' },
   backText:     { fontSize: 15, color: theme.accent, fontWeight: '500' },
-  title:        { fontSize: 15, fontWeight: '500', color: theme.text },
-  inviteBtn:    { backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 13, paddingHorizontal: 16 },
-  inviteBtnText:{ color: theme.darkGreen, fontSize: 13, fontWeight: '500' },
+  title:        { fontSize: 17, fontWeight: '700', color: theme.text, fontFamily: 'Inter_700Bold' },
+  subtitle:     { fontSize: 12, color: theme.textMuted, marginTop: 2 },
+  inviteBtn:    { backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 10, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 4 },
+  inviteBtnText:{ color: theme.darkGreen, fontSize: 13, fontWeight: '600' },
   list:         { padding: 16, paddingTop: 4 },
   card:         { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.surface, borderRadius: 14, padding: 16, marginBottom: 10, gap: 12 },
   avatarBox:    { width: 44, height: 44, borderRadius: 22, backgroundColor: theme.surface2, alignItems: 'center', justifyContent: 'center' },
@@ -246,9 +261,9 @@ const styles = StyleSheet.create({
   modalCancel:  { fontSize: 15, color: theme.accent, fontWeight: '500' },
   modalTitle:   { fontSize: 15, fontWeight: '500', color: theme.text },
   modalBody:    { padding: 20 },
-  fieldLabel:   { fontSize: 11, fontWeight: '500', color: theme.textMuted, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.9 },
+  fieldLabel:   { fontSize: 12, fontWeight: '600', color: theme.textMuted, marginBottom: 8 },
   phoneInput:   { backgroundColor: theme.surface, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13, fontSize: 15, color: theme.text },
   hint:         { fontSize: 13, color: theme.textMuted, marginTop: 10, lineHeight: 18 },
   submitBtn:    { backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 13, alignItems: 'center', marginTop: 24 },
-  submitText:   { color: theme.darkGreen, fontSize: 13, fontWeight: '500' },
+  submitText:   { color: theme.darkGreen, fontSize: 14, fontWeight: '600' },
 });

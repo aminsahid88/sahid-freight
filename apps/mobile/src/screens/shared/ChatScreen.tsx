@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity,
   StatusBar, KeyboardAvoidingView, Platform, Linking, ActivityIndicator,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import api from '../../lib/api';
 import { useAuthStore } from '../../store/auth';
@@ -80,8 +81,8 @@ export default function ChatScreen({ route, navigation }: any) {
             <Text style={styles.headerName} numberOfLines={1}>{userName || 'Chat'}</Text>
           </View>
           {phone ? (
-            <TouchableOpacity style={styles.callBtn} onPress={() => Linking.openURL(`tel:${phone}`)}>
-              <Text style={styles.callText}>📞</Text>
+            <TouchableOpacity style={styles.callBtn} onPress={() => Linking.openURL(`tel:${phone}`)} accessibilityLabel="Call">
+              <Feather name="phone" size={18} color={theme.accent} />
             </TouchableOpacity>
           ) : (
             <View style={{ width: 44 }} />
@@ -122,7 +123,7 @@ export default function ChatScreen({ route, navigation }: any) {
             style={styles.input}
             value={text}
             onChangeText={setText}
-            placeholder="Type a message..."
+            placeholder="Type a message…"
             placeholderTextColor={theme.textMuted}
             multiline
             maxLength={1000}
@@ -131,8 +132,9 @@ export default function ChatScreen({ route, navigation }: any) {
             style={[styles.sendBtn, (!text.trim() || sending) && { opacity: 0.4 }]}
             onPress={handleSend}
             disabled={!text.trim() || sending}
+            accessibilityLabel="Send message"
           >
-            <Text style={styles.sendText}>➤</Text>
+            <Feather name="send" size={18} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>

@@ -4,12 +4,14 @@ import {
   StatusBar, Alert, ActivityIndicator, TextInput,
   RefreshControl,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import api from '../../lib/api';
 import { StatusBadge } from '../../components/StatusBadge';
 import { SkeletonList } from '../../components/LoadingSkeleton';
 import { theme } from '../../theme';
 import { formatPrice } from '../../lib/constants';
+import { formatApiError } from '../../lib/errors';
 import { useAuthStore } from '../../store/auth';
 
 export default function LoadBidScreen({ route, navigation }: any) {
@@ -53,10 +55,10 @@ export default function LoadBidScreen({ route, navigation }: any) {
   const handleSubmit = async () => {
     if (!user?.isVerified) {
       Alert.alert(
-        'Complete your verification',
-        'You need to upload all required documents and have them approved before you can place a bid.',
+        'Verification required',
+        'Upload your required documents and get them approved before you can book loads.',
         [
-          { text: 'Go to Verification', onPress: () => navigation.navigate('Verification') },
+          { text: 'Go to verification', onPress: () => navigation.navigate('Verification') },
           { text: 'Cancel', style: 'cancel' },
         ],
       );
@@ -66,13 +68,13 @@ export default function LoadBidScreen({ route, navigation }: any) {
     if (truck && !truck.isVerified) {
       Alert.alert(
         'Truck not verified',
-        "This truck's documents need verification before it can be used for bidding.",
+        "This truck's documents need to be verified before it can be booked on a load.",
         [{ text: 'OK' }],
       );
       return;
     }
-    if (!selectedTruck) { Alert.alert('Select Truck', 'Please select a truck to bid with.'); return; }
-    if (!bidPrice || isNaN(parseFloat(bidPrice))) { Alert.alert('Enter Price', 'Please enter a valid bid price.'); return; }
+    if (!selectedTruck) { Alert.alert('Select a truck', 'Please pick which truck will run this load.'); return; }
+    if (!bidPrice || isNaN(parseFloat(bidPrice))) { Alert.alert('Enter a price', 'Please enter a valid price in numbers.'); return; }
 
     setSubmitting(true);
     try {
@@ -83,14 +85,11 @@ export default function LoadBidScreen({ route, navigation }: any) {
         currency: load?.currency || 'USD',
         message: note.trim() || undefined,
       });
-      Alert.alert('Bid Placed!', 'Your bid has been submitted. You will be notified when the sender responds.', [
-        { text: 'OK', onPress: () => navigation.goBack() },
+      Alert.alert('Booking requested', "We've sent your request to the cargo owner. You'll be notified when they respond.", [
+        { text: 'Done', onPress: () => navigation.goBack() },
       ]);
-    } catch (e: any) {
-      const status = e?.response?.status;
-      const msg = e?.response?.data?.message || e?.message || 'Failed to place bid.';
-      const detail = status === 500 ? `${msg} (server error — try again later)` : msg;
-      Alert.alert('Bid failed', detail);
+    } catch (err: any) {
+      Alert.alert("Couldn't book this load", formatApiError(err, "We couldn't submit your booking. Please try again.", 'booking'));
     } finally {
       setSubmitting(false);
     }
@@ -111,9 +110,10 @@ export default function LoadBidScreen({ route, navigation }: any) {
       {/* Top Bar */}
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
-          <Text style={styles.backText}>‹ Back</Text>
+          <Feather name="chevron-left" size={20} color={theme.accent} />
+          <Text style={styles.backText}>Back</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Place Bid</Text>
+        <Text style={styles.headerTitle}>Book this load</Text>
         <View style={{ width: 60 }} />
       </View>
 
@@ -142,10 +142,10 @@ export default function LoadBidScreen({ route, navigation }: any) {
         </View>
 
         {/* Select Truck */}
-        <Text style={styles.sectionLabel}>SELECT TRUCK</Text>
+        <Text style={styles.sectionLabel}>Select a truck</Text>
         {trucks.length === 0 ? (
           <View style={styles.noTruck}>
-            <Text style={styles.noTruckText}>No available trucks match this load type.</Text>
+            <Text style={styles.noTruckText}>None of your trucks match this load type.</Text>
             <TouchableOpacity onPress={() => navigation.navigate('AddTruck')}>
               <Text style={styles.noTruckLink}>Add a truck</Text>
             </TouchableOpacity>
@@ -172,7 +172,7 @@ export default function LoadBidScreen({ route, navigation }: any) {
         )}
 
         {/* Bid Price */}
-        <Text style={styles.sectionLabel}>BID PRICE ({load?.currency})</Text>
+        <Text style={styles.sectionLabel}>Your price ({load?.currency})</Text>
         <TextInput
           style={styles.input}
           value={bidPrice}
@@ -183,12 +183,12 @@ export default function LoadBidScreen({ route, navigation }: any) {
         />
 
         {/* Note */}
-        <Text style={styles.sectionLabel}>NOTE (OPTIONAL)</Text>
+        <Text style={styles.sectionLabel}>Note to the cargo owner (optional)</Text>
         <TextInput
           style={[styles.input, { height: 80, textAlignVertical: 'top' }]}
           value={note}
           onChangeText={setNote}
-          placeholder="Any message to the cargo sender..."
+          placeholder="Anything the cargo owner should know..."
           placeholderTextColor={theme.textMuted}
           multiline
         />
@@ -204,10 +204,14 @@ export default function LoadBidScreen({ route, navigation }: any) {
           onPress={handleSubmit}
           disabled={submitting || !selectedTruck}
         >
-          {submitting
-            ? <ActivityIndicator color={theme.darkGreen} />
-            : <Text style={styles.submitText}>Place Bid</Text>
-          }
+          {submitting ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <ActivityIndicator color={theme.darkGreen} />
+              <Text style={styles.submitText}>Sending request...</Text>
+            </View>
+          ) : (
+            <Text style={styles.submitText}>Book this truck</Text>
+          )}
         </TouchableOpacity>
       </View>
     </ScreenWrapper>
@@ -216,9 +220,9 @@ export default function LoadBidScreen({ route, navigation }: any) {
 
 const styles = StyleSheet.create({
   topBar:         { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 },
-  back:           { padding: 4 },
+  back:           { padding: 4, flexDirection: 'row', alignItems: 'center' },
   backText:       { fontSize: 15, color: theme.accent, fontWeight: '500' },
-  headerTitle:    { fontSize: 15, fontWeight: '500', color: theme.text },
+  headerTitle:    { fontSize: 15, fontWeight: '600', color: theme.text },
   content:        { padding: 16 },
   loadCard:       { backgroundColor: theme.surface, borderRadius: 14, padding: 16, marginBottom: 20 },
   loadTop:        { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 10 },
@@ -228,7 +232,7 @@ const styles = StyleSheet.create({
   pill:           { backgroundColor: theme.surface2, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
   pillText:       { fontSize: 11, color: theme.textMuted, fontWeight: '500' },
   loadPrice:      { fontSize: 13, fontWeight: '500', color: theme.accent },
-  sectionLabel:   { fontSize: 11, fontWeight: '500', color: theme.textMuted, textTransform: 'uppercase', letterSpacing: 0.9, marginBottom: 10 },
+  sectionLabel:   { fontSize: 12, fontWeight: '600', color: theme.textMuted, marginBottom: 10 },
   noTruck:        { backgroundColor: theme.warningDim, borderRadius: 12, padding: 16, borderWidth: 0.5, borderColor: theme.warning, marginBottom: 16, alignItems: 'center' },
   noTruckText:    { fontSize: 13, color: theme.warning, textAlign: 'center', marginBottom: 8 },
   noTruckLink:    { fontSize: 13, color: theme.accent, fontWeight: '500' },
@@ -243,5 +247,5 @@ const styles = StyleSheet.create({
   input:          { backgroundColor: theme.surface, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 13, fontSize: 15, color: theme.text, marginBottom: 16 },
   bottomBar:      { padding: 16, paddingBottom: 24, borderTopWidth: 0.5, borderTopColor: theme.border, backgroundColor: theme.bg },
   submitBtn:      { backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
-  submitText:     { color: theme.darkGreen, fontSize: 13, fontWeight: '500' },
+  submitText:     { color: theme.darkGreen, fontSize: 14, fontWeight: '600' },
 });

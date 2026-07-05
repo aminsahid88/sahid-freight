@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, StatusBar, TouchableOpacity, ScrollView,
   RefreshControl, ActivityIndicator, Alert,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import api from '../../lib/api';
 import { formatPrice } from '../../lib/constants';
@@ -55,8 +56,8 @@ export default function FindTruckScreen({ route, navigation }: any) {
       const qs = params.toString();
       const trucksRes = await api.get(`/trucks${qs ? '?' + qs : ''}`);
       setTrucks(trucksRes.data?.trucks || []);
-    } catch (e: any) {
-      console.warn('FindTruck fetch error', e);
+    } catch (err: any) {
+      console.warn(formatApiError(err, "We couldn't load available trucks.", 'truck'));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -91,11 +92,11 @@ export default function FindTruckScreen({ route, navigation }: any) {
     if (!load) return;
     Alert.alert(
       'Dispatch this truck?',
-      `${truck.plateNumber} for ${load.title}\n${load.pickupCity} → ${load.deliveryCity}`,
+      `${truck.plateNumber} will be assigned to ${load.title} (${load.pickupCity} to ${load.deliveryCity}). The cargo owner and truck owner will be notified and the load will be marked as booked.`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Dispatch',
+          text: 'Dispatch this truck',
           onPress: async () => {
             setDispatchingId(truck.id);
             try {
@@ -110,19 +111,19 @@ export default function FindTruckScreen({ route, navigation }: any) {
               // the load now reflects "in transit / assigned" status.
               Alert.alert(
                 'Dispatched',
-                `${truck.plateNumber} is now assigned to this load.`,
-                [{ text: 'Done', onPress: () => navigation.goBack() }],
+                `${truck.plateNumber} is now assigned to this load — the cargo owner and truck owner have been notified.`,
+                [{ text: 'Back to loads', onPress: () => navigation.goBack() }],
               );
-            } catch (e: any) {
-              const status = e?.response?.status;
-              const msg = formatApiError(e, 'Could not dispatch this truck.');
+            } catch (err: any) {
+              const status = err?.response?.status;
+              const msg = formatApiError(err, "We couldn't dispatch this truck.", 'booking');
               // 400 + the load-status message → load is already taken. Bounce back.
               if (status === 400 && /no longer available/i.test(msg)) {
-                Alert.alert('Already dispatched', msg, [
-                  { text: 'OK', onPress: () => navigation.goBack() },
+                Alert.alert('Load already dispatched', msg, [
+                  { text: 'Back to loads', onPress: () => navigation.goBack() },
                 ]);
               } else {
-                Alert.alert('Dispatch failed', msg);
+                Alert.alert("Couldn't dispatch", msg);
               }
             } finally {
               setDispatchingId(null);
@@ -141,11 +142,19 @@ export default function FindTruckScreen({ route, navigation }: any) {
 
       {/* Top bar */}
       <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 12, right: 12, bottom: 12, left: 12 }}>
-          <Text style={styles.back}>← Back</Text>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          hitSlop={{ top: 12, right: 12, bottom: 12, left: 12 }}
+          style={styles.backBtn}
+        >
+          <Feather name="chevron-left" size={18} color={BLUE} />
+          <Text style={styles.back}>Back</Text>
         </TouchableOpacity>
-        <Text style={styles.topBarTitle}>Find a Truck</Text>
-        <View style={{ width: 60 }} />
+        <View style={{ flex: 1, alignItems: 'center' }}>
+          <Text style={styles.topBarTitle}>Find a truck</Text>
+          <Text style={styles.topBarSub} numberOfLines={1}>Choose a verified truck to dispatch.</Text>
+        </View>
+        <View style={{ width: 72 }} />
       </View>
 
       <ScrollView
@@ -159,7 +168,7 @@ export default function FindTruckScreen({ route, navigation }: any) {
             <Text style={styles.loadContextLabel}>FOR</Text>
             <Text style={styles.loadContextTitle} numberOfLines={1}>{load.title}</Text>
             <Text style={styles.loadContextMeta}>
-              {load.weightTons}t · {load.pickupCity} → {load.deliveryCity}
+              {load.weightTons}t · {load.pickupCity} to {load.deliveryCity}
               {load.scheduledDate ? ` · ${new Date(load.scheduledDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}
             </Text>
           </View>
@@ -186,12 +195,15 @@ export default function FindTruckScreen({ route, navigation }: any) {
 
         {/* List */}
         {loading ? (
-          <CardSkeleton />
+          <>
+            <Text style={styles.loadingHint}>Finding available trucks…</Text>
+            <CardSkeleton />
+          </>
         ) : enriched.length === 0 ? (
           <EmptyCard
-            emoji="🚛"
-            title="No trucks match this load"
-            body="Try loosening a filter, or check back in a few minutes — drivers update availability as they free up."
+            iconName="truck"
+            title="No trucks match this load right now"
+            body="Try relaxing the availability or capacity filters."
           />
         ) : (
           enriched.map((t: any, i: number) => (
@@ -250,7 +262,8 @@ function TruckCard({
             </Text>
             {truck.isVerified && (
               <View style={styles.verifiedPill}>
-                <Text style={styles.verifiedText}>✓ VERIFIED</Text>
+                <Feather name="check-circle" size={10} color={TEAL_FG} style={{ marginRight: 3 }} />
+                <Text style={styles.verifiedText}>VERIFIED</Text>
               </View>
             )}
           </View>
@@ -283,10 +296,14 @@ function TruckCard({
 
       <View style={styles.truckRow}>
         <Text style={styles.truckRowLabel}>Owner</Text>
-        <Text style={[styles.truckRowValue, !eligible && styles.dimmed]}>
-          {truck.owner?.fullName || '—'}
-          {truck.owner?.isVerified ? ' ✓' : ''}
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <Text style={[styles.truckRowValue, !eligible && styles.dimmed]}>
+            {truck.owner?.fullName || '—'}
+          </Text>
+          {truck.owner?.isVerified && (
+            <Feather name="check-circle" size={12} color={TEAL_FG} />
+          )}
+        </View>
       </View>
 
       {!eligible && reason && (
@@ -306,11 +323,24 @@ function TruckCard({
           activeOpacity={0.85}
         >
           {dispatching ? (
-            <ActivityIndicator color={isFirstEligible ? '#FFFFFF' : NAVY} />
+            <>
+              <ActivityIndicator color={isFirstEligible ? '#FFFFFF' : NAVY} size="small" style={{ marginRight: 8 }} />
+              <Text style={isFirstEligible ? styles.dispatchBtnPrimaryText : styles.dispatchBtnSecondaryText}>
+                Dispatching…
+              </Text>
+            </>
           ) : (
-            <Text style={isFirstEligible ? styles.dispatchBtnPrimaryText : styles.dispatchBtnSecondaryText}>
-              Dispatch this truck ↗
-            </Text>
+            <>
+              <Text style={isFirstEligible ? styles.dispatchBtnPrimaryText : styles.dispatchBtnSecondaryText}>
+                Dispatch this truck
+              </Text>
+              <Feather
+                name="arrow-up-right"
+                size={14}
+                color={isFirstEligible ? '#FFFFFF' : NAVY}
+                style={{ marginLeft: 6 }}
+              />
+            </>
           )}
         </TouchableOpacity>
       ) : (
@@ -322,10 +352,10 @@ function TruckCard({
   );
 }
 
-function EmptyCard({ emoji, title, body }: { emoji: string; title: string; body: string }) {
+function EmptyCard({ iconName, title, body }: { iconName: any; title: string; body: string }) {
   return (
     <View style={styles.emptyCard}>
-      <Text style={styles.emptyEmoji}>{emoji}</Text>
+      <Feather name={iconName} size={40} color={SUBTLE} style={{ marginBottom: 14 }} />
       <Text style={styles.emptyTitle}>{title}</Text>
       <Text style={styles.emptyBody}>{body}</Text>
     </View>
@@ -356,8 +386,11 @@ function SkelBar({ w, h }: { w: number | string; h: number }) {
 const styles = StyleSheet.create({
   /* top bar */
   topBar:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 12, backgroundColor: BG, borderBottomWidth: 1, borderBottomColor: BORDER },
-  back:          { fontSize: 15, color: BLUE, fontWeight: '600', minWidth: 60 },
+  backBtn:       { flexDirection: 'row', alignItems: 'center', width: 72 },
+  back:          { fontSize: 15, color: BLUE, fontWeight: '600', marginLeft: 2 },
   topBarTitle:   { fontSize: 16, fontWeight: '600', color: TEXT },
+  topBarSub:     { fontSize: 11, color: MUTED, marginTop: 1 },
+  loadingHint:   { fontSize: 12, color: MUTED, marginBottom: 12, fontWeight: '500' },
 
   content:       { padding: 20, paddingBottom: 40 },
 
@@ -386,7 +419,7 @@ const styles = StyleSheet.create({
   truckTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 3 },
   truckTitle:    { fontSize: 15, fontWeight: '600', color: TEXT, textTransform: 'capitalize' },
   truckPlate:    { fontSize: 13, color: MUTED, fontFamily: 'monospace' },
-  verifiedPill:  { backgroundColor: TEAL_BG, borderColor: TEAL_BD, borderWidth: 1, borderRadius: 99, paddingHorizontal: 8, paddingVertical: 2 },
+  verifiedPill:  { flexDirection: 'row', alignItems: 'center', backgroundColor: TEAL_BG, borderColor: TEAL_BD, borderWidth: 1, borderRadius: 99, paddingHorizontal: 8, paddingVertical: 2 },
   verifiedText:  { fontSize: 9, fontWeight: '700', color: TEAL_FG, letterSpacing: 1 },
 
   truckRow:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 7, borderTopWidth: 1, borderTopColor: BORDER },
@@ -399,9 +432,9 @@ const styles = StyleSheet.create({
   reasonText:    { fontSize: 12, color: AMBER_FG, fontWeight: '500' },
 
   /* dispatch buttons */
-  dispatchBtnPrimary:     { marginTop: 14, backgroundColor: BLUE, borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
+  dispatchBtnPrimary:     { flexDirection: 'row', marginTop: 14, backgroundColor: BLUE, borderRadius: 10, paddingVertical: 12, alignItems: 'center', justifyContent: 'center' },
   dispatchBtnPrimaryText: { color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
-  dispatchBtnSecondary:   { marginTop: 14, backgroundColor: BG, borderColor: BORDER, borderWidth: 1, borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
+  dispatchBtnSecondary:   { flexDirection: 'row', marginTop: 14, backgroundColor: BG, borderColor: BORDER, borderWidth: 1, borderRadius: 10, paddingVertical: 12, alignItems: 'center', justifyContent: 'center' },
   dispatchBtnSecondaryText: { color: NAVY, fontSize: 14, fontWeight: '600' },
   dispatchBtnDisabled:    { marginTop: 14, backgroundColor: 'transparent', borderColor: BORDER, borderWidth: 1, borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
   dispatchBtnDisabledText:{ color: SUBTLE, fontSize: 13, fontWeight: '500' },

@@ -54,7 +54,10 @@ export default function OwnerBookingsScreen({ navigation, route }: any) {
     <ScreenWrapper>
       <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
       <View style={styles.header}>
-        <Text style={styles.title}>Bookings</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.title}>Bookings</Text>
+          <Text style={styles.subtitle}>Loads you've booked or accepted.</Text>
+        </View>
         <NotificationBell navigation={navigation} />
       </View>
 
@@ -80,9 +83,11 @@ export default function OwnerBookingsScreen({ navigation, route }: any) {
         <SkeletonList count={4} />
       ) : filtered.length === 0 ? (
         <EmptyState
-          emoji="📋"
-          title={filter === 'ALL' ? 'No bookings yet' : `No ${filter} bookings`}
-          subtitle="Your bids and accepted bookings will appear here."
+          icon="clipboard"
+          title={filter === 'ALL' ? 'No bookings yet' : `No ${filter.toLowerCase().replace(/_/g, ' ')} bookings`}
+          subtitle={filter === 'ALL'
+            ? "When you book a load or a broker dispatches one to your truck, it'll show up here."
+            : "Try a different filter to see other bookings."}
         />
       ) : (
         <FlatList
@@ -101,7 +106,7 @@ export default function OwnerBookingsScreen({ navigation, route }: any) {
                   <StatusBadge status={item.status} />
                 </View>
                 <View style={styles.cardMeta}>
-                  <Text style={styles.truckPlate}>{item.truck?.plateNumber}{item._isBid ? ' · Bid' : ''}</Text>
+                  <Text style={styles.truckPlate}>{item.truck?.plateNumber}{item._isBid ? ' · Pending' : ''}</Text>
                   <Text style={styles.bidPrice}>{formatPrice(item.price, item.currency || item.load?.currency || 'ETB')}</Text>
                 </View>
               </TouchableOpacity>
@@ -114,8 +119,9 @@ export default function OwnerBookingsScreen({ navigation, route }: any) {
 }
 
 const styles = StyleSheet.create({
-  header:         { paddingHorizontal: 16, paddingVertical: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  title:          { fontSize: 22, fontWeight: '500', color: theme.text },
+  header:         { paddingHorizontal: 16, paddingVertical: 14, flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+  title:          { fontSize: 22, fontWeight: '700', color: theme.text, fontFamily: 'Inter_700Bold' },
+  subtitle:       { fontSize: 13, color: theme.textMuted, marginTop: 2 },
   filterWrap:     { height: 52, justifyContent: 'center' },
   filterRow:      { paddingHorizontal: 16, gap: 8, alignItems: 'center' },
   list:           { padding: 16, paddingTop: 4 },

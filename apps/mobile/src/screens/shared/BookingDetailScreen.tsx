@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   StatusBar, RefreshControl, Alert, ActivityIndicator, Linking, Modal,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import api from '../../lib/api';
 import { theme } from '../../theme';
@@ -54,7 +55,7 @@ export default function BookingDetailScreen({ navigation, route }: any) {
       await api.patch(url, body);
       await fetchBooking();
     } catch (e: any) {
-      Alert.alert('Error', formatApiError(e, 'Could not complete action.'));
+      Alert.alert("We couldn't update this booking", formatApiError(e, "Your action wasn't saved.", 'booking'));
     } finally {
       setActionLoading(null);
     }
@@ -63,18 +64,18 @@ export default function BookingDetailScreen({ navigation, route }: any) {
   const handleAccept = () => doPatch('accept', `/bookings/${bookingId}/accept`);
 
   const handleReject = () => {
-    Alert.alert('Reject Booking', 'Are you sure you want to reject this booking?', [
+    Alert.alert('Reject this booking?', 'The truck owner will be notified and the load will be reopened.', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Reject', style: 'destructive', onPress: () => doPatch('reject', `/bookings/${bookingId}/reject`) },
+      { text: 'Reject booking', style: 'destructive', onPress: () => doPatch('reject', `/bookings/${bookingId}/reject`) },
     ]);
   };
 
   const handleStart = () => doPatch('start', `/bookings/${bookingId}/start`);
 
   const handleDeliver = () => {
-    Alert.alert('Mark Delivered', 'Confirm cargo has been delivered.', [
+    Alert.alert('Mark delivered?', 'Only confirm after the cargo has been handed over to the receiver.', [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Mark Delivered', onPress: () => doPatch('deliver', `/bookings/${bookingId}/deliver`) },
+      { text: 'Mark delivered', onPress: () => doPatch('deliver', `/bookings/${bookingId}/deliver`) },
     ]);
   };
 
@@ -98,7 +99,7 @@ export default function BookingDetailScreen({ navigation, route }: any) {
 
   const handleRate = () => {
     if (ratingValue < 1) {
-      Alert.alert('Rating required', 'Please tap a star (1–5) before submitting.');
+      Alert.alert('Add a rating', 'Tap a star (1–5) before submitting your review.');
       return;
     }
     doPatch('rate', `/bookings/${bookingId}/rate`, {
@@ -120,7 +121,7 @@ export default function BookingDetailScreen({ navigation, route }: any) {
     return (
       <ScreenWrapper>
         <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
-        <EmptyState emoji="📋" title="Booking not found" subtitle="This booking may have been removed." />
+        <EmptyState icon="clipboard" title="Booking not found" subtitle="This booking may have been cancelled or removed." />
       </ScreenWrapper>
     );
   }
@@ -130,13 +131,13 @@ export default function BookingDetailScreen({ navigation, route }: any) {
   const isDriver = user?.id === booking.driverId;
   const status   = booking.status;
 
-  // Counterparty phones — sender sees owner/driver; owner/driver sees sender
+  // Counterparty phones — cargo owner sees truck owner/driver; truck owner/driver sees cargo owner
   const callTargets: { label: string; phone: string }[] = [];
   if (isSender) {
-    if (booking.owner?.phone)  callTargets.push({ label: 'Call Owner',  phone: booking.owner.phone });
-    if (booking.driver?.phone) callTargets.push({ label: 'Call Driver', phone: booking.driver.phone });
+    if (booking.owner?.phone)  callTargets.push({ label: 'Call truck owner',  phone: booking.owner.phone });
+    if (booking.driver?.phone) callTargets.push({ label: 'Call driver', phone: booking.driver.phone });
   } else if (isOwner || isDriver) {
-    if (booking.sender?.phone) callTargets.push({ label: 'Call Sender', phone: booking.sender.phone });
+    if (booking.sender?.phone) callTargets.push({ label: 'Call cargo owner', phone: booking.sender.phone });
   }
 
   // Rating eligibility — mirror backend rules in booking.controller.ts:rateBooking
@@ -161,9 +162,9 @@ export default function BookingDetailScreen({ navigation, route }: any) {
 
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backText}>‹ Back</Text>
+          <Text style={styles.backText}>{'‹'} Back</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Booking</Text>
+        <Text style={styles.headerTitle} numberOfLines={1}>{booking.load?.title || 'Booking'}</Text>
         <StatusBadge status={status} />
       </View>
 
@@ -178,7 +179,7 @@ export default function BookingDetailScreen({ navigation, route }: any) {
           <Text style={styles.route}>{booking.load?.pickupCity} → {booking.load?.deliveryCity}</Text>
           <View style={styles.divider} />
           <Row label="Weight"     value={`${booking.load?.weightTons ?? '—'}t`} />
-          <Row label="Truck Type" value={booking.load?.truckTypeNeeded?.replace(/_/g, ' ') || '—'} />
+          <Row label="Truck type" value={booking.load?.truckTypeNeeded?.replace(/_/g, ' ') || '—'} />
           <Row label="Truck"      value={booking.truck?.plateNumber || '—'} />
           <Row label="Price"      value={formatPrice(booking.agreedPrice, booking.currency)} accent />
           {booking.driver?.fullName && <Row label="Driver" value={booking.driver.fullName} />}
@@ -193,7 +194,8 @@ export default function BookingDetailScreen({ navigation, route }: any) {
                 style={styles.callBtn}
                 onPress={() => Linking.openURL('tel:' + t.phone)}
               >
-                <Text style={styles.callBtnText}>📞 {t.label}</Text>
+                <Feather name="phone" size={14} color={theme.accent} />
+                <Text style={styles.callBtnText}>{t.label}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -251,7 +253,8 @@ export default function BookingDetailScreen({ navigation, route }: any) {
             style={styles.trackBtn}
             onPress={() => navigation.navigate('Tracking', { bookingId })}
           >
-            <Text style={styles.trackBtnText}>Track Shipment →</Text>
+            <Text style={styles.trackBtnText}>Track shipment</Text>
+            <Feather name="chevron-right" size={16} color={theme.darkGreen} />
           </TouchableOpacity>
         )}
 
@@ -288,7 +291,7 @@ export default function BookingDetailScreen({ navigation, route }: any) {
           >
             {actionLoading === 'start'
               ? <ActivityIndicator size="small" color={theme.darkGreen} />
-              : <Text style={styles.primaryBtnText}>Start Journey</Text>}
+              : <Text style={styles.primaryBtnText}>Start trip</Text>}
           </TouchableOpacity>
         )}
 
@@ -303,7 +306,7 @@ export default function BookingDetailScreen({ navigation, route }: any) {
               ? <ActivityIndicator size="small" color={theme.accent} />
               : (
                 <Text style={styles.secondaryBtnText}>
-                  {booking.driver?.fullName ? 'Reassign Driver' : 'Assign Driver'}
+                  {booking.driver?.fullName ? 'Reassign driver' : 'Assign driver'}
                 </Text>
               )}
           </TouchableOpacity>
@@ -318,14 +321,14 @@ export default function BookingDetailScreen({ navigation, route }: any) {
           >
             {actionLoading === 'deliver'
               ? <ActivityIndicator size="small" color={theme.darkGreen} />
-              : <Text style={styles.primaryBtnText}>Mark Delivered</Text>}
+              : <Text style={styles.primaryBtnText}>Mark delivered</Text>}
           </TouchableOpacity>
         )}
 
         {/* Rating — form when eligible, read-only when already submitted */}
         {showRatingSection && (
           <>
-            <Text style={styles.sectionLabel}>{canRate ? 'RATE THIS DELIVERY' : 'YOUR RATING'}</Text>
+            <Text style={styles.sectionLabel}>{canRate ? 'RATE THIS TRIP' : 'YOUR RATING'}</Text>
             <View style={styles.card}>
               <View style={styles.ratingStarsWrap}>
                 <StarRating
@@ -350,7 +353,7 @@ export default function BookingDetailScreen({ navigation, route }: any) {
                   >
                     {actionLoading === 'rate'
                       ? <ActivityIndicator size="small" color={theme.darkGreen} />
-                      : <Text style={styles.primaryBtnText}>Submit Rating</Text>}
+                      : <Text style={styles.primaryBtnText}>Submit rating</Text>}
                   </TouchableOpacity>
                 </>
               ) : (
@@ -371,19 +374,19 @@ export default function BookingDetailScreen({ navigation, route }: any) {
         <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Assign Driver</Text>
+              <Text style={styles.modalTitle}>Assign a driver</Text>
               <TouchableOpacity onPress={() => setAssignOpen(false)}>
-                <Text style={styles.modalClose}>✕</Text>
+                <Feather name="x" size={20} color={theme.textMuted} />
               </TouchableOpacity>
             </View>
             {driversLoading ? (
               <SkeletonList count={3} />
             ) : drivers.length === 0 ? (
               <EmptyState
-                emoji="🚛"
-                title="No drivers available"
-                subtitle="Invite drivers to your fleet first."
-                buttonLabel="Manage Drivers"
+                icon="truck"
+                title="No drivers yet"
+                subtitle="Add drivers to your fleet before assigning them to trips."
+                buttonLabel="Manage drivers"
                 onButton={() => { setAssignOpen(false); navigation.navigate('Drivers'); }}
               />
             ) : (
@@ -396,7 +399,7 @@ export default function BookingDetailScreen({ navigation, route }: any) {
                         {d.phone}{d.licenseNumber ? ` · ${d.licenseNumber}` : ''}
                       </Text>
                     </View>
-                    <Text style={styles.driverChevron}>›</Text>
+                    <Feather name="chevron-right" size={18} color={theme.textMuted} />
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -456,9 +459,9 @@ const tlS = StyleSheet.create({
 });
 
 const styles = StyleSheet.create({
-  header:           { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14 },
+  header:           { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14, gap: 8 },
   backText:         { fontSize: 15, color: theme.accent, fontWeight: '500' },
-  headerTitle:      { fontSize: 15, fontWeight: '500', color: theme.text },
+  headerTitle:      { fontSize: 15, fontWeight: '600', color: theme.text, flex: 1, textAlign: 'center' },
   content:          { padding: 16, paddingBottom: 40 },
   card:             { backgroundColor: theme.surface, borderRadius: 14, padding: 16, marginBottom: 16 },
   loadTitle:        { fontSize: 15, fontWeight: '500', color: theme.text, marginBottom: 4 },
@@ -467,13 +470,13 @@ const styles = StyleSheet.create({
   sectionLabel:     { fontSize: 11, fontWeight: '500', color: theme.textMuted, textTransform: 'uppercase', letterSpacing: 0.9, marginBottom: 10, marginLeft: 4 },
 
   callRow:          { flexDirection: 'row', gap: 10, marginBottom: 16, flexWrap: 'wrap' },
-  callBtn:          { backgroundColor: theme.accentDim, borderWidth: 0.5, borderColor: theme.accentBorder, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, flexGrow: 1, alignItems: 'center' },
+  callBtn:          { flexDirection: 'row', gap: 8, backgroundColor: theme.accentDim, borderWidth: 0.5, borderColor: theme.accentBorder, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, flexGrow: 1, alignItems: 'center', justifyContent: 'center' },
   callBtnText:      { fontSize: 13, fontWeight: '500', color: theme.accent },
 
   paymentHeader:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
   paymentAmount:    { fontSize: 18, fontWeight: '600', color: theme.text },
 
-  trackBtn:         { backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 13, alignItems: 'center', marginBottom: 16 },
+  trackBtn:         { flexDirection: 'row', gap: 6, backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 13, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
   trackBtnText:     { color: theme.darkGreen, fontSize: 13, fontWeight: '500' },
 
   actionRow:        { flexDirection: 'row', gap: 10, marginBottom: 16 },
@@ -496,10 +499,8 @@ const styles = StyleSheet.create({
   modalCard:        { backgroundColor: theme.bg, borderTopLeftRadius: 18, borderTopRightRadius: 18, padding: 16, paddingBottom: 32, maxHeight: '85%' },
   modalHeader:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
   modalTitle:       { fontSize: 16, fontWeight: '500', color: theme.text },
-  modalClose:       { fontSize: 20, color: theme.textMuted, paddingHorizontal: 6 },
 
   driverRow:        { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 6, borderBottomWidth: 0.5, borderBottomColor: theme.border },
   driverName:      { fontSize: 14, fontWeight: '500', color: theme.text },
   driverMeta:      { fontSize: 12, color: theme.textMuted, marginTop: 2 },
-  driverChevron:   { fontSize: 22, color: theme.textMuted, marginLeft: 8 },
 });

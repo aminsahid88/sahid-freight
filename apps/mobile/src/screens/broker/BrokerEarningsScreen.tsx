@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, StatusBar, ScrollView, TouchableOpacity,
   RefreshControl, Modal, TextInput, ActivityIndicator, KeyboardAvoidingView, Platform,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { NotificationBell } from '../../components/NotificationBell';
 import api from '../../lib/api';
@@ -44,8 +45,8 @@ export default function BrokerEarningsScreen({ navigation }: any) {
     try {
       const res = await api.get('/bookings/broker/my');
       setBookings(res.data?.bookings || []);
-    } catch (e) {
-      console.warn('Earnings fetch failed', e);
+    } catch (err) {
+      console.warn(formatApiError(err, 'Could not load your earnings.', 'payment'));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -111,7 +112,10 @@ export default function BrokerEarningsScreen({ navigation }: any) {
       >
         {/* Top bar */}
         <View style={styles.topBar}>
-          <Text style={styles.topBarTitle}>Earnings</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.topBarTitle}>Earnings</Text>
+            <Text style={styles.topBarSub}>Track what you've collected and what you owe on every load.</Text>
+          </View>
           <NotificationBell navigation={navigation} />
         </View>
 
@@ -141,9 +145,9 @@ export default function BrokerEarningsScreen({ navigation }: any) {
           <CardSkeleton />
         ) : enriched.length === 0 ? (
           <EmptyCard
-            emoji="💼"
+            iconName="briefcase"
             title="No earnings yet"
-            body="Once you dispatch loads, they'll show up here for you to settle with the cargo owner and the truck owner."
+            body="Once you dispatch loads, they'll show up here for you to settle."
           />
         ) : (
           enriched.map((b: any) => (
@@ -194,7 +198,7 @@ function BookingRow({
 }: { booking: any; onCollect: () => void; onPayout: () => void }) {
   const s: Settlement = booking._settlement;
   const cargoOwner = booking.load?.externalOwnerName || booking.load?.sender?.fullName || 'Cargo owner';
-  const route = `${booking.load?.pickupCity || '—'} → ${booking.load?.deliveryCity || '—'}`;
+  const route = `${booking.load?.pickupCity || '—'} to ${booking.load?.deliveryCity || '—'}`;
   const rate = formatPrice(booking.agreedPrice, booking.currency || 'ETB');
 
   return (
@@ -234,7 +238,8 @@ function BookingRow({
         )}
         {s === 'SETTLED' && (
           <View style={styles.settledRow}>
-            <Text style={styles.settledText}>✓ Settled</Text>
+            <Feather name="check-circle" size={14} color={TEAL_FG} style={{ marginRight: 6 }} />
+            <Text style={styles.settledText}>Settled</Text>
           </View>
         )}
         {s === 'IN_PROGRESS' && (
@@ -271,10 +276,10 @@ function MoneyLine({ label, value, highlight }: { label: string; value: string; 
   );
 }
 
-function EmptyCard({ emoji, title, body }: { emoji: string; title: string; body: string }) {
+function EmptyCard({ iconName, title, body }: { iconName: any; title: string; body: string }) {
   return (
     <View style={styles.emptyCard}>
-      <Text style={styles.emptyEmoji}>{emoji}</Text>
+      <Feather name={iconName} size={40} color={SUBTLE} style={{ marginBottom: 14 }} />
       <Text style={styles.emptyTitle}>{title}</Text>
       <Text style={styles.emptyBody}>{body}</Text>
     </View>
@@ -327,8 +332,8 @@ function CollectModal({ booking, onClose, onSaved }: { booking: any; onClose: ()
         ...(payoutN !== undefined && { ownerPayoutAmount: payoutN }),
       });
       onSaved(res.data?.booking || { ...booking, brokerCutAmount: cutN, ownerPayoutAmount: payoutN ?? booking.ownerPayoutAmount, brokerCollectedAt: new Date().toISOString() });
-    } catch (e: any) {
-      setError(formatApiError(e, 'Could not record collection.'));
+    } catch (err: any) {
+      setError(formatApiError(err, "We couldn't record this payment.", 'payment'));
     } finally { setLoading(false); }
   };
 
@@ -338,7 +343,7 @@ function CollectModal({ booking, onClose, onSaved }: { booking: any; onClose: ()
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <View style={styles.modalSheet}>
             <View style={styles.modalHandle} />
-            <Text style={styles.modalTitle}>Record collection</Text>
+            <Text style={styles.modalTitle}>Record payment</Text>
             <Text style={styles.modalSub} numberOfLines={2}>
               {booking.load?.title} · {formatPrice(booking.agreedPrice, booking.currency || 'ETB')}
             </Text>
@@ -381,7 +386,14 @@ function CollectModal({ booking, onClose, onSaved }: { booking: any; onClose: ()
                 disabled={loading}
                 activeOpacity={0.85}
               >
-                {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.confirmBtnText}>Record</Text>}
+                {loading ? (
+                  <>
+                    <ActivityIndicator color="#FFFFFF" size="small" style={{ marginRight: 8 }} />
+                    <Text style={styles.confirmBtnText}>Recording payment…</Text>
+                  </>
+                ) : (
+                  <Text style={styles.confirmBtnText}>Record payment</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -416,8 +428,8 @@ function PayoutModal({ booking, onClose, onSaved }: { booking: any; onClose: () 
         ownerPayoutAmount: payoutN ?? booking.ownerPayoutAmount,
         ownerPaidOutAt: new Date().toISOString(),
       });
-    } catch (e: any) {
-      setError(formatApiError(e, 'Could not record payout.'));
+    } catch (err: any) {
+      setError(formatApiError(err, "We couldn't record this payout.", 'payment'));
     } finally { setLoading(false); }
   };
 
@@ -452,7 +464,7 @@ function PayoutModal({ booking, onClose, onSaved }: { booking: any; onClose: () 
             />
             <Text style={styles.fieldHint}>
               {booking.ownerPayoutAmount != null
-                ? "Edit if needed, then tap 'Mark paid'."
+                ? "Edit if needed, then tap 'Mark owner paid'."
                 : "Enter what you're paying the owner."}
             </Text>
 
@@ -466,7 +478,14 @@ function PayoutModal({ booking, onClose, onSaved }: { booking: any; onClose: () 
                 disabled={loading}
                 activeOpacity={0.85}
               >
-                {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.confirmBtnText}>Mark paid</Text>}
+                {loading ? (
+                  <>
+                    <ActivityIndicator color="#FFFFFF" size="small" style={{ marginRight: 8 }} />
+                    <Text style={styles.confirmBtnText}>Recording payout…</Text>
+                  </>
+                ) : (
+                  <Text style={styles.confirmBtnText}>Mark owner paid</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -482,8 +501,9 @@ const styles = StyleSheet.create({
   scroll:        { flex: 1, backgroundColor: BG },
   content:       { padding: 20, paddingBottom: 40 },
 
-  topBar:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 },
+  topBar:        { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 18 },
   topBarTitle:   { fontSize: 22, fontWeight: '700', color: TEXT, letterSpacing: -0.3 },
+  topBarSub:     { fontSize: 13, color: MUTED, marginTop: 4, maxWidth: 280 },
 
   /* stat band */
   statBand:      { flexDirection: 'row', backgroundColor: CARD, borderRadius: 16, padding: 18, marginBottom: 20, borderWidth: 1, borderColor: BORDER, shadowColor: NAVY, shadowOpacity: 0.04, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 1 },
@@ -511,7 +531,7 @@ const styles = StyleSheet.create({
   /* action buttons */
   primaryBtn:    { backgroundColor: BLUE, borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
   primaryBtnText:{ color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
-  settledRow:    { backgroundColor: TEAL_BG, borderColor: TEAL_BD, borderWidth: 1, borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
+  settledRow:    { flexDirection: 'row', backgroundColor: TEAL_BG, borderColor: TEAL_BD, borderWidth: 1, borderRadius: 12, paddingVertical: 12, alignItems: 'center', justifyContent: 'center' },
   settledText:   { color: TEAL_FG, fontSize: 13, fontWeight: '700', letterSpacing: 0.3 },
   inProgressRow: { backgroundColor: BG, borderColor: BORDER, borderWidth: 1, borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
   inProgressText:{ color: MUTED, fontSize: 12, fontWeight: '500' },
@@ -538,6 +558,6 @@ const styles = StyleSheet.create({
   modalActions:  { flexDirection: 'row', gap: 10, marginTop: 20 },
   cancelBtn:     { flex: 1, backgroundColor: BG, borderColor: BORDER, borderWidth: 1, borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
   cancelBtnText: { color: NAVY, fontSize: 14, fontWeight: '600' },
-  confirmBtn:    { flex: 1.6, backgroundColor: BLUE, borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
+  confirmBtn:    { flex: 1.6, backgroundColor: BLUE, borderRadius: 12, paddingVertical: 13, alignItems: 'center', justifyContent: 'center', flexDirection: 'row' },
   confirmBtnText:{ color: '#FFFFFF', fontSize: 14, fontWeight: '600' },
 });

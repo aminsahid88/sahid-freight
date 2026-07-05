@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   RefreshControl, StatusBar, Modal, Pressable,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { useAuthStore } from '../../store/auth';
 import api from '../../lib/api';
@@ -81,7 +82,8 @@ export default function OwnerOverviewScreen({ navigation }: any) {
           <View style={styles.headerRight}>
             <NotificationBell navigation={navigation} />
             <TouchableOpacity style={styles.newBtn} onPress={() => setShowNewSheet(true)} activeOpacity={0.8}>
-              <Text style={styles.newBtnText}>+ New</Text>
+              <Feather name="plus" size={14} color="#FFFFFF" />
+              <Text style={styles.newBtnText}>New</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -89,22 +91,22 @@ export default function OwnerOverviewScreen({ navigation }: any) {
         {/* Stats grid 2x2 */}
         <View style={styles.statsGrid}>
           <View style={styles.statsRow}>
-            <StatCard label="Total trucks" value={stats.trucks} emoji="🚛" color={theme.accent} onPress={() => navigation.navigate('MyFleet')} />
-            <StatCard label="Available" value={stats.activeTrucks} emoji="🟢" color={theme.accent} onPress={() => navigation.navigate('MyFleet')} />
+            <StatCard label="Total trucks" value={stats.trucks} color={theme.accent} onPress={() => navigation.navigate('MyFleet')} />
+            <StatCard label="Available" value={stats.activeTrucks} color={theme.accent} onPress={() => navigation.navigate('MyFleet')} />
           </View>
           <View style={styles.statsRow}>
-            <StatCard label="In transit" value={stats.inTransit} emoji="🛣️" color={theme.warning} onPress={() => navigation.navigate('OwnerBookings', { filter: 'IN_TRANSIT' })} />
-            <StatCard label="Completed" value={stats.completed} emoji="✅" color={theme.blue} onPress={() => navigation.navigate('OwnerBookings', { filter: 'COMPLETED' })} />
+            <StatCard label="In transit" value={stats.inTransit} color={theme.warning} onPress={() => navigation.navigate('OwnerBookings', { filter: 'IN_TRANSIT' })} />
+            <StatCard label="Completed" value={stats.completed} color={theme.blue} onPress={() => navigation.navigate('OwnerBookings', { filter: 'COMPLETED' })} />
           </View>
         </View>
 
-        {/* Pending bids banner */}
+        {/* Pending bookings banner */}
         {stats.pending > 0 && (
           <View style={styles.pendingBanner}>
             <View style={styles.pendingLeft}>
-              <Text style={styles.pendingEmoji}>📩</Text>
+              <Feather name="clock" size={16} color={theme.orange} />
               <Text style={styles.pendingText}>
-                {stats.pending} pending bid{stats.pending !== 1 ? 's' : ''} awaiting response
+                {stats.pending} pending booking{stats.pending !== 1 ? 's' : ''} awaiting your response
               </Text>
             </View>
             <TouchableOpacity onPress={() => navigation.navigate('OwnerBookings')} activeOpacity={0.7}>
@@ -113,9 +115,9 @@ export default function OwnerOverviewScreen({ navigation }: any) {
           </View>
         )}
 
-        {/* Recent Bookings */}
+        {/* Recent bookings */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recent Bookings</Text>
+          <Text style={styles.sectionTitle}>Recent bookings</Text>
           <TouchableOpacity onPress={() => navigation.navigate('OwnerBookings')}>
             <Text style={styles.seeAll}>See all</Text>
           </TouchableOpacity>
@@ -125,13 +127,13 @@ export default function OwnerOverviewScreen({ navigation }: any) {
           <SkeletonList count={3} />
         ) : recentBookings.length === 0 ? (
           <EmptyState
-            emoji="📋"
+            icon="clipboard"
             title="No bookings yet"
             subtitle={BIDDING_ENABLED
-              ? "Browse available loads and place bids to get started."
-              : "When a broker dispatches a load to one of your trucks, it will show up here."}
+              ? "Browse available loads and book the ones that fit your trucks."
+              : "When you book a load or a broker dispatches one to your truck, it'll show up here."}
             {...(BIDDING_ENABLED
-              ? { buttonLabel: "Find Loads", onButton: () => navigation.navigate('AvailableLoads') }
+              ? { buttonLabel: "Find loads", onButton: () => navigation.navigate('AvailableLoads') }
               : {})}
           />
         ) : (
@@ -173,11 +175,11 @@ export default function OwnerOverviewScreen({ navigation }: any) {
             onPress={() => { setShowNewSheet(false); navigation.navigate('AddTruck'); }}
           >
             <View style={[styles.sheetIcon, { backgroundColor: theme.accentDim }]}>
-              <Text style={styles.sheetIconText}>🚛</Text>
+              <Feather name="truck" size={20} color={theme.accent} />
             </View>
             <View style={styles.sheetOptionContent}>
               <Text style={styles.sheetOptionLabel}>Add a truck</Text>
-              <Text style={styles.sheetOptionSub}>Expand your fleet</Text>
+              <Text style={styles.sheetOptionSub}>Register a truck for dispatch.</Text>
             </View>
           </TouchableOpacity>
 
@@ -187,11 +189,11 @@ export default function OwnerOverviewScreen({ navigation }: any) {
             onPress={() => { setShowNewSheet(false); navigation.navigate('Drivers'); }}
           >
             <View style={[styles.sheetIcon, { backgroundColor: theme.blueDim }]}>
-              <Text style={styles.sheetIconText}>👤</Text>
+              <Feather name="user" size={20} color={theme.blue} />
             </View>
             <View style={styles.sheetOptionContent}>
               <Text style={styles.sheetOptionLabel}>Add a driver</Text>
-              <Text style={styles.sheetOptionSub}>Invite a driver to your fleet</Text>
+              <Text style={styles.sheetOptionSub}>Invite someone to drive your trucks.</Text>
             </View>
           </TouchableOpacity>
 
@@ -202,11 +204,11 @@ export default function OwnerOverviewScreen({ navigation }: any) {
               onPress={() => { setShowNewSheet(false); navigation.navigate('AvailableLoads'); }}
             >
               <View style={[styles.sheetIcon, { backgroundColor: theme.orangeDim }]}>
-                <Text style={styles.sheetIconText}>📦</Text>
+                <Feather name="package" size={20} color={theme.orange} />
               </View>
               <View style={styles.sheetOptionContent}>
                 <Text style={styles.sheetOptionLabel}>Find loads</Text>
-                <Text style={styles.sheetOptionSub}>Browse available loads to bid on</Text>
+                <Text style={styles.sheetOptionSub}>Browse available loads to book.</Text>
               </View>
             </TouchableOpacity>
           )}
@@ -262,6 +264,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   newBtnText: {
     color: '#FFFFFF',

@@ -7,6 +7,7 @@ import ScreenWrapper from '../../components/ScreenWrapper';
 import api from '../../lib/api';
 import { theme } from '../../theme';
 import { TRUCK_TYPES, COUNTRIES, CURRENCIES } from '../../lib/constants';
+import { formatApiError } from '../../lib/errors';
 
 function Field({ label, value, onChangeText, placeholder, keyboardType = 'default', multiline = false }: any) {
   return (
@@ -94,17 +95,17 @@ export default function EditLoadScreen({ route, navigation }: any) {
   const set = (key: string) => (val: string) => setForm(f => ({ ...f, [key]: val }));
 
   const validate = () => {
-    if (!form.title.trim()) return 'Please enter a load title.';
-    if (!form.pickupCity.trim()) return 'Please enter a pickup city.';
-    if (!form.deliveryCity.trim()) return 'Please enter a delivery city.';
-    if (!form.weightTons || isNaN(parseFloat(form.weightTons))) return 'Please enter valid weight.';
-    if (!form.offeredPrice || isNaN(parseFloat(form.offeredPrice))) return 'Please enter a valid price.';
+    if (!form.title.trim()) return 'Add a short title for this load.';
+    if (!form.pickupCity.trim()) return 'Enter the pickup city.';
+    if (!form.deliveryCity.trim()) return 'Enter the delivery city.';
+    if (!form.weightTons || isNaN(parseFloat(form.weightTons))) return 'Enter the cargo weight in tons.';
+    if (!form.offeredPrice || isNaN(parseFloat(form.offeredPrice))) return 'Enter your offered price.';
     return null;
   };
 
   const handleSubmit = async () => {
     const err = validate();
-    if (err) { Alert.alert('Missing Info', err); return; }
+    if (err) { Alert.alert('Missing details', err); return; }
     setSubmitting(true);
     try {
       await api.patch(`/loads/${loadId}`, {
@@ -112,11 +113,11 @@ export default function EditLoadScreen({ route, navigation }: any) {
         weightTons: parseFloat(form.weightTons),
         offeredPrice: parseFloat(form.offeredPrice),
       });
-      Alert.alert('Load Updated!', 'Your load has been updated.', [
-        { text: 'OK', onPress: () => navigation.goBack() },
+      Alert.alert('Load updated', 'Your changes are saved.', [
+        { text: 'Done', onPress: () => navigation.goBack() },
       ]);
     } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message || 'Failed to update load. Try again.');
+      Alert.alert('Changes not saved', formatApiError(e, "We couldn't save your changes. Please try again.", 'load'));
     } finally {
       setSubmitting(false);
     }
@@ -140,25 +141,30 @@ export default function EditLoadScreen({ route, navigation }: any) {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Text style={styles.cancel}>Cancel</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Edit Load</Text>
+          <Text style={styles.headerTitle}>Edit load</Text>
           <View style={{ width: 56 }} />
         </View>
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-          <Field label="Load Title *" value={form.title} onChangeText={set('title')} placeholder="e.g. Cement bags" />
-          <Field label="Description" value={form.description} onChangeText={set('description')} placeholder="Optional details..." multiline />
-          <Field label="Pickup City *" value={form.pickupCity} onChangeText={set('pickupCity')} placeholder="e.g. Addis Ababa" />
-          <PickerRow label="Pickup Country" value={form.pickupCountry} options={COUNTRIES} onChange={set('pickupCountry')} />
-          <Field label="Delivery City *" value={form.deliveryCity} onChangeText={set('deliveryCity')} placeholder="e.g. Djibouti City" />
-          <PickerRow label="Delivery Country" value={form.deliveryCountry} options={COUNTRIES} onChange={set('deliveryCountry')} />
-          <PickerRow label="Truck Type" value={form.truckTypeNeeded} options={TRUCK_TYPES} onChange={set('truckTypeNeeded')} />
-          <Field label="Weight (tons) *" value={form.weightTons} onChangeText={set('weightTons')} placeholder="e.g. 20" keyboardType="decimal-pad" />
-          <Field label="Offered Price *" value={form.offeredPrice} onChangeText={set('offeredPrice')} placeholder="e.g. 4500" keyboardType="decimal-pad" />
+          <Text style={styles.introTitle}>Update your load</Text>
+          <Text style={styles.introSubtitle}>Changes are visible to your broker straight away.</Text>
+          <Field label="Load title" value={form.title} onChangeText={set('title')} placeholder="e.g. Cement bags" />
+          <Field label="Description" value={form.description} onChangeText={set('description')} placeholder="Optional details" multiline />
+          <Field label="Pickup city" value={form.pickupCity} onChangeText={set('pickupCity')} placeholder="e.g. Addis Ababa" />
+          <PickerRow label="Pickup country" value={form.pickupCountry} options={COUNTRIES} onChange={set('pickupCountry')} />
+          <Field label="Delivery city" value={form.deliveryCity} onChangeText={set('deliveryCity')} placeholder="e.g. Djibouti City" />
+          <PickerRow label="Delivery country" value={form.deliveryCountry} options={COUNTRIES} onChange={set('deliveryCountry')} />
+          <PickerRow label="Truck type" value={form.truckTypeNeeded} options={TRUCK_TYPES} onChange={set('truckTypeNeeded')} />
+          <Field label="Weight (tons)" value={form.weightTons} onChangeText={set('weightTons')} placeholder="e.g. 20" keyboardType="decimal-pad" />
+          <Field label="Offered price" value={form.offeredPrice} onChangeText={set('offeredPrice')} placeholder="e.g. 4500" keyboardType="decimal-pad" />
           <PickerRow label="Currency" value={form.currency} options={CURRENCIES} onChange={set('currency')} />
           <View style={{ height: 20 }} />
         </ScrollView>
         <View style={styles.footer}>
           <TouchableOpacity style={[styles.submitBtn, submitting && { opacity: 0.6 }]} onPress={handleSubmit} disabled={submitting}>
-            {submitting ? <ActivityIndicator color={theme.darkGreen} /> : <Text style={styles.submitText}>Save Changes</Text>}
+            {submitting
+              ? <Text style={styles.submitText}>Saving changes…</Text>
+              : <Text style={styles.submitText}>Save changes</Text>
+            }
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
@@ -171,6 +177,8 @@ const styles = StyleSheet.create({
   headerTitle:    { fontSize: 15, fontWeight: '500', color: theme.text },
   cancel:         { fontSize: 15, color: theme.accent, fontWeight: '500' },
   content:        { padding: 16 },
+  introTitle:     { fontSize: 20, fontWeight: '600', color: theme.text, marginBottom: 4 },
+  introSubtitle:  { fontSize: 13, color: theme.textMuted, lineHeight: 20, marginBottom: 20 },
   fieldWrap:      { marginBottom: 16 },
   fieldLabel:     { fontSize: 11, fontWeight: '500', color: theme.textMuted, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.9 },
   fieldInput:     { backgroundColor: theme.inputBg, color: theme.inputText, borderWidth: 0.5, borderColor: theme.inputBorder, borderRadius: 12, paddingHorizontal: 14, height: 52, fontSize: 15, fontWeight: '400' },

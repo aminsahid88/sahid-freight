@@ -3,11 +3,13 @@ import {
   View, Text, StyleSheet, StatusBar, ScrollView,
   TouchableOpacity, RefreshControl, ActivityIndicator,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { NotificationBell } from '../../components/NotificationBell';
 import { useAuthStore } from '../../store/auth';
 import api from '../../lib/api';
 import { formatPrice } from '../../lib/constants';
+import { formatApiError } from '../../lib/errors';
 
 // Broker design language — locked palette. All values hardcoded so the broker
 // surface stays light/airy regardless of theme changes elsewhere.
@@ -58,18 +60,18 @@ export default function BrokerDashboardScreen({ navigation }: any) {
   const fetchAll = useCallback(async () => {
     try {
       const [loadsRes, trucksRes, inTransitRes] = await Promise.all([
-        api.get('/loads').catch(() => ({ data: { loads: [] } })),
-        api.get('/trucks?available=true').catch(() => ({ data: { trucks: [] } })),
+        api.get('/loads').catch((err) => { console.warn(formatApiError(err, 'Could not load open loads.', 'load')); return { data: { loads: [] } }; }),
+        api.get('/trucks?available=true').catch((err) => { console.warn(formatApiError(err, 'Could not load available trucks.', 'truck')); return { data: { trucks: [] } }; }),
         // STOPGAP: /bookings/broker/my doesn't exist yet (P3 backend follow-up).
         // Wired optimistically — the section will light up the moment the endpoint lands.
-        api.get('/bookings/broker/my').catch(() => ({ data: { bookings: [] } })),
+        api.get('/bookings/broker/my').catch((err) => { console.warn(formatApiError(err, 'Could not load active dispatches.', 'booking')); return { data: { bookings: [] } }; }),
       ]);
       setOpenLoads(loadsRes.data?.loads || []);
       setTrucksAvailable((trucksRes.data?.trucks || []).length);
       const bookings = inTransitRes.data?.bookings || [];
       setInTransit(bookings.filter((b: any) => b.status === 'IN_TRANSIT'));
-    } catch (e) {
-      console.warn('Broker dashboard fetch error', e);
+    } catch (err) {
+      console.warn(formatApiError(err, 'Could not refresh the dashboard.', 'generic'));
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -85,7 +87,7 @@ export default function BrokerDashboardScreen({ navigation }: any) {
 
   const summaryLine =
     openLoads.length === 0 && inTransit.length === 0
-      ? 'No active dispatches today.'
+      ? 'Nothing on your board yet today.'
       : `${openLoads.length} load${openLoads.length === 1 ? '' : 's'} need a truck · ${inTransit.length} in transit`;
 
   return (
@@ -99,7 +101,10 @@ export default function BrokerDashboardScreen({ navigation }: any) {
       >
         {/* Top bar */}
         <View style={styles.topBar}>
-          <Text style={styles.topBarTitle}>Command Center</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.topBarTitle}>Command center</Text>
+            <Text style={styles.topBarSub}>Your live board of loads, trucks, and dispatches.</Text>
+          </View>
           <NotificationBell navigation={navigation} />
         </View>
 
@@ -129,17 +134,23 @@ export default function BrokerDashboardScreen({ navigation }: any) {
         {loading ? (
           <CardSkeleton />
         ) : openLoads.length === 0 ? (
-          <EmptyCard emoji="✓" title="All loads matched" body="Nothing waiting. New loads will appear here." />
+          <EmptyCard
+            iconName="check-circle"
+            iconColor={TEAL_FG}
+            title="All loads matched"
+            body="Nothing waiting. When a cargo owner posts a load, or you post one for an offline owner, it appears here."
+          />
         ) : (
           openLoads.map((load) => (
             <View key={load.id} style={styles.loadCard}>
               <View style={styles.loadHeader}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.loadTitle} numberOfLines={1}>{load.title}</Text>
-                  <Text style={styles.loadRoute}>{load.pickupCity} → {load.deliveryCity}</Text>
+                  <Text style={styles.loadRoute}>{load.pickupCity} to {load.deliveryCity}</Text>
                 </View>
                 {isUrgent(load.scheduledDate) && (
                   <View style={styles.urgentBadge}>
+                    <Feather name="alert-triangle" size={10} color={AMBER_FG} style={{ marginRight: 4 }} />
                     <Text style={styles.urgentText}>URGENT</Text>
                   </View>
                 )}
@@ -160,7 +171,8 @@ export default function BrokerDashboardScreen({ navigation }: any) {
                   onPress={() => navigation.navigate('FindTruck', { loadId: load.id })}
                   activeOpacity={0.85}
                 >
-                  <Text style={styles.findBtnText}>Find a truck ↗</Text>
+                  <Text style={styles.findBtnText}>Find a truck</Text>
+                  <Feather name="arrow-up-right" size={14} color="#FFFFFF" style={{ marginLeft: 4 }} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -172,7 +184,12 @@ export default function BrokerDashboardScreen({ navigation }: any) {
         {loading ? (
           <CardSkeleton />
         ) : inTransit.length === 0 ? (
-          <EmptyCard emoji="—" title="Nothing in transit" body="Dispatches you make will appear here while on the road." />
+          <EmptyCard
+            iconName="truck"
+            iconColor={SUBTLE}
+            title="Nothing in transit"
+            body="Dispatches you make will appear here while the truck is on the road."
+          />
         ) : (
           inTransit.map((b: any) => (
             <View key={b.id} style={styles.transitCard}>
@@ -180,7 +197,7 @@ export default function BrokerDashboardScreen({ navigation }: any) {
                 <View style={{ flex: 1 }}>
                   <Text style={styles.loadTitle} numberOfLines={1}>{b.load?.title || 'Load'}</Text>
                   <Text style={styles.loadRoute}>
-                    {b.load?.pickupCity} → {b.load?.deliveryCity}
+                    {b.load?.pickupCity} to {b.load?.deliveryCity}
                   </Text>
                 </View>
                 <View style={styles.liveBadge}>
@@ -199,7 +216,8 @@ export default function BrokerDashboardScreen({ navigation }: any) {
                 onPress={() => navigation.navigate('Tracking', { bookingId: b.id })}
                 activeOpacity={0.85}
               >
-                <Text style={styles.trackBtnText}>Track shipment ↗</Text>
+                <Text style={styles.trackBtnText}>Track shipment</Text>
+                <Feather name="arrow-up-right" size={14} color={NAVY} style={{ marginLeft: 4 }} />
               </TouchableOpacity>
             </View>
           ))
@@ -228,10 +246,10 @@ function MetaPill({ label }: { label: string }) {
   );
 }
 
-function EmptyCard({ emoji, title, body }: { emoji: string; title: string; body: string }) {
+function EmptyCard({ iconName, iconColor, title, body }: { iconName: any; iconColor: string; title: string; body: string }) {
   return (
     <View style={styles.emptyCard}>
-      <Text style={styles.emptyEmoji}>{emoji}</Text>
+      <Feather name={iconName} size={28} color={iconColor} style={{ marginBottom: 10 }} />
       <Text style={styles.emptyTitle}>{title}</Text>
       <Text style={styles.emptyBody}>{body}</Text>
     </View>
@@ -261,8 +279,9 @@ const styles = StyleSheet.create({
   content:       { padding: 20, paddingBottom: 40 },
 
   /* top bar */
-  topBar:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 },
+  topBar:        { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 },
   topBarTitle:   { fontSize: 18, fontWeight: '600', color: TEXT, letterSpacing: -0.3 },
+  topBarSub:     { fontSize: 12, color: MUTED, marginTop: 2, maxWidth: 280 },
 
   /* hero */
   hero:          { backgroundColor: NAVY, borderRadius: 16, padding: 24, marginBottom: 20 },
@@ -287,14 +306,14 @@ const styles = StyleSheet.create({
   loadHeader:    { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 10 },
   loadTitle:     { fontSize: 15, fontWeight: '600', color: TEXT, marginBottom: 3 },
   loadRoute:     { fontSize: 13, color: MUTED },
-  urgentBadge:   { backgroundColor: AMBER_BG, borderColor: AMBER_BD, borderWidth: 1, borderRadius: 99, paddingHorizontal: 10, paddingVertical: 3 },
+  urgentBadge:   { flexDirection: 'row', alignItems: 'center', backgroundColor: AMBER_BG, borderColor: AMBER_BD, borderWidth: 1, borderRadius: 99, paddingHorizontal: 10, paddingVertical: 3 },
   urgentText:    { fontSize: 10, fontWeight: '700', color: AMBER_FG, letterSpacing: 1 },
   loadMeta:      { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 14 },
   metaPill:      { backgroundColor: BG, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
   metaPillText:  { fontSize: 11, color: MUTED, fontWeight: '500' },
   loadFooter:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   loadPrice:     { fontSize: 16, fontWeight: '700', color: TEXT, letterSpacing: -0.3 },
-  findBtn:       { backgroundColor: BLUE, borderRadius: 10, paddingHorizontal: 16, paddingVertical: 10 },
+  findBtn:       { flexDirection: 'row', alignItems: 'center', backgroundColor: BLUE, borderRadius: 10, paddingHorizontal: 16, paddingVertical: 10 },
   findBtnText:   { color: '#FFFFFF', fontSize: 13, fontWeight: '600' },
 
   /* transit card */
@@ -306,12 +325,11 @@ const styles = StyleSheet.create({
   transitRow:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, borderTopWidth: 1, borderTopColor: BORDER, marginBottom: 14 },
   transitLabel:  { fontSize: 12, color: SUBTLE, fontWeight: '500' },
   transitValue:  { fontSize: 13, color: TEXT, fontWeight: '500' },
-  trackBtn:      { backgroundColor: BG, borderColor: BORDER, borderWidth: 1, borderRadius: 10, paddingVertical: 10, alignItems: 'center' },
+  trackBtn:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: BG, borderColor: BORDER, borderWidth: 1, borderRadius: 10, paddingVertical: 10 },
   trackBtnText:  { color: NAVY, fontSize: 13, fontWeight: '600' },
 
   /* empty + skeleton */
   emptyCard:     { backgroundColor: CARD, borderRadius: 14, padding: 24, alignItems: 'center', borderWidth: 1, borderColor: BORDER },
-  emptyEmoji:    { fontSize: 32, marginBottom: 10, color: SUBTLE },
   emptyTitle:    { fontSize: 14, fontWeight: '600', color: TEXT, marginBottom: 4 },
   emptyBody:     { fontSize: 13, color: MUTED, textAlign: 'center', maxWidth: 280, lineHeight: 20 },
   skelCard:      { backgroundColor: CARD, borderRadius: 14, padding: 18, marginBottom: 10, borderWidth: 1, borderColor: BORDER },

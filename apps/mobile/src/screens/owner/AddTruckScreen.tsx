@@ -3,10 +3,12 @@ import {
   View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Image,
   StatusBar, Alert, ActivityIndicator, KeyboardAvoidingView, Platform,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import api from '../../lib/api';
 import { TRUCK_TYPES, COUNTRIES } from '../../lib/constants';
+import { formatApiError } from '../../lib/errors';
 import { theme } from '../../theme';
 
 function Field({ label, value, onChangeText, placeholder, keyboardType = 'default' }: any) {
@@ -59,7 +61,7 @@ export default function AddTruckScreen({ navigation }: any) {
 
   const pickDoc = async (label: string) => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') { Alert.alert('Permission needed', 'Please allow photo library access.'); return; }
+    if (status !== 'granted') { Alert.alert('Photo access needed', 'Allow photo library access in settings to attach documents.'); return; }
     const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.7 });
     if (!result.canceled && result.assets?.[0]) {
       setDocs(prev => [...prev.filter(d => d.label !== label), { label, uri: result.assets[0].uri }]);
@@ -75,9 +77,9 @@ export default function AddTruckScreen({ navigation }: any) {
   };
 
   const handleSubmit = async () => {
-    if (!form.currentCity.trim()) { Alert.alert('Missing Info', 'Please enter the truck\'s current city.'); return; }
-    const err = validate();
-    if (err) { Alert.alert('Missing Info', err); return; }
+    if (!form.currentCity.trim()) { Alert.alert('Missing info', "Please enter the truck's current city."); return; }
+    const validationError = validate();
+    if (validationError) { Alert.alert('Missing info', validationError); return; }
 
     setLoading(true);
     try {
@@ -88,11 +90,11 @@ export default function AddTruckScreen({ navigation }: any) {
         currentCity: form.currentCity,
         currentCountry: form.currentCountry,
       });
-      Alert.alert('Truck Added!', 'Your truck has been added to your fleet.', [
-        { text: 'OK', onPress: () => navigation.goBack() },
+      Alert.alert('Truck added', 'Brokers can now dispatch loads to this truck.', [
+        { text: 'Done', onPress: () => navigation.goBack() },
       ]);
-    } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message || 'Failed to add truck. Try again.');
+    } catch (err: any) {
+      Alert.alert("Couldn't add truck", formatApiError(err, "We couldn't add the truck. Please try again.", 'truck'));
     } finally {
       setLoading(false);
     }
@@ -107,19 +109,21 @@ export default function AddTruckScreen({ navigation }: any) {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Text style={styles.cancel}>Cancel</Text>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Add Truck</Text>
+          <Text style={styles.headerTitle}>Add a truck</Text>
           <View style={{ width: 56 }} />
         </View>
 
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          <Field label="Plate Number *" value={form.plateNumber} onChangeText={set('plateNumber')} placeholder="e.g. AA-12345" />
-          <PickerRow label="Truck Type" value={form.truckType} options={TRUCK_TYPES} onChange={set('truckType')} />
+          <Text style={styles.subtitle}>Register a truck so brokers can dispatch loads to it.</Text>
+
+          <Field label="Plate number *" value={form.plateNumber} onChangeText={set('plateNumber')} placeholder="e.g. AA-12345" />
+          <PickerRow label="Truck type" value={form.truckType} options={TRUCK_TYPES} onChange={set('truckType')} />
           <Field label="Capacity (tons) *" value={form.capacityTons} onChangeText={set('capacityTons')} placeholder="e.g. 30" keyboardType="decimal-pad" />
-          <Field label="Current City *" value={form.currentCity} onChangeText={set('currentCity')} placeholder="e.g. Addis Ababa" />
-          <PickerRow label="Current Country" value={form.currentCountry} options={COUNTRIES} onChange={set('currentCountry')} />
+          <Field label="Current city *" value={form.currentCity} onChangeText={set('currentCity')} placeholder="e.g. Addis Ababa" />
+          <PickerRow label="Current country" value={form.currentCountry} options={COUNTRIES} onChange={set('currentCountry')} />
 
           {/* Document uploads */}
-          <Text style={styles.docSectionLabel}>DOCUMENTS (OPTIONAL)</Text>
+          <Text style={styles.docSectionLabel}>Documents (optional)</Text>
           {['Vehicle registration', 'Insurance certificate', 'Truck photo'].map(label => {
             const doc = docs.find(d => d.label === label);
             return (
@@ -137,7 +141,7 @@ export default function AddTruckScreen({ navigation }: any) {
                 </View>
                 {doc && (
                   <TouchableOpacity onPress={() => setDocs(prev => prev.filter(d => d.label !== label))}>
-                    <Text style={styles.docRemove}>✕</Text>
+                    <Feather name="x" size={16} color={theme.danger} style={{ padding: 4 }} />
                   </TouchableOpacity>
                 )}
               </TouchableOpacity>
@@ -149,10 +153,14 @@ export default function AddTruckScreen({ navigation }: any) {
             onPress={handleSubmit}
             disabled={loading}
           >
-            {loading
-              ? <ActivityIndicator color={theme.darkGreen} />
-              : <Text style={styles.submitText}>Add Truck</Text>
-            }
+            {loading ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <ActivityIndicator color={theme.darkGreen} />
+                <Text style={styles.submitText}>Adding truck...</Text>
+              </View>
+            ) : (
+              <Text style={styles.submitText}>Add truck</Text>
+            )}
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -166,20 +174,20 @@ const styles = StyleSheet.create({
   cancel:         { fontSize: 15, color: theme.accent, fontWeight: '500' },
   content:        { padding: 16, paddingBottom: 40 },
   field:          { marginBottom: 16 },
-  fieldLabel:     { fontSize: 11, fontWeight: '500', color: theme.textMuted, marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.9 },
+  fieldLabel:     { fontSize: 12, fontWeight: '600', color: theme.textMuted, marginBottom: 8 },
+  subtitle:       { fontSize: 13, color: theme.textMuted, marginBottom: 20 },
   input:          { backgroundColor: theme.surface, color: theme.text, borderRadius: 12, paddingHorizontal: 14, height: 52, fontSize: 15 },
   chip:           { borderRadius: 999, paddingHorizontal: 16, height: 36, justifyContent: 'center', alignItems: 'center', backgroundColor: theme.surface2 },
   chipActive:     { backgroundColor: theme.accent },
   chipText:       { fontSize: 13, fontWeight: '500', color: theme.textMuted },
   chipTextActive: { color: theme.darkGreen },
-  docSectionLabel:{ fontSize: 11, fontWeight: '500', color: theme.textMuted, textTransform: 'uppercase', letterSpacing: 0.9, marginTop: 20, marginBottom: 10 },
+  docSectionLabel:{ fontSize: 12, fontWeight: '600', color: theme.textMuted, marginTop: 20, marginBottom: 10 },
   docRow:         { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.surface, borderRadius: 12, padding: 14, marginBottom: 8, gap: 12 },
   docLabel:       { fontSize: 14, fontWeight: '500', color: theme.text, marginBottom: 4 },
   docHint:        { fontSize: 13, color: theme.textMuted, fontWeight: '400' },
   docPreview:     { flexDirection: 'row', alignItems: 'center', gap: 8 },
   docThumb:       { width: 32, height: 32, borderRadius: 6 },
   docAdded:       { fontSize: 13, color: theme.accent, fontWeight: '500' },
-  docRemove:      { fontSize: 16, color: theme.danger, padding: 4 },
   submitBtn:      { backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 13, alignItems: 'center', marginTop: 10 },
-  submitText:     { color: theme.darkGreen, fontSize: 13, fontWeight: '500' },
+  submitText:     { color: theme.darkGreen, fontSize: 14, fontWeight: '600' },
 });

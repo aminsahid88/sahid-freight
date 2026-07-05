@@ -4,6 +4,7 @@ import {
   RefreshControl, StatusBar, Alert, Modal,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { Feather } from '@expo/vector-icons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import api from '../../lib/api';
 import { theme } from '../../theme';
@@ -31,25 +32,25 @@ function LoadActionSheet({ load, onClose, onEdit, onDuplicate, onDelete, onCance
     console.log('[KebabMenu] v2 status:', JSON.stringify(status), 'bidCount:', bidCount, '_count:', JSON.stringify(load._count), 'raw status:', JSON.stringify(load.status));
   }
 
-  type MenuItem = { label: string; icon: string; color?: string; onPress: () => void };
+  type MenuItem = { label: string; icon: keyof typeof Feather.glyphMap; color?: string; onPress: () => void };
   const items: MenuItem[] = [];
 
   // Edit — OPEN only
   if (status === 'OPEN') {
-    items.push({ label: 'Edit', icon: '✏️', onPress: () => onEdit(load.id) });
+    items.push({ label: 'Edit load', icon: 'edit-2', onPress: () => onEdit(load.id) });
   }
 
   // Duplicate — always
-  items.push({ label: 'Duplicate', icon: '📋', onPress: () => onDuplicate(load) });
+  items.push({ label: 'Duplicate load', icon: 'copy', onPress: () => onDuplicate(load) });
 
   // Mark as complete — IN_TRANSIT only
   if (status === 'IN_TRANSIT') {
     items.push({
-      label: 'Mark as complete', icon: '✅', color: theme.accent,
+      label: 'Mark as complete', icon: 'check-circle', color: theme.accent,
       onPress: () => Alert.alert(
         'Mark this load as complete?',
-        'Use this only if the driver finished the trip but didn\'t update the app.',
-        [{ text: 'Not yet', style: 'cancel' }, { text: 'Yes, complete', onPress: () => onComplete(load.id) }],
+        "Only do this if the driver finished the trip but didn't update the app.",
+        [{ text: 'Not yet', style: 'cancel' }, { text: 'Mark complete', onPress: () => onComplete(load.id) }],
       ),
     });
   }
@@ -57,12 +58,12 @@ function LoadActionSheet({ load, onClose, onEdit, onDuplicate, onDelete, onCance
   // Cancel load — OPEN with bids OR BOOKED
   if ((status === 'OPEN' && bidCount > 0) || status === 'BOOKED') {
     const msg = status === 'BOOKED'
-      ? 'The driver will be notified. There may be a cancellation fee depending on your terms.'
-      : 'All bidders will be notified and bids closed.';
+      ? "The truck owner will be notified and can't dispatch to this load anymore. A cancellation fee may apply."
+      : "The broker won't be able to dispatch a truck to this load after this.";
     items.push({
-      label: 'Cancel load', icon: '✕', color: theme.danger,
+      label: 'Cancel load', icon: 'x-circle', color: theme.danger,
       onPress: () => Alert.alert('Cancel this load?', msg, [
-        { text: 'Keep', style: 'cancel' },
+        { text: 'Keep it', style: 'cancel' },
         { text: 'Cancel load', style: 'destructive', onPress: () => onCancel(load.id) },
       ]),
     });
@@ -71,9 +72,9 @@ function LoadActionSheet({ load, onClose, onEdit, onDuplicate, onDelete, onCance
   // Delete — OPEN with no bids, DRAFT, or CANCELLED
   if ((status === 'OPEN' && bidCount === 0) || status === 'DRAFT' || status === 'CANCELLED') {
     items.push({
-      label: 'Delete', icon: '🗑', color: theme.danger,
-      onPress: () => Alert.alert('Delete this load?', 'This cannot be undone.', [
-        { text: 'Keep', style: 'cancel' },
+      label: 'Delete load', icon: 'trash-2', color: theme.danger,
+      onPress: () => Alert.alert('Delete this load?', "This can't be undone.", [
+        { text: 'Keep it', style: 'cancel' },
         { text: 'Delete', style: 'destructive', onPress: () => onDelete(load.id) },
       ]),
     });
@@ -87,13 +88,14 @@ function LoadActionSheet({ load, onClose, onEdit, onDuplicate, onDelete, onCance
         <Text style={styles.sheetTitle} numberOfLines={1}>{load.title}</Text>
         {items.map((item, i) => (
           <TouchableOpacity key={i} style={styles.sheetRow} onPress={item.onPress}>
+            <Feather name={item.icon} size={18} color={item.color || theme.text} />
             <Text style={[styles.sheetRowText, item.color ? { color: item.color } : undefined]}>
-              {item.icon}  {item.label}
+              {item.label}
             </Text>
           </TouchableOpacity>
         ))}
-        <TouchableOpacity style={[styles.sheetRow, { marginTop: 8, borderBottomWidth: 0 }]} onPress={onClose}>
-          <Text style={[styles.sheetRowText, { color: theme.textSecondary, textAlign: 'center' }]}>Cancel</Text>
+        <TouchableOpacity style={[styles.sheetRow, styles.sheetCancel]} onPress={onClose}>
+          <Text style={[styles.sheetRowText, { color: theme.textSecondary, textAlign: 'center', flex: 1 }]}>Close</Text>
         </TouchableOpacity>
       </View>
     </Modal>
@@ -138,11 +140,15 @@ export default function MyLoadsScreen({ navigation }: any) {
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>My Loads</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.title}>My loads</Text>
+          <Text style={styles.subtitle}>Every load you've posted, in one place.</Text>
+        </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <NotificationBell navigation={navigation} />
           <TouchableOpacity style={styles.newBtn} onPress={() => navigation.navigate('PostLoad')}>
-            <Text style={styles.newBtnText}>+ New</Text>
+            <Feather name="plus" size={14} color={theme.darkGreen} />
+            <Text style={styles.newBtnText}>New load</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -169,10 +175,10 @@ export default function MyLoadsScreen({ navigation }: any) {
         <SkeletonList count={5} />
       ) : filtered.length === 0 ? (
         <EmptyState
-          emoji="📦"
-          title={filter === 'ALL' ? 'No loads yet' : `No ${filter.replace(/_/g, ' ')} loads`}
-          subtitle="Post a load and a broker will match it with a truck."
-          buttonLabel="Post a Load"
+          icon="package"
+          title={filter === 'ALL' ? 'No loads yet' : `No ${filter.replace(/_/g, ' ').toLowerCase()} loads`}
+          subtitle="Post your first load and a broker will match it with a verified truck."
+          buttonLabel="Post a load"
           onButton={() => navigation.navigate('PostLoad')}
         />
       ) : (
@@ -199,7 +205,7 @@ export default function MyLoadsScreen({ navigation }: any) {
                     onPress={() => setMenuLoad(item)}
                     hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
                   >
-                    <Text style={styles.kebabText}>⋮</Text>
+                    <Feather name="more-vertical" size={16} color={theme.textSecondary} />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -240,21 +246,21 @@ export default function MyLoadsScreen({ navigation }: any) {
           try {
             await api.delete(`/loads/${id}`);
             setLoads(prev => prev.filter(l => l.id !== id));
-          } catch (e: any) { Alert.alert('Error', formatApiError(e, 'Could not delete load.')); }
+          } catch (e: any) { Alert.alert('Load not deleted', formatApiError(e, "We couldn't delete this load. Please try again.", 'load')); }
         }}
         onCancel={async (id) => {
           setMenuLoad(null);
           try {
             await api.patch(`/loads/${id}/cancel`);
             await fetch();
-          } catch (e: any) { Alert.alert('Error', formatApiError(e, 'Could not cancel load.')); }
+          } catch (e: any) { Alert.alert('Load not cancelled', formatApiError(e, "We couldn't cancel this load. Please try again.", 'load')); }
         }}
         onComplete={async (id) => {
           setMenuLoad(null);
           try {
             await api.patch(`/loads/${id}/complete`);
             await fetch();
-          } catch (e: any) { Alert.alert('Error', formatApiError(e, 'Could not complete load.')); }
+          } catch (e: any) { Alert.alert('Load not updated', formatApiError(e, "We couldn't mark this load as complete. Please try again.", 'load')); }
         }}
       />
     </ScreenWrapper>
@@ -262,9 +268,10 @@ export default function MyLoadsScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  header:          { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, paddingBottom: 8, backgroundColor: theme.bg },
+  header:          { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', padding: 16, paddingBottom: 8, backgroundColor: theme.bg, gap: 12 },
   title:           { fontSize: 22, fontWeight: '500', color: theme.text },
-  newBtn:          { backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 13, paddingHorizontal: 16 },
+  subtitle:        { fontSize: 13, color: theme.textMuted, marginTop: 4 },
+  newBtn:          { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 10, paddingHorizontal: 14 },
   newBtnText:      { color: theme.darkGreen, fontSize: 13, fontWeight: '500' },
   filterWrap:      { height: 52, justifyContent: 'center', paddingVertical: 0 },
   list:            { padding: 16, paddingTop: 8 },
@@ -274,7 +281,6 @@ const styles = StyleSheet.create({
   cardRoute:       { fontSize: 13, color: theme.textMuted, fontWeight: '400' },
   cardRight:       { flexDirection: 'row', alignItems: 'center', gap: 8 },
   kebab:           { width: 32, height: 32, alignItems: 'center', justifyContent: 'center', borderRadius: 16, backgroundColor: theme.surface2 },
-  kebabText:       { color: theme.textSecondary, fontSize: 18, fontWeight: '400', lineHeight: 20 },
   cardDivider:     { height: 0.5, backgroundColor: theme.border, marginBottom: 12 },
   cardBottom:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   cardMeta:        { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 },
@@ -288,6 +294,7 @@ const styles = StyleSheet.create({
   sheet:           { backgroundColor: theme.surface, borderTopLeftRadius: 14, borderTopRightRadius: 14, padding: 16, paddingBottom: 32 },
   sheetHandle:     { width: 36, height: 4, backgroundColor: theme.border, borderRadius: 2, alignSelf: 'center', marginBottom: 16 },
   sheetTitle:      { fontSize: 15, fontWeight: '500', color: theme.text, marginBottom: 12, paddingHorizontal: 4 },
-  sheetRow:        { paddingVertical: 14, borderBottomWidth: 0.5, borderBottomColor: theme.border },
+  sheetRow:        { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, paddingHorizontal: 4, borderBottomWidth: 0.5, borderBottomColor: theme.border },
+  sheetCancel:     { marginTop: 8, borderBottomWidth: 0, justifyContent: 'center' },
   sheetRowText:    { fontSize: 14, color: theme.text, fontWeight: '500' },
 });

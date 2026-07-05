@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, TouchableOpacity, Text } from 'react-native';
+import { View, TouchableOpacity } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { theme } from '../theme';
 
 interface Props {
@@ -11,11 +12,18 @@ interface Props {
 export function StarRating({ value, onChange, size = 24 }: Props) {
   return (
     <View style={{ flexDirection: 'row', gap: 6 }}>
-      {[1,2,3,4,5].map(s => (
-        <TouchableOpacity key={s} onPress={() => onChange?.(s)} disabled={!onChange}>
-          <Text style={{ fontSize: size, color: s <= value ? theme.warning : theme.border }}>★</Text>
-        </TouchableOpacity>
-      ))}
+      {[1, 2, 3, 4, 5].map(s => {
+        const filled = s <= value;
+        return (
+          <TouchableOpacity key={s} onPress={() => onChange?.(s)} disabled={!onChange}>
+            <MaterialCommunityIcons
+              name={filled ? 'star' : 'star-outline'}
+              size={size}
+              color={filled ? theme.warning : theme.border}
+            />
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 }

@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
   StatusBar, RefreshControl,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import api from '../../lib/api';
 import { theme } from '../../theme';
@@ -28,18 +29,36 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-function notifIcon(type: string): string {
-  const map: Record<string, string> = {
-    BID_RECEIVED: '🤝',
-    BID_ACCEPTED: '✅',
-    BID_REJECTED: '❌',
-    LOAD_BOOKED: '📦',
-    IN_TRANSIT: '🚛',
-    DELIVERED: '🎉',
-    PAYMENT: '💰',
-    SYSTEM: '🔔',
+type FeatherName = keyof typeof Feather.glyphMap;
+
+function notifIcon(type: string): FeatherName {
+  const map: Record<string, FeatherName> = {
+    BID_RECEIVED: 'inbox',
+    BID_ACCEPTED: 'check-circle',
+    BID_REJECTED: 'x-circle',
+    LOAD_BOOKED: 'package',
+    IN_TRANSIT: 'truck',
+    DELIVERED: 'check-circle',
+    PAYMENT: 'dollar-sign',
+    SYSTEM: 'bell',
   };
-  return map[type] || '🔔';
+  return map[type] || 'bell';
+}
+
+function notifIconColor(type: string): string {
+  switch (type) {
+    case 'BID_ACCEPTED':
+    case 'DELIVERED':
+      return theme.accent;
+    case 'BID_REJECTED':
+      return theme.danger;
+    case 'PAYMENT':
+      return theme.accent;
+    case 'IN_TRANSIT':
+      return theme.blue;
+    default:
+      return theme.textMuted;
+  }
 }
 
 export default function NotificationsScreen({ navigation }: any) {
@@ -107,7 +126,7 @@ export default function NotificationsScreen({ navigation }: any) {
       activeOpacity={0.7}
     >
       <View style={styles.iconBox}>
-        <Text style={styles.iconText}>{notifIcon(item.type)}</Text>
+        <Feather name={notifIcon(item.type)} size={20} color={notifIconColor(item.type)} />
       </View>
       <View style={styles.content}>
         <View style={styles.row}>
@@ -127,7 +146,10 @@ export default function NotificationsScreen({ navigation }: any) {
       <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
 
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Notifications</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.headerTitle}>Notifications</Text>
+          <Text style={styles.headerSub}>Updates about your loads, bookings, and trucks.</Text>
+        </View>
         {unreadCount > 0 && (
           <TouchableOpacity onPress={markAllRead}>
             <Text style={styles.markAll}>Mark all read</Text>
@@ -151,7 +173,11 @@ export default function NotificationsScreen({ navigation }: any) {
           }
           contentContainerStyle={notifications.length === 0 ? { flex: 1 } : { paddingBottom: 20 }}
           ListEmptyComponent={
-            <EmptyState emoji="🔔" title="No notifications" subtitle="You're all caught up!" />
+            <EmptyState
+              icon="bell"
+              title="You're all caught up"
+              subtitle="Updates about your loads, bookings, and trucks will appear here."
+            />
           }
           ItemSeparatorComponent={() => <View style={styles.separator} />}
         />
@@ -172,6 +198,7 @@ const styles = StyleSheet.create({
     borderBottomColor: theme.border,
   },
   headerTitle: { color: theme.text, fontSize: 22, fontWeight: '500' },
+  headerSub:   { color: theme.textMuted, fontSize: 13, marginTop: 2 },
   markAll:     { color: theme.accent, fontSize: 13, fontWeight: '500' },
   item: {
     flexDirection: 'row',
@@ -194,7 +221,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 12,
   },
-  iconText: { fontSize: 20 },
   content:  { flex: 1 },
   row:      { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
   title:    { fontSize: 14, fontWeight: '400', color: theme.text, flex: 1, marginRight: 8 },

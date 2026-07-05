@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   RefreshControl, StatusBar, Alert, ActivityIndicator, Linking,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import api from '../../lib/api';
 import { theme } from '../../theme';
@@ -56,11 +57,11 @@ export default function LoadDetailScreen({ route, navigation }: any) {
   const handleAccept = async (bidId: string) => {
     if (!user?.isVerified) {
       Alert.alert(
-        'Complete your verification',
-        'You need to upload all required documents and have them approved before you can accept a bid.',
+        'Finish verification first',
+        'Upload your documents and wait for approval before accepting a truck offer.',
         [
-          { text: 'Go to Verification', onPress: () => navigation.navigate('Verification') },
-          { text: 'Cancel', style: 'cancel' },
+          { text: 'Go to verification', onPress: () => navigation.navigate('Verification') },
+          { text: 'Not now', style: 'cancel' },
         ],
       );
       return;
@@ -70,15 +71,15 @@ export default function LoadDetailScreen({ route, navigation }: any) {
       await api.patch(`/bids/${bidId}/accept`);
       await fetch();
     } catch (e: any) {
-      Alert.alert('Error', formatApiError(e, 'Could not accept bid.'));
+      Alert.alert('Offer not accepted', formatApiError(e, "We couldn't accept this offer. Please try again.", 'booking'));
     } finally {
       setActionLoading(null);
     }
   };
 
   const handleReject = async (bidId: string) => {
-    Alert.alert('Reject Bid', 'Are you sure you want to reject this bid?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert('Reject this offer?', "The truck owner will be notified and won't be dispatched to this load.", [
+      { text: 'Keep it', style: 'cancel' },
       {
         text: 'Reject', style: 'destructive',
         onPress: async () => {
@@ -87,7 +88,7 @@ export default function LoadDetailScreen({ route, navigation }: any) {
             await api.patch(`/bids/${bidId}/reject`);
             await fetch();
           } catch (e: any) {
-            Alert.alert('Error', formatApiError(e, 'Could not reject bid.'));
+            Alert.alert('Offer not rejected', formatApiError(e, "We couldn't reject this offer. Please try again.", 'booking'));
           } finally {
             setActionLoading(null);
           }
@@ -101,7 +102,7 @@ export default function LoadDetailScreen({ route, navigation }: any) {
       await api.patch(`/bookings/${bookingId}/rate`, { rating });
       await fetch();
     } catch (e: any) {
-      Alert.alert('Error', formatApiError(e, 'Could not submit rating.'));
+      Alert.alert('Rating not saved', formatApiError(e, "We couldn't save your rating. Please try again.", 'booking'));
     }
   };
 
@@ -118,7 +119,7 @@ export default function LoadDetailScreen({ route, navigation }: any) {
     return (
       <ScreenWrapper>
         <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
-        <EmptyState emoji="❌" title="Load not found" subtitle="This load may have been deleted." />
+        <EmptyState icon="alert-triangle" title="Load not found" subtitle="This load may have been deleted or is no longer available." />
       </ScreenWrapper>
     );
   }
@@ -145,7 +146,8 @@ export default function LoadDetailScreen({ route, navigation }: any) {
       {/* Top bar */}
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.back}>
-          <Text style={styles.backText}>‹ Back</Text>
+          <Feather name="arrow-left" size={18} color={theme.accent} />
+          <Text style={styles.backText}>Back</Text>
         </TouchableOpacity>
         <StatusBadge status={load.status} />
       </View>
@@ -162,18 +164,22 @@ export default function LoadDetailScreen({ route, navigation }: any) {
         {/* Details card */}
         <View style={styles.card}>
           <Row label="Weight" value={`${load.weightTons} tons`} />
-          <Row label="Truck Type" value={load.truckTypeNeeded?.replace(/_/g, ' ')} />
-          <Row label="Pickup Country" value={load.pickupCountry} />
-          <Row label="Delivery Country" value={load.deliveryCountry} />
-          <Row label="Offered Price" value={formatPrice(load.offeredPrice, load.currency)} bold />
+          <Row label="Truck type" value={load.truckTypeNeeded?.replace(/_/g, ' ')} />
+          <Row label="Pickup country" value={load.pickupCountry} />
+          <Row label="Delivery country" value={load.deliveryCountry} />
+          <Row label="Offered price" value={formatPrice(load.offeredPrice, load.currency)} bold />
           {load.description && <Row label="Notes" value={load.description} />}
         </View>
 
-        {/* Sender-facing dispatch status card (broker-pivot replacement for the bids panel) */}
+        {/* Cargo-owner-facing dispatch status card (broker-pivot replacement for the bids panel) */}
         {isLookingForTruck && (
           <View style={styles.statusCard}>
-            <Text style={styles.statusEmoji}>🔍</Text>
-            <Text style={styles.statusTitle}>Finding you a truck</Text>
+            <View style={styles.statusHeader}>
+              <View style={styles.statusIcon}>
+                <Feather name="search" size={20} color={theme.accent} />
+              </View>
+              <Text style={styles.statusTitle}>Finding you a truck</Text>
+            </View>
             <Text style={styles.statusBody}>
               A broker is matching your load with the right truck. You'll be notified as soon as one is dispatched.
             </Text>
@@ -183,7 +189,9 @@ export default function LoadDetailScreen({ route, navigation }: any) {
         {dispatchedBooking && (
           <View style={styles.statusCard}>
             <View style={styles.statusHeader}>
-              <Text style={styles.statusEmoji}>🚛</Text>
+              <View style={styles.statusIcon}>
+                <Feather name="truck" size={20} color={theme.accent} />
+              </View>
               <Text style={styles.statusTitle}>{dispatchTitle}</Text>
             </View>
             <View style={styles.statusRow}>
@@ -195,7 +203,7 @@ export default function LoadDetailScreen({ route, navigation }: any) {
             </View>
             {dispatchedBooking.owner?.fullName && (
               <View style={styles.statusRow}>
-                <Text style={styles.statusLabel}>Owner</Text>
+                <Text style={styles.statusLabel}>Truck owner</Text>
                 <Text style={styles.statusValue}>{dispatchedBooking.owner.fullName}</Text>
               </View>
             )}
@@ -208,8 +216,9 @@ export default function LoadDetailScreen({ route, navigation }: any) {
                     <TouchableOpacity
                       onPress={() => Linking.openURL('tel:' + dispatchedBooking.truck.driver.phone)}
                       style={styles.callBtn}
+                      accessibilityLabel="Call driver"
                     >
-                      <Text style={styles.callBtnText}>📞</Text>
+                      <Feather name="phone" size={12} color={theme.accent} />
                     </TouchableOpacity>
                   )}
                 </View>
@@ -225,22 +234,23 @@ export default function LoadDetailScreen({ route, navigation }: any) {
             style={styles.trackBtn}
             onPress={() => navigation.navigate('Tracking', { bookingId: activeBooking.id })}
           >
-            <Text style={styles.trackBtnText}>Track Shipment</Text>
+            <Feather name="map-pin" size={14} color={theme.darkGreen} />
+            <Text style={styles.trackBtnText}>Track load</Text>
           </TouchableOpacity>
         )}
 
-        {/* BIDS — hidden during broker pivot (P2). Section renders only when BIDDING_ENABLED. */}
+        {/* Bids — hidden during broker pivot (P2). Section renders only when BIDDING_ENABLED. */}
         {BIDDING_ENABLED && (<>
-        <Text style={styles.sectionLabel}>BIDS ({bids.length})</Text>
+        <Text style={styles.sectionLabel}>Offers ({bids.length})</Text>
 
         {bids.length === 0 ? (
-          <EmptyState emoji="🤝" title="No bids yet" subtitle="Truck owners will place bids on this load." />
+          <EmptyState icon="users" title="No offers yet" subtitle="Truck owners will send offers on this load." />
         ) : (
           bids.map(bid => (
             <View key={bid.id} style={styles.bidCard}>
               <View style={styles.bidHeader}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.bidOwner}>{bid.truckOwner?.fullName || 'Owner'}</Text>
+                  <Text style={styles.bidOwner}>{bid.truckOwner?.fullName || 'Truck owner'}</Text>
                   <Text style={styles.bidTruck}>
                     {bid.truck?.plateNumber} · {bid.truck?.truckType?.replace(/_/g, ' ')}
                   </Text>
@@ -252,18 +262,20 @@ export default function LoadDetailScreen({ route, navigation }: any) {
                       onPress={() => Linking.openURL('tel:' + bid.truckOwner.phone)}
                       style={styles.callBtn}
                     >
-                      <Text style={styles.callBtnText}>📞 Call</Text>
+                      <Feather name="phone" size={12} color={theme.accent} />
+                      <Text style={styles.callBtnText}>Call</Text>
                     </TouchableOpacity>
                   )}
                   <TouchableOpacity
                     onPress={() => navigation.navigate('Chat', {
                       userId: bid.truckOwner?.id,
-                      userName: bid.truckOwner?.fullName || 'Owner',
+                      userName: bid.truckOwner?.fullName || 'Truck owner',
                       phone: bid.truckOwner?.phone,
                     })}
                     style={styles.msgBtn}
                   >
-                    <Text style={styles.msgBtnText}>💬 Message</Text>
+                    <Feather name="message-circle" size={12} color={theme.blue} />
+                    <Text style={styles.msgBtnText}>Message</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -273,7 +285,7 @@ export default function LoadDetailScreen({ route, navigation }: any) {
                 {bid.message && <Text style={styles.bidNote}>{bid.message}</Text>}
               </View>
 
-              {/* Actions for pending bids */}
+              {/* Actions for pending offers */}
               {bid.status === 'PENDING' && load.status === 'OPEN' && (
                 <View style={styles.bidActions}>
                   <TouchableOpacity
@@ -293,7 +305,7 @@ export default function LoadDetailScreen({ route, navigation }: any) {
                   >
                     {actionLoading === bid.id + '-accept'
                       ? <ActivityIndicator size="small" color={theme.darkGreen} />
-                      : <Text style={styles.acceptText}>Accept</Text>
+                      : <Text style={styles.acceptText}>Accept offer</Text>
                     }
                   </TouchableOpacity>
                 </View>
@@ -302,7 +314,7 @@ export default function LoadDetailScreen({ route, navigation }: any) {
               {/* Rating once the delivery booking is complete */}
               {bid.status === 'ACCEPTED' && load.status === 'DELIVERED' && activeBooking && !activeBooking.senderRating && (
                 <View style={{ marginTop: 12 }}>
-                  <Text style={styles.rateLabel}>Rate this delivery:</Text>
+                  <Text style={styles.rateLabel}>Rate this delivery</Text>
                   <StarRating value={0} onChange={rating => handleRate(activeBooking.id, rating)} />
                 </View>
               )}
@@ -332,18 +344,18 @@ const rowStyles = StyleSheet.create({
 
 const styles = StyleSheet.create({
   topBar:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: theme.bg },
-  back:         { padding: 4 },
+  back:         { flexDirection: 'row', alignItems: 'center', gap: 4, padding: 4 },
   backText:     { fontSize: 15, color: theme.accent, fontWeight: '500' },
   content:      { padding: 16, paddingBottom: 40 },
   title:        { fontSize: 22, fontWeight: '500', color: theme.text, marginBottom: 4 },
   route:        { fontSize: 14, color: theme.textMuted, marginBottom: 16 },
   card:         { backgroundColor: theme.surface, borderRadius: 14, padding: 16, marginBottom: 16 },
   sectionLabel: { fontSize: 11, fontWeight: '500', color: theme.textMuted, textTransform: 'uppercase', letterSpacing: 0.9, marginBottom: 12, marginTop: 8 },
-  trackBtn:     { backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 13, alignItems: 'center', marginBottom: 20 },
+  trackBtn:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 13, marginBottom: 20 },
   trackBtnText: { color: theme.darkGreen, fontSize: 13, fontWeight: '500' },
   statusCard:   { backgroundColor: theme.surface, borderRadius: 14, padding: 16, marginBottom: 16, borderWidth: 0.5, borderColor: theme.border },
   statusHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
-  statusEmoji:  { fontSize: 22 },
+  statusIcon:   { width: 36, height: 36, borderRadius: 18, backgroundColor: theme.accentDim, alignItems: 'center', justifyContent: 'center' },
   statusTitle:  { fontSize: 15, fontWeight: '500', color: theme.text },
   statusBody:   { fontSize: 13, color: theme.textMuted, marginTop: 6, lineHeight: 20 },
   statusRow:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, borderTopWidth: 0.5, borderTopColor: theme.border },
@@ -363,8 +375,8 @@ const styles = StyleSheet.create({
   acceptBtn:    { flex: 1, backgroundColor: theme.accent, borderRadius: 10, padding: 10, alignItems: 'center' },
   acceptText:   { color: theme.darkGreen, fontSize: 13, fontWeight: '500' },
   rateLabel:    { fontSize: 13, color: theme.textMuted, marginBottom: 6 },
-  callBtn:      { backgroundColor: theme.accentDim, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 0.5, borderColor: theme.accentBorder },
+  callBtn:      { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: theme.accentDim, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 0.5, borderColor: theme.accentBorder },
   callBtnText:  { fontSize: 11, fontWeight: '500', color: theme.accent },
-  msgBtn:       { backgroundColor: theme.blueDim, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 0.5, borderColor: theme.blue },
+  msgBtn:       { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: theme.blueDim, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 4, borderWidth: 0.5, borderColor: theme.blue },
   msgBtnText:   { fontSize: 11, fontWeight: '500', color: theme.blue },
 });

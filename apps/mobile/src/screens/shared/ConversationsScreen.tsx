@@ -55,7 +55,7 @@ export default function ConversationsScreen({ navigation }: any) {
       {loading ? (
         <SkeletonList count={5} />
       ) : convs.length === 0 ? (
-        <EmptyState emoji="💬" title="No conversations" subtitle="Message a truck owner or cargo sender to start a conversation." />
+        <EmptyState icon="message-circle" title="No conversations yet" subtitle="Chats about your active loads will appear here once you or the other party sends a message." />
       ) : (
         <FlatList
           data={convs}

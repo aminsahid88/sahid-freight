@@ -4,7 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Text } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import * as SecureStore from 'expo-secure-store';
 
 import { useAuthStore } from '../store/auth';
@@ -73,9 +73,14 @@ const BIDDING_ENABLED = false;
 
 type AppState = 'loading' | 'onboarding' | 'auth' | 'app';
 
-function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
+type FeatherName = React.ComponentProps<typeof Feather>['name'];
+function TabIcon({ name, focused }: { name: FeatherName; focused: boolean }) {
   return (
-    <Text style={{ fontSize: focused ? 20 : 18, opacity: focused ? 1 : 0.35 }}>{emoji}</Text>
+    <Feather
+      name={name}
+      size={22}
+      color={focused ? '#3D7BFF' : '#94A3B8'}
+    />
   );
 }
 
@@ -102,17 +107,17 @@ function SenderTabs() {
       tabBarLabelStyle: { fontSize: 10, fontWeight: '500' as const },
     }}>
       <Tab.Screen name="SenderOverview" component={SenderOverviewScreen}
-        options={{ tabBarLabel: 'Home', tabBarIcon: ({ focused }) => <TabIcon emoji="🏠" focused={focused} /> }} />
+        options={{ tabBarLabel: 'Home', tabBarIcon: ({ focused }) => <TabIcon name="home" focused={focused} /> }} />
       <Tab.Screen name="MyLoads" component={MyLoadsScreen}
-        options={{ tabBarLabel: 'My Loads', tabBarIcon: ({ focused }) => <TabIcon emoji="📦" focused={focused} /> }} />
+        options={{ tabBarLabel: 'My Loads', tabBarIcon: ({ focused }) => <TabIcon name="package" focused={focused} /> }} />
       {BIDDING_ENABLED && (
         <Tab.Screen name="SenderBookings" component={SenderBookingsScreen}
-          options={{ tabBarLabel: 'Bids', tabBarIcon: ({ focused }) => <TabIcon emoji="🤝" focused={focused} /> }} />
+          options={{ tabBarLabel: 'Bids', tabBarIcon: ({ focused }) => <TabIcon name="tag" focused={focused} /> }} />
       )}
       <Tab.Screen name="SenderChat" component={ConversationsScreen}
-        options={{ tabBarLabel: 'Chat', tabBarIcon: ({ focused }) => <TabIcon emoji="💬" focused={focused} /> }} />
+        options={{ tabBarLabel: 'Chat', tabBarIcon: ({ focused }) => <TabIcon name="message-circle" focused={focused} /> }} />
       <Tab.Screen name="SenderProfile" component={ProfileScreen}
-        options={{ tabBarLabel: 'Profile', tabBarIcon: ({ focused }) => <TabIcon emoji="👤" focused={focused} /> }} />
+        options={{ tabBarLabel: 'Profile', tabBarIcon: ({ focused }) => <TabIcon name="user" focused={focused} /> }} />
     </Tab.Navigator>
   );
 }
@@ -128,17 +133,17 @@ function OwnerTabs() {
       tabBarLabelStyle: { fontSize: 10, fontWeight: '500' as const },
     }}>
       <Tab.Screen name="OwnerOverview" component={OwnerOverviewScreen}
-        options={{ tabBarLabel: 'Home', tabBarIcon: ({ focused }) => <TabIcon emoji="🏠" focused={focused} /> }} />
+        options={{ tabBarLabel: 'Home', tabBarIcon: ({ focused }) => <TabIcon name="home" focused={focused} /> }} />
       {BIDDING_ENABLED && (
         <Tab.Screen name="AvailableLoads" component={AvailableLoadsScreen}
-          options={{ tabBarLabel: 'Loads', tabBarIcon: ({ focused }) => <TabIcon emoji="🔍" focused={focused} /> }} />
+          options={{ tabBarLabel: 'Loads', tabBarIcon: ({ focused }) => <TabIcon name="search" focused={focused} /> }} />
       )}
       <Tab.Screen name="OwnerBookings" component={OwnerBookingsScreen}
-        options={{ tabBarLabel: 'Bookings', tabBarIcon: ({ focused }) => <TabIcon emoji="📋" focused={focused} /> }} />
+        options={{ tabBarLabel: 'Bookings', tabBarIcon: ({ focused }) => <TabIcon name="clipboard" focused={focused} /> }} />
       <Tab.Screen name="OwnerChat" component={ConversationsScreen}
-        options={{ tabBarLabel: 'Chat', tabBarIcon: ({ focused }) => <TabIcon emoji="💬" focused={focused} /> }} />
+        options={{ tabBarLabel: 'Chat', tabBarIcon: ({ focused }) => <TabIcon name="message-circle" focused={focused} /> }} />
       <Tab.Screen name="OwnerProfile" component={ProfileScreen}
-        options={{ tabBarLabel: 'Profile', tabBarIcon: ({ focused }) => <TabIcon emoji="👤" focused={focused} /> }} />
+        options={{ tabBarLabel: 'Profile', tabBarIcon: ({ focused }) => <TabIcon name="user" focused={focused} /> }} />
     </Tab.Navigator>
   );
 }
@@ -154,17 +159,17 @@ function BrokerTabs() {
       tabBarLabelStyle: { fontSize: 10, fontWeight: '500' as const },
     }}>
       <Tab.Screen name="BrokerDashboard" component={BrokerDashboardScreen}
-        options={{ tabBarLabel: 'Home', tabBarIcon: ({ focused }) => <TabIcon emoji="🧭" focused={focused} /> }} />
+        options={{ tabBarLabel: 'Home', tabBarIcon: ({ focused }) => <TabIcon name="grid" focused={focused} /> }} />
       <Tab.Screen name="BrokerLoads" component={BrokerLoadsScreen}
-        options={{ tabBarLabel: 'Loads', tabBarIcon: ({ focused }) => <TabIcon emoji="📦" focused={focused} /> }} />
+        options={{ tabBarLabel: 'Loads', tabBarIcon: ({ focused }) => <TabIcon name="package" focused={focused} /> }} />
       <Tab.Screen name="BrokerTrucks" component={BrokerTrucksScreen}
-        options={{ tabBarLabel: 'Trucks', tabBarIcon: ({ focused }) => <TabIcon emoji="🚛" focused={focused} /> }} />
+        options={{ tabBarLabel: 'Trucks', tabBarIcon: ({ focused }) => <TabIcon name="truck" focused={focused} /> }} />
       {/* P5b: BrokerChat replaced by BrokerEarnings. Chat stays reachable via
           navigation.navigate('Chat', …) from booking/load contexts. */}
       <Tab.Screen name="BrokerEarnings" component={BrokerEarningsScreen}
-        options={{ tabBarLabel: 'Earnings', tabBarIcon: ({ focused }) => <TabIcon emoji="💰" focused={focused} /> }} />
+        options={{ tabBarLabel: 'Earnings', tabBarIcon: ({ focused }) => <TabIcon name="dollar-sign" focused={focused} /> }} />
       <Tab.Screen name="BrokerProfile" component={ProfileScreen}
-        options={{ tabBarLabel: 'Profile', tabBarIcon: ({ focused }) => <TabIcon emoji="👤" focused={focused} /> }} />
+        options={{ tabBarLabel: 'Profile', tabBarIcon: ({ focused }) => <TabIcon name="user" focused={focused} /> }} />
     </Tab.Navigator>
   );
 }
@@ -185,9 +190,9 @@ function DriverTabs() {
       tabBarLabelStyle: { fontSize: 10, fontWeight: '500' as const },
     }}>
       <Tab.Screen name="DriverActive" component={DriverActiveScreen}
-        options={{ tabBarLabel: 'Home', tabBarIcon: ({ focused }) => <TabIcon emoji="🏠" focused={focused} /> }} />
+        options={{ tabBarLabel: 'Home', tabBarIcon: ({ focused }) => <TabIcon name="home" focused={focused} /> }} />
       <Tab.Screen name="DriverProfile" component={ProfileScreen}
-        options={{ tabBarLabel: 'Profile', tabBarIcon: ({ focused }) => <TabIcon emoji="👤" focused={focused} /> }} />
+        options={{ tabBarLabel: 'Profile', tabBarIcon: ({ focused }) => <TabIcon name="user" focused={focused} /> }} />
     </Tab.Navigator>
   );
 }

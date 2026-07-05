@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   RefreshControl, StatusBar,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { useAuthStore } from '../../store/auth';
 import api from '../../lib/api';
@@ -59,9 +60,10 @@ export default function SenderOverviewScreen({ navigation }: any) {
       >
         {/* Header */}
         <View style={styles.header}>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={styles.greeting}>Good day,</Text>
-            <Text style={styles.name}>{user?.companyName || user?.fullName || 'Sender'}</Text>
+            <Text style={styles.name}>{user?.companyName || user?.fullName || 'Cargo owner'}</Text>
+            <Text style={styles.subtitle}>Everything happening with your loads today.</Text>
           </View>
           <View style={styles.headerRight}>
             <NotificationBell navigation={navigation} />
@@ -70,27 +72,28 @@ export default function SenderOverviewScreen({ navigation }: any) {
               onPress={() => navigation.navigate('PostLoad')}
               activeOpacity={0.8}
             >
-              <Text style={styles.newBtnText}>+ Post Load</Text>
+              <Feather name="plus" size={16} color={theme.accentText} />
+              <Text style={styles.newBtnText}>Post load</Text>
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* OVERVIEW */}
-        <Text style={styles.sectionLabel}>OVERVIEW</Text>
+        {/* Overview */}
+        <Text style={styles.sectionLabel}>Overview</Text>
         <View style={styles.statsGrid}>
           <View style={styles.statsRow}>
-            <StatCard label="Total Loads" value={stats.total} emoji="📦" color={theme.accent} />
-            <StatCard label="Open" value={stats.open} emoji="🟢" color={theme.success} />
+            <StatCard label="Total loads" value={stats.total} color={theme.accent} />
+            <StatCard label="Open" value={stats.open} color={theme.success} />
           </View>
           <View style={styles.statsRow}>
-            <StatCard label="In Transit" value={stats.inTransit} emoji="🚛" color={theme.warning} />
-            <StatCard label="Delivered" value={stats.delivered} emoji="✅" color={theme.blue} />
+            <StatCard label="In transit" value={stats.inTransit} color={theme.warning} />
+            <StatCard label="Delivered" value={stats.delivered} color={theme.blue} />
           </View>
         </View>
 
-        {/* RECENT LOADS */}
+        {/* Recent loads */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionLabelInline}>RECENT LOADS</Text>
+          <Text style={styles.sectionLabelInline}>Recent loads</Text>
           <TouchableOpacity onPress={() => navigation.navigate('MyLoads')}>
             <Text style={styles.seeAll}>See all</Text>
           </TouchableOpacity>
@@ -100,10 +103,10 @@ export default function SenderOverviewScreen({ navigation }: any) {
           <SkeletonList count={3} />
         ) : recentLoads.length === 0 ? (
           <EmptyState
-            emoji="📭"
+            icon="package"
             title="No loads yet"
-            subtitle="Post your first load and a broker will match it with a truck."
-            buttonLabel="Post a Load"
+            subtitle="Post your first load and a broker will match it with a verified truck."
+            buttonLabel="Post a load"
             onButton={() => navigation.navigate('PostLoad')}
           />
         ) : (
@@ -146,16 +149,24 @@ const styles = StyleSheet.create({
     color: theme.text,
     letterSpacing: -0.3,
   },
+  subtitle: {
+    fontSize: 13,
+    color: theme.textMuted,
+    marginTop: 4,
+  },
   headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
   },
   newBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     backgroundColor: theme.accent,
     borderRadius: 12,
     paddingVertical: 12,
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
     shadowColor: theme.accent,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,

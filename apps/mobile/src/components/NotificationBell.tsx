@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { TouchableOpacity, Text, View, StyleSheet } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import api from '../lib/api';
 import { theme } from '../theme';
 
@@ -30,7 +31,7 @@ export function NotificationBell({ navigation }: Props) {
 
   return (
     <TouchableOpacity style={styles.wrap} onPress={() => navigation.navigate('Notifications')}>
-      <Text style={styles.bell}>🔔</Text>
+      <Feather name="bell" size={20} color={theme.text} />
       {count > 0 && (
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{count > 99 ? '99+' : count}</Text>
@@ -42,7 +43,6 @@ export function NotificationBell({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   wrap:      { width: 38, height: 38, alignItems: 'center', justifyContent: 'center' },
-  bell:      { fontSize: 20 },
   badge:     { position: 'absolute', top: 2, right: 2, backgroundColor: theme.danger, borderRadius: 999, minWidth: 16, height: 16, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
   badgeText: { color: '#fff', fontSize: 9, fontWeight: '500' },
 });

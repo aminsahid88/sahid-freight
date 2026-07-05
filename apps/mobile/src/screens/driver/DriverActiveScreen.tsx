@@ -4,6 +4,7 @@ import {
   StatusBar, Alert, RefreshControl, Linking, Platform, ActivityIndicator,
 } from 'react-native';
 import * as Location from 'expo-location';
+import { Feather } from '@expo/vector-icons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { NotificationBell } from '../../components/NotificationBell';
 import { useAuthStore } from '../../store/auth';
@@ -31,7 +32,6 @@ const DANGER_BG = '#FEF2F2';
 
 export default function DriverActiveScreen({ navigation }: any) {
   const { user } = useAuthStore();
-  const firstName = (user?.fullName || 'Driver').split(' ')[0];
 
   // ── core state ──────────────────────────────────────────────────────
   const [isOnline, setIsOnline] = useState(false);            // driver's manual availability toggle
@@ -80,8 +80,8 @@ export default function DriverActiveScreen({ navigation }: any) {
     } else {
       Alert.alert(
         'Location permission needed',
-        'To go online and share your trip with the cargo sender, allow location access in your phone settings.',
-        [{ text: 'OK' }],
+        'To go online and share your trip with the cargo owner, allow location access in your phone settings.',
+        [{ text: 'Got it' }],
       );
     }
   };
@@ -89,8 +89,8 @@ export default function DriverActiveScreen({ navigation }: any) {
   const goOffline = () => {
     if (primary?.status === 'IN_TRANSIT') {
       Alert.alert(
-        'You have a trip in progress',
-        'Going offline will stop sharing your location with the sender. Continue?',
+        'Trip in progress',
+        'Going offline will stop sharing your location with the cargo owner. The trip will keep running.',
         [
           { text: 'Stay online', style: 'cancel' },
           { text: 'Go offline', style: 'destructive', onPress: () => setIsOnline(false) },
@@ -140,30 +140,30 @@ export default function DriverActiveScreen({ navigation }: any) {
     if (!user?.isVerified) {
       Alert.alert(
         'Account not verified',
-        'You need verified documents before starting a trip.',
+        'Your documents need to be verified before you can start a trip.',
         [
-          { text: 'Go to Verification', onPress: () => navigation.navigate('Verification') },
+          { text: 'Verify now', onPress: () => navigation.navigate('Verification') },
           { text: 'Cancel', style: 'cancel' },
         ],
       );
       return;
     }
     if (primary.truck && !primary.truck.isVerified) {
-      Alert.alert('Truck not verified', "This truck's documents need verification before it can be used.");
+      Alert.alert('Truck not verified', "This truck's documents need to be verified before you can use it.");
       return;
     }
     if (!locationAllowed || !isOnline) {
       Alert.alert(
         'Go online first',
-        'You need to be online (sharing your location) before starting a trip.',
-        [{ text: 'OK' }],
+        'You need to be online and sharing your location before starting a trip.',
+        [{ text: 'Got it' }],
       );
       return;
     }
-    Alert.alert('Start the trip?', 'Live tracking will begin.', [
+    Alert.alert('Start the trip?', 'Live tracking will begin and the cargo owner will see your location.', [
       { text: 'Cancel', style: 'cancel' },
       {
-        text: 'Start',
+        text: 'Start trip',
         onPress: async () => {
           setActing(true);
           setBookings((prev) => prev.map((b) => b.id === primary.id ? { ...b, status: 'IN_TRANSIT' } : b));
@@ -171,7 +171,7 @@ export default function DriverActiveScreen({ navigation }: any) {
             await api.patch(`/bookings/${primary.id}/start`);
             await fetchBookings();
           } catch (e: any) {
-            Alert.alert('Could not start', formatApiError(e, 'Please try again.'));
+            Alert.alert('Could not start trip', formatApiError(e, "We couldn't start this trip.", 'booking'));
             await fetchBookings();
           } finally { setActing(false); }
         },
@@ -181,10 +181,10 @@ export default function DriverActiveScreen({ navigation }: any) {
 
   const handleDeliver = () => {
     if (!primary) return;
-    Alert.alert('Mark as delivered?', 'Confirm only after the cargo has been handed over.', [
+    Alert.alert('Mark delivered?', 'Only confirm after the cargo has been handed over to the receiver.', [
       { text: 'Cancel', style: 'cancel' },
       {
-        text: 'Yes, delivered',
+        text: 'Mark delivered',
         onPress: async () => {
           setActing(true);
           // Optimistic: remove from active list
@@ -195,7 +195,7 @@ export default function DriverActiveScreen({ navigation }: any) {
             await api.patch(`/bookings/${primary.id}/deliver`);
             await fetchBookings();
           } catch (e: any) {
-            Alert.alert('Could not mark delivered', formatApiError(e, 'Please try again.'));
+            Alert.alert('Could not mark delivered', formatApiError(e, "We couldn't confirm delivery.", 'booking'));
             await fetchBookings();
           } finally { setActing(false); }
         },
@@ -225,7 +225,10 @@ export default function DriverActiveScreen({ navigation }: any) {
 
       {/* Header — minimal */}
       <View style={styles.topBar}>
-        <Text style={styles.topBarTitle}>Hi, {firstName}</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.topBarTitle}>Your trips</Text>
+          <Text style={styles.topBarSub}>Every load you're moving right now.</Text>
+        </View>
         <NotificationBell navigation={navigation} />
       </View>
 
@@ -249,9 +252,9 @@ export default function DriverActiveScreen({ navigation }: any) {
               <Text style={[styles.toggleSub, isOnline ? styles.toggleSubOn : styles.toggleSubOff]}>
                 {isOnline
                   ? (primary?.status === 'IN_TRANSIT'
-                      ? 'Sharing location with the sender'
-                      : 'Waiting for a load')
-                  : 'Tap to go online and share location'}
+                      ? 'Sharing your location with the cargo owner.'
+                      : 'Waiting for a load.')
+                  : 'Tap to go online and share your location.'}
               </Text>
             </View>
             <View style={[styles.pill, isOnline ? styles.pillOn : styles.pillOff]}>
@@ -271,14 +274,16 @@ export default function DriverActiveScreen({ navigation }: any) {
           </View>
         ) : !primary ? (
           <View style={styles.emptyCard}>
-            <Text style={styles.emptyEmoji}>🚛</Text>
+            <View style={styles.emptyIconWrap}>
+              <Feather name="truck" size={32} color={SUBTLE} />
+            </View>
             <Text style={styles.emptyTitle}>
-              {isOnline ? 'No job yet' : 'Go online to receive loads'}
+              {isOnline ? 'No active trips' : 'Go online to receive loads'}
             </Text>
             <Text style={styles.emptyBody}>
               {isOnline
-                ? "When a broker assigns you a load, it'll show up here."
-                : 'Tap the toggle above. Loads come straight to this screen.'}
+                ? "When you're dispatched to a load, it'll show up here."
+                : 'Tap the toggle above. Dispatches come straight to this screen.'}
             </Text>
           </View>
         ) : (
@@ -286,7 +291,7 @@ export default function DriverActiveScreen({ navigation }: any) {
             {primary.status === 'IN_TRANSIT' && (
               <View style={styles.liveStrip}>
                 <View style={styles.liveDot} />
-                <Text style={styles.liveText}>LIVE — TRIP IN PROGRESS</Text>
+                <Text style={styles.liveText}>LIVE · TRIP IN PROGRESS</Text>
               </View>
             )}
 
@@ -308,7 +313,7 @@ export default function DriverActiveScreen({ navigation }: any) {
             {senderName && (
               <>
                 <View style={styles.divider} />
-                <Text style={styles.contactLabel}>Cargo sender</Text>
+                <Text style={styles.contactLabel}>CARGO OWNER</Text>
                 <Text style={styles.contactName}>{senderName}</Text>
                 <View style={styles.contactRow}>
                   {senderPhone && (
@@ -317,7 +322,8 @@ export default function DriverActiveScreen({ navigation }: any) {
                       onPress={() => Linking.openURL('tel:' + senderPhone)}
                       activeOpacity={0.85}
                     >
-                      <Text style={styles.contactBtnText}>📞  Call</Text>
+                      <Feather name="phone" size={16} color="#FFFFFF" />
+                      <Text style={styles.contactBtnText}>Call</Text>
                     </TouchableOpacity>
                   )}
                   {senderId && (
@@ -326,7 +332,8 @@ export default function DriverActiveScreen({ navigation }: any) {
                       onPress={() => navigation.navigate('Chat', { userId: senderId, userName: senderName, phone: senderPhone })}
                       activeOpacity={0.85}
                     >
-                      <Text style={styles.contactBtnSecondaryText}>💬  Message</Text>
+                      <Feather name="message-circle" size={16} color={NAVY} />
+                      <Text style={styles.contactBtnSecondaryText}>Message</Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -336,7 +343,8 @@ export default function DriverActiveScreen({ navigation }: any) {
                     style={styles.mapsBtn}
                     activeOpacity={0.85}
                   >
-                    <Text style={styles.mapsBtnText}>🧭  Open delivery in maps</Text>
+                    <Feather name="map-pin" size={16} color={NAVY} />
+                    <Text style={styles.mapsBtnText}>Open delivery in maps</Text>
                   </TouchableOpacity>
                 )}
               </>
@@ -373,7 +381,8 @@ export default function DriverActiveScreen({ navigation }: any) {
                   onPress={() => navigation.navigate('ProofOfDelivery', { bookingId: primary.id })}
                   activeOpacity={0.85}
                 >
-                  <Text style={styles.podBtnText}>📷  Upload delivery photos</Text>
+                  <Feather name="camera" size={16} color={NAVY} />
+                  <Text style={styles.podBtnText}>Upload delivery photos</Text>
                 </TouchableOpacity>
               </>
             )}
@@ -383,6 +392,7 @@ export default function DriverActiveScreen({ navigation }: any) {
         {/* Location-permission warning when toggle was tapped but never granted */}
         {!locationAllowed && isOnline && (
           <View style={styles.warnCard}>
+            <Feather name="alert-triangle" size={16} color={DANGER} />
             <Text style={styles.warnText}>
               Location permission isn't granted. Open phone settings to enable it.
             </Text>
@@ -398,7 +408,8 @@ export default function DriverActiveScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   /* top bar */
   topBar:        { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 14, paddingBottom: 12, backgroundColor: BG },
-  topBarTitle:   { fontSize: 20, fontWeight: '700', color: TEXT, letterSpacing: -0.3 },
+  topBarTitle:   { fontSize: 22, fontWeight: '700', color: TEXT, letterSpacing: -0.3 },
+  topBarSub:     { fontSize: 13, color: MUTED, marginTop: 2 },
 
   content:       { padding: 20, paddingTop: 4, paddingBottom: 40 },
 
@@ -439,28 +450,28 @@ const styles = StyleSheet.create({
   contactLabel:  { fontSize: 11, fontWeight: '700', color: SUBTLE, letterSpacing: 1.2, marginBottom: 4 },
   contactName:   { fontSize: 15, fontWeight: '600', color: TEXT, marginBottom: 14 },
   contactRow:    { flexDirection: 'row', gap: 10, marginBottom: 10 },
-  contactBtn:    { flex: 1, backgroundColor: BLUE, borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
+  contactBtn:    { flex: 1, flexDirection: 'row', gap: 8, backgroundColor: BLUE, borderRadius: 12, paddingVertical: 14, alignItems: 'center', justifyContent: 'center' },
   contactBtnText:{ color: '#FFFFFF', fontSize: 15, fontWeight: '600' },
-  contactBtnSecondary:     { flex: 1, backgroundColor: BG, borderColor: BORDER, borderWidth: 1, borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
+  contactBtnSecondary:     { flex: 1, flexDirection: 'row', gap: 8, backgroundColor: BG, borderColor: BORDER, borderWidth: 1, borderRadius: 12, paddingVertical: 14, alignItems: 'center', justifyContent: 'center' },
   contactBtnSecondaryText: { color: NAVY, fontSize: 15, fontWeight: '600' },
-  mapsBtn:       { backgroundColor: BG, borderColor: BORDER, borderWidth: 1, borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
+  mapsBtn:       { flexDirection: 'row', gap: 8, backgroundColor: BG, borderColor: BORDER, borderWidth: 1, borderRadius: 12, paddingVertical: 12, alignItems: 'center', justifyContent: 'center' },
   mapsBtnText:   { color: NAVY, fontSize: 14, fontWeight: '600' },
 
   /* PRIMARY ACTION BUTTONS — large, obvious */
   primaryBtn:      { backgroundColor: BLUE, borderRadius: 14, paddingVertical: 18, alignItems: 'center', shadowColor: BLUE, shadowOpacity: 0.25, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 3 },
   primaryBtnText:  { color: '#FFFFFF', fontSize: 17, fontWeight: '700', letterSpacing: 0.2 },
-  podBtn:          { marginTop: 12, backgroundColor: BG, borderColor: BORDER, borderWidth: 1, borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
+  podBtn:          { flexDirection: 'row', gap: 8, justifyContent: 'center', marginTop: 12, backgroundColor: BG, borderColor: BORDER, borderWidth: 1, borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
   podBtnText:      { color: NAVY, fontSize: 14, fontWeight: '600' },
 
   /* EMPTY + SKEL */
   emptyCard:     { backgroundColor: CARD, borderRadius: 16, padding: 36, alignItems: 'center', borderWidth: 1, borderColor: BORDER },
-  emptyEmoji:    { fontSize: 52, marginBottom: 16 },
+  emptyIconWrap: { width: 64, height: 64, borderRadius: 32, backgroundColor: BG, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
   emptyTitle:    { fontSize: 17, fontWeight: '600', color: TEXT, marginBottom: 8, textAlign: 'center' },
   emptyBody:     { fontSize: 14, color: MUTED, textAlign: 'center', lineHeight: 22, maxWidth: 300 },
   skelCard:      { backgroundColor: CARD, borderRadius: 16, padding: 22, borderWidth: 1, borderColor: BORDER },
   skelLine:      { height: 16, width: '80%', backgroundColor: '#F1F5F9', borderRadius: 6 },
 
   /* WARN */
-  warnCard:      { marginTop: 16, backgroundColor: DANGER_BG, borderColor: '#FECACA', borderWidth: 1, borderRadius: 12, padding: 14 },
-  warnText:      { color: DANGER, fontSize: 13, lineHeight: 19 },
+  warnCard:      { flexDirection: 'row', gap: 10, alignItems: 'flex-start', marginTop: 16, backgroundColor: DANGER_BG, borderColor: '#FECACA', borderWidth: 1, borderRadius: 12, padding: 14 },
+  warnText:      { flex: 1, color: DANGER, fontSize: 13, lineHeight: 19 },
 });

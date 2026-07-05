@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
   RefreshControl, StatusBar, Switch, Alert,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import api from '../../lib/api';
 import { SkeletonList } from '../../components/LoadingSkeleton';
@@ -37,8 +38,8 @@ export default function MyFleetScreen({ navigation }: any) {
     try {
       await api.patch(`/trucks/${truck.id}`, { isAvailable: !truck.isAvailable });
       setTrucks(prev => prev.map(t => t.id === truck.id ? { ...t, isAvailable: !t.isAvailable } : t));
-    } catch (e: any) {
-      Alert.alert('Error', formatApiError(e, 'Could not update truck availability.'));
+    } catch (err: any) {
+      Alert.alert("Couldn't update availability", formatApiError(err, "We couldn't update this truck's availability. Please try again.", 'truck'));
     }
   };
 
@@ -46,11 +47,15 @@ export default function MyFleetScreen({ navigation }: any) {
     <ScreenWrapper>
       <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
       <View style={styles.header}>
-        <Text style={styles.title}>My Fleet</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.title}>My fleet</Text>
+          <Text style={styles.subtitle}>Every truck registered to your account.</Text>
+        </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <NotificationBell navigation={navigation} />
           <TouchableOpacity style={styles.addBtn} onPress={() => navigation.navigate('AddTruck')}>
-            <Text style={styles.addBtnText}>+ Add Truck</Text>
+            <Feather name="plus" size={14} color={theme.darkGreen} />
+            <Text style={styles.addBtnText}>Add truck</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -59,10 +64,10 @@ export default function MyFleetScreen({ navigation }: any) {
         <SkeletonList count={4} />
       ) : trucks.length === 0 ? (
         <EmptyState
-          emoji="🚛"
+          icon="truck"
           title="No trucks yet"
-          subtitle="Add your trucks to start bidding on loads."
-          buttonLabel="Add a Truck"
+          subtitle="Add your first truck so brokers can dispatch loads to it."
+          buttonLabel="Add truck"
           onButton={() => navigation.navigate('AddTruck')}
         />
       ) : (
@@ -120,13 +125,13 @@ export default function MyFleetScreen({ navigation }: any) {
                   <Text style={styles.editBtnText}>Edit</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.deleteBtn} onPress={() => {
-                  Alert.alert('Delete Truck', 'Are you sure you want to delete this truck?', [
-                    { text: 'Cancel', style: 'cancel' },
-                    { text: 'Delete', style: 'destructive', onPress: async () => {
+                  Alert.alert('Delete this truck?', "Any pending bookings for this truck will be cancelled and can't be recovered.", [
+                    { text: 'Keep truck', style: 'cancel' },
+                    { text: 'Delete truck', style: 'destructive', onPress: async () => {
                       try {
                         await api.delete(`/trucks/${item.id}`);
                         setTrucks(prev => prev.filter(t => t.id !== item.id));
-                      } catch (e: any) { Alert.alert('Error', formatApiError(e, 'Could not delete truck.')); }
+                      } catch (err: any) { Alert.alert("Couldn't delete truck", formatApiError(err, "We couldn't delete this truck. Please try again.", 'truck')); }
                     }},
                   ]);
                 }}>
@@ -142,10 +147,11 @@ export default function MyFleetScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  header:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14 },
-  title:        { fontSize: 22, fontWeight: '500', color: theme.text },
-  addBtn:       { backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 13, paddingHorizontal: 16 },
-  addBtnText:   { color: theme.darkGreen, fontSize: 13, fontWeight: '500' },
+  header:       { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14 },
+  title:        { fontSize: 22, fontWeight: '700', color: theme.text, fontFamily: 'Inter_700Bold' },
+  subtitle:     { fontSize: 13, color: theme.textMuted, marginTop: 2 },
+  addBtn:       { backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 10, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 4 },
+  addBtnText:   { color: theme.darkGreen, fontSize: 13, fontWeight: '600' },
   list:         { padding: 16, paddingTop: 4 },
   card:         { backgroundColor: theme.surface, borderRadius: 14, padding: 16, marginBottom: 10 },
   cardTop:      { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },

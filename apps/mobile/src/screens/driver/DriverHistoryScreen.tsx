@@ -38,7 +38,10 @@ export default function DriverHistoryScreen({ navigation }: any) {
     <ScreenWrapper>
       <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
       <View style={styles.header}>
-        <Text style={styles.title}>History</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.title}>Trip history</Text>
+          <Text style={styles.subtitle}>Every load you've delivered.</Text>
+        </View>
         <Text style={styles.count}>{bookings.length} completed</Text>
       </View>
 
@@ -46,9 +49,9 @@ export default function DriverHistoryScreen({ navigation }: any) {
         <SkeletonList count={5} />
       ) : bookings.length === 0 ? (
         <EmptyState
-          emoji="📋"
-          title="No completed trips"
-          subtitle="Your completed deliveries will appear here."
+          icon="check-circle"
+          title="No completed trips yet"
+          subtitle="Trips you've delivered will show up here."
         />
       ) : (
         <FlatList
@@ -85,6 +88,7 @@ export default function DriverHistoryScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   header:      { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14 },
   title:       { fontSize: 22, fontWeight: '500', color: theme.text },
+  subtitle:    { fontSize: 13, color: theme.textMuted, marginTop: 2 },
   count:       { fontSize: 13, color: theme.textMuted, fontWeight: '400' },
   list:        { padding: 16, paddingTop: 4 },
   card:        { backgroundColor: theme.surface, borderRadius: 14, padding: 16, marginBottom: 10 },

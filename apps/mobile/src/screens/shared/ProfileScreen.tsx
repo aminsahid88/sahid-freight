@@ -4,12 +4,14 @@ import {
   StatusBar, Alert, ActivityIndicator, Switch, Modal, Linking,
   RefreshControl,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import { useAuthStore } from '../../store/auth';
 import { useThemeStore } from '../../store/themeStore';
 import api from '../../lib/api';
 import { theme } from '../../theme';
 import { NotificationBell } from '../../components/NotificationBell';
+import { formatApiError } from '../../lib/errors';
 
 // ── Row components ─────────────────────────────
 
@@ -25,8 +27,8 @@ function SettingRow({ label, value, onPress, rightEl, danger = false, last = fal
       {comingSoon ? (
         <View style={sRow.comingSoon}><Text style={sRow.comingSoonText}>Coming soon</Text></View>
       ) : rightEl ?? (
-        external ? <Text style={sRow.chevron}>↗</Text> :
-        value ? <Text style={sRow.value}>{value}</Text> : <Text style={sRow.chevron}>›</Text>
+        external ? <Feather name="external-link" size={16} color={theme.textMuted} /> :
+        value ? <Text style={sRow.value}>{value}</Text> : <Feather name="chevron-right" size={18} color={theme.textMuted} />
       )}
     </TouchableOpacity>
   );
@@ -83,9 +85,9 @@ export default function ProfileScreen({ navigation }: any) {
       const res = await api.patch('/users/me', form);
       const u = res.data?.user || res.data;
       await setAuth(u, null);
-      Alert.alert('Saved', 'Profile updated successfully.');
+      Alert.alert('Profile saved.', 'Your details are up to date.');
     } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message || 'Could not save profile.');
+      Alert.alert("We couldn't save your profile", formatApiError(e, "Your changes weren't saved.", 'profile'));
     } finally {
       setSaving(false);
     }
@@ -93,19 +95,19 @@ export default function ProfileScreen({ navigation }: any) {
 
   const handleChangePw = async () => {
     if (!pwForm.current || !pwForm.next || !pwForm.confirm) {
-      Alert.alert('Missing Fields', 'Please fill in all password fields.'); return;
+      Alert.alert('Missing details', 'Fill in your current and new passwords to continue.'); return;
     }
     if (pwForm.next !== pwForm.confirm) {
-      Alert.alert('Mismatch', 'New passwords do not match.'); return;
+      Alert.alert("Passwords don't match", 'Retype the new password to confirm.'); return;
     }
     setSavingPw(true);
     try {
       await api.patch('/users/me/password', { currentPassword: pwForm.current, newPassword: pwForm.next });
       setChangePwModal(false);
       setPwForm({ current: '', next: '', confirm: '' });
-      Alert.alert('Done', 'Password changed successfully.');
+      Alert.alert('Password updated.', 'Use the new password next time you sign in.');
     } catch (e: any) {
-      Alert.alert('Error', e?.response?.data?.message || 'Could not change password.');
+      Alert.alert("We couldn't change your password", formatApiError(e, 'Your password was not changed.', 'profile'));
     } finally {
       setSavingPw(false);
     }
@@ -113,18 +115,18 @@ export default function ProfileScreen({ navigation }: any) {
 
   const handleDeleteAccount = () => {
     Alert.alert(
-      'Delete Account',
-      'This will permanently delete your account and all data. This cannot be undone.',
+      'Delete your account?',
+      "This can't be undone. All your loads, bookings, and messages will be removed.",
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Delete', style: 'destructive',
+          text: 'Delete account', style: 'destructive',
           onPress: async () => {
             try {
               await api.delete('/users/me');
               logout();
             } catch (e: any) {
-              Alert.alert('Error', e?.response?.data?.message || 'Could not delete account.');
+              Alert.alert("We couldn't delete your account", formatApiError(e, 'Your account was not deleted.', 'profile'));
             }
           },
         },
@@ -133,15 +135,15 @@ export default function ProfileScreen({ navigation }: any) {
   };
 
   const handleLogout = () => {
-    Alert.alert('Log Out', 'Are you sure?', [
+    Alert.alert('Sign out?', "You'll need to sign back in to see your loads.", [
       { text: 'Cancel', style: 'cancel' },
-      { text: 'Log Out', style: 'destructive', onPress: logout },
+      { text: 'Sign out', style: 'destructive', onPress: logout },
     ]);
   };
 
   const roleLabelMap: Record<string, string> = {
-    CARGO_SENDER: 'Cargo Sender',
-    TRUCK_OWNER: 'Truck Owner',
+    CARGO_SENDER: 'Cargo owner',
+    TRUCK_OWNER: 'Truck owner',
     DRIVER: 'Driver',
     ADMIN: 'Admin',
   };
@@ -152,7 +154,10 @@ export default function ProfileScreen({ navigation }: any) {
     <ScreenWrapper>
       <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
       <View style={styles.headerBar}>
-        <Text style={styles.headerTitle}>Settings</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.headerTitle}>Profile</Text>
+          <Text style={styles.headerSub}>Your account details and preferences.</Text>
+        </View>
         <NotificationBell navigation={navigation} />
       </View>
 
@@ -172,14 +177,17 @@ export default function ProfileScreen({ navigation }: any) {
             <Text style={styles.roleText}>{roleLabelMap[user?.role || ''] || user?.role}</Text>
           </View>
           {user?.averageRating ? (
-            <Text style={styles.rating}>⭐ {user.averageRating.toFixed(1)} ({user.totalRatings} reviews)</Text>
+            <View style={styles.ratingRow}>
+              <Feather name="star" size={13} color={theme.warning} />
+              <Text style={styles.rating}>{user.averageRating.toFixed(1)} ({user.totalRatings} reviews)</Text>
+            </View>
           ) : null}
         </View>
 
         {/* Personal Info */}
-        <SectionCard title="Personal Info">
+        <SectionCard title="Personal info">
           <View style={sRow.inputWrap}>
-            <Text style={sRow.inputLabel}>Full Name</Text>
+            <Text style={sRow.inputLabel}>Full name</Text>
             <TextInput
               style={sRow.input}
               value={form.fullName}
@@ -218,7 +226,7 @@ export default function ProfileScreen({ navigation }: any) {
           >
             {saving
               ? <ActivityIndicator color={theme.darkGreen} size="small" />
-              : <Text style={styles.saveBtnText}>Save Changes</Text>}
+              : <Text style={styles.saveBtnText}>Save changes</Text>}
           </TouchableOpacity>
         </SectionCard>
 
@@ -231,16 +239,21 @@ export default function ProfileScreen({ navigation }: any) {
               <View style={{ alignItems: 'flex-end', gap: 4 }}>
                 <View style={[
                   styles.verBadge,
-                  { backgroundColor: user?.isVerified ? theme.accentDim : theme.warningDim },
+                  { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: user?.isVerified ? theme.accentDim : theme.warningDim },
                 ]}>
+                  <Feather
+                    name={user?.isVerified ? 'check-circle' : 'clock'}
+                    size={12}
+                    color={user?.isVerified ? theme.accent : theme.warning}
+                  />
                   <Text style={{ fontSize: 11, fontWeight: '500', color: user?.isVerified ? theme.accent : theme.warning }}>
-                    {user?.isVerified ? '✓ Verified' : '⏳ Verify now'}
+                    {user?.isVerified ? 'Verified' : 'Verify now'}
                   </Text>
                 </View>
               </View>
             }
           />
-          <SettingRow label="Change Password" onPress={() => setChangePwModal(true)} />
+          <SettingRow label="Update password" onPress={() => setChangePwModal(true)} />
           <SettingRow
             label="Language"
             last
@@ -263,7 +276,7 @@ export default function ProfileScreen({ navigation }: any) {
         {/* Notifications */}
         <SectionCard title="Notifications">
           <SettingRow
-            label="Push Notifications"
+            label="Push notifications"
             rightEl={
               <Switch
                 value={pushEnabled}
@@ -274,7 +287,7 @@ export default function ProfileScreen({ navigation }: any) {
             }
           />
           <SettingRow
-            label="SMS Notifications"
+            label="SMS notifications"
             last
             rightEl={
               <Switch
@@ -290,7 +303,7 @@ export default function ProfileScreen({ navigation }: any) {
         {/* Appearance */}
         <SectionCard title="Appearance">
           <SettingRow
-            label="Dark Mode"
+            label="Dark mode"
             last
             rightEl={
               <Switch
@@ -305,20 +318,20 @@ export default function ProfileScreen({ navigation }: any) {
 
         {/* Support */}
         <SectionCard title="Support">
-          <SettingRow label="Help Center" disabled comingSoon />
-          <SettingRow label="Report a Problem" external onPress={() => Linking.openURL('mailto:support@sahidfreight.com')} />
-          <SettingRow label="Rate the App" disabled comingSoon />
-          <SettingRow label="Privacy Policy" disabled comingSoon />
-          <SettingRow label="Terms of Service" last disabled comingSoon />
+          <SettingRow label="Help center" disabled comingSoon />
+          <SettingRow label="Report a problem" external onPress={() => Linking.openURL('mailto:support@sahidfreight.com')} />
+          <SettingRow label="Rate the app" disabled comingSoon />
+          <SettingRow label="Privacy policy" disabled comingSoon />
+          <SettingRow label="Terms of service" last disabled comingSoon />
         </SectionCard>
 
         {/* Account Actions */}
-        <SectionCard title="Account Actions">
+        <SectionCard title="Account actions">
           <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-            <Text style={styles.logoutText}>Sign Out</Text>
+            <Text style={styles.logoutText}>Sign out</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.deleteBtn} onPress={handleDeleteAccount}>
-            <Text style={styles.deleteText}>Delete Account</Text>
+            <Text style={styles.deleteText}>Delete account</Text>
           </TouchableOpacity>
         </SectionCard>
 
@@ -329,7 +342,7 @@ export default function ProfileScreen({ navigation }: any) {
       <Modal visible={changePwModal} transparent animationType="slide">
         <View style={modal.overlay}>
           <View style={modal.sheet}>
-            <Text style={modal.title}>Change Password</Text>
+            <Text style={modal.title}>Update password</Text>
             <TextInput
               style={modal.input}
               placeholder="Current password"
@@ -361,7 +374,7 @@ export default function ProfileScreen({ navigation }: any) {
             >
               {savingPw
                 ? <ActivityIndicator color={theme.darkGreen} />
-                : <Text style={modal.btnText}>Update Password</Text>}
+                : <Text style={modal.btnText}>Update password</Text>}
             </TouchableOpacity>
             <TouchableOpacity
               style={modal.cancel}
@@ -381,6 +394,7 @@ export default function ProfileScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   headerBar:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14 },
   headerTitle:   { fontSize: 22, fontWeight: '500', color: theme.text },
+  headerSub:     { fontSize: 13, color: theme.textMuted, marginTop: 2 },
   avatarSection: { alignItems: 'center', paddingVertical: 24, paddingHorizontal: 16 },
   avatarCircle:  { width: 90, height: 90, borderRadius: 45, backgroundColor: theme.darkGreen, alignItems: 'center', justifyContent: 'center', marginBottom: 12 },
   avatarText:    { fontSize: 36, fontWeight: '500', color: theme.lightGreen },
@@ -388,7 +402,8 @@ const styles = StyleSheet.create({
   avatarPhone:   { fontSize: 14, color: theme.textMuted, marginBottom: 10 },
   rolePill:      { backgroundColor: theme.accentDim, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 5 },
   roleText:      { fontSize: 13, fontWeight: '500', color: theme.accent },
-  rating:        { fontSize: 13, color: theme.textMuted, marginTop: 8 },
+  rating:        { fontSize: 13, color: theme.textMuted },
+  ratingRow:     { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 },
   saveBtn:       { backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 13, alignItems: 'center', margin: 12 },
   saveBtnText:   { color: theme.darkGreen, fontSize: 13, fontWeight: '500' },
   verBadge:      { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },

@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
   RefreshControl, StatusBar,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import api from '../../lib/api';
 import { theme } from '../../theme';
@@ -48,7 +49,10 @@ export default function SenderBookingsScreen({ navigation }: any) {
     <ScreenWrapper>
       <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
       <View style={styles.header}>
-        <Text style={styles.title}>Bids & Bookings</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.title}>Bookings</Text>
+          <Text style={styles.subtitle}>Bookings appear here once a truck is dispatched to one of your loads.</Text>
+        </View>
         <NotificationBell navigation={navigation} />
       </View>
 
@@ -56,9 +60,9 @@ export default function SenderBookingsScreen({ navigation }: any) {
         <SkeletonList count={4} />
       ) : loads.length === 0 && acceptedBookings.length === 0 ? (
         <EmptyState
-          emoji="🤝"
-          title="No bids yet"
-          subtitle="Once truck owners bid on your loads, you'll see them here."
+          icon="clipboard"
+          title="No bookings yet"
+          subtitle="Bookings appear here once a broker dispatches a truck to one of your loads."
         />
       ) : (
         <FlatList
@@ -91,14 +95,16 @@ export default function SenderBookingsScreen({ navigation }: any) {
                     <Text style={styles.price}>{formatPrice(item.agreedPrice, item.currency || item.load?.currency || 'ETB')}</Text>
                     {isPaid ? (
                       <View style={styles.paidBadge}>
-                        <Text style={styles.paidText}>✓ Paid</Text>
+                        <Feather name="check-circle" size={12} color={theme.accent} />
+                        <Text style={styles.paidText}>Paid</Text>
                       </View>
                     ) : (
                       <TouchableOpacity
                         style={styles.payBtn}
                         onPress={() => navigation.navigate('Payment', { bookingId: item.id })}
                       >
-                        <Text style={styles.payBtnText}>💳 Make Payment</Text>
+                        <Feather name="credit-card" size={14} color={theme.darkGreen} />
+                        <Text style={styles.payBtnText}>Pay now</Text>
                       </TouchableOpacity>
                     )}
                   </View>
@@ -107,7 +113,8 @@ export default function SenderBookingsScreen({ navigation }: any) {
                       style={styles.trackBtn}
                       onPress={() => navigation.navigate('Tracking', { bookingId: item.id })}
                     >
-                      <Text style={styles.trackBtnText}>📍 Track Shipment</Text>
+                      <Feather name="map-pin" size={14} color={theme.blue} />
+                      <Text style={styles.trackBtnText}>Track load</Text>
                     </TouchableOpacity>
                   )}
                 </TouchableOpacity>
@@ -130,14 +137,14 @@ export default function SenderBookingsScreen({ navigation }: any) {
                 <View style={styles.cardFooter}>
                   <View style={styles.bidCountBadge}>
                     <Text style={styles.bidCountText}>
-                      {item._count?.bids || 0} bid{item._count?.bids !== 1 ? 's' : ''}
+                      {item._count?.bids || 0} offer{item._count?.bids !== 1 ? 's' : ''}
                     </Text>
                   </View>
                   <Text style={styles.price}>{formatPrice(item.offeredPrice, item.currency || 'ETB')}</Text>
                 </View>
                 {(item.status === 'IN_TRANSIT' || item.status === 'BOOKED') && (
                   <View style={styles.trackHint}>
-                    <Text style={styles.trackHintText}>Tap to view details & track</Text>
+                    <Text style={styles.trackHintText}>Tap to view details and track</Text>
                   </View>
                 )}
               </TouchableOpacity>
@@ -150,8 +157,9 @@ export default function SenderBookingsScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  header:         { paddingHorizontal: 16, paddingVertical: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  header:         { paddingHorizontal: 16, paddingVertical: 14, flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 },
   title:          { fontSize: 22, fontWeight: '500', color: theme.text },
+  subtitle:       { fontSize: 13, color: theme.textMuted, marginTop: 4 },
   list:           { padding: 16, paddingTop: 4 },
   card:           { backgroundColor: theme.surface, borderRadius: 14, padding: 16, marginBottom: 10 },
   cardHeader:     { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
@@ -164,10 +172,10 @@ const styles = StyleSheet.create({
   price:          { fontSize: 15, fontWeight: '500', color: theme.accent },
   trackHint:      { marginTop: 10, paddingTop: 10, borderTopWidth: 0.5, borderTopColor: theme.border },
   trackHintText:  { fontSize: 13, color: theme.accent, fontWeight: '500', textAlign: 'center' },
-  payBtn:         { backgroundColor: theme.accent, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8 },
+  payBtn:         { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: theme.accent, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8 },
   payBtnText:     { fontSize: 13, fontWeight: '500', color: theme.darkGreen },
-  paidBadge:      { backgroundColor: theme.accentDim, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 5, borderWidth: 0.5, borderColor: theme.accentBorder },
+  paidBadge:      { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: theme.accentDim, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 5, borderWidth: 0.5, borderColor: theme.accentBorder },
   paidText:       { fontSize: 13, fontWeight: '500', color: theme.accent },
-  trackBtn:       { marginTop: 10, backgroundColor: theme.blueDim, borderRadius: 10, padding: 12, alignItems: 'center', borderWidth: 0.5, borderColor: theme.blue },
+  trackBtn:       { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 10, backgroundColor: theme.blueDim, borderRadius: 10, padding: 12, borderWidth: 0.5, borderColor: theme.blue },
   trackBtnText:   { color: theme.blue, fontSize: 14, fontWeight: '500' },
 });

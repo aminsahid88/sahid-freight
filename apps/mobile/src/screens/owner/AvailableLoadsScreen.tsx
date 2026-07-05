@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
   RefreshControl, StatusBar, TextInput, Modal, Pressable, ScrollView,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import api from '../../lib/api';
 import { TRUCK_TYPES, COUNTRIES } from '../../lib/constants';
@@ -81,12 +82,16 @@ export default function AvailableLoadsScreen({ navigation }: any) {
     <ScreenWrapper>
       <StatusBar barStyle="light-content" backgroundColor={theme.bg} />
       <View style={styles.header}>
-        <Text style={styles.title}>Available Loads</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.title}>Available loads</Text>
+          <Text style={styles.subtitle}>Loads posted by cargo owners that match your trucks.</Text>
+        </View>
         <NotificationBell navigation={navigation} />
       </View>
 
       {/* Search */}
       <View style={styles.searchWrap}>
+        <Feather name="search" size={16} color={theme.textMuted} style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
           value={search}
@@ -99,16 +104,16 @@ export default function AvailableLoadsScreen({ navigation }: any) {
       {/* Sort + Filter row */}
       <View style={styles.controlRow}>
         <TouchableOpacity style={styles.sortBtn} onPress={() => setShowSortPicker(true)}>
-          <Text style={styles.sortIcon}>{"\u2195"}</Text>
+          <Feather name="bar-chart-2" size={14} color={theme.textMuted} />
           <Text style={styles.sortLabel}>{SORT_OPTIONS.find(s => s.value === sortBy)?.label}</Text>
-          <Text style={styles.sortChevron}>{"\u25BC"}</Text>
+          <Feather name="chevron-down" size={14} color={theme.textMuted} />
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[styles.filterBtn, activeFilterCount > 0 && styles.filterBtnActive]}
           onPress={() => setShowFilterSheet(true)}
         >
-          <Text style={styles.filterIcon}>{"\u2630"}</Text>
+          <Feather name="sliders" size={14} color={activeFilterCount > 0 ? theme.accent : theme.textMuted} />
           <Text style={[styles.filterLabel, activeFilterCount > 0 && { color: theme.accent }]}>
             Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
           </Text>
@@ -137,10 +142,14 @@ export default function AvailableLoadsScreen({ navigation }: any) {
         <SkeletonList count={5} />
       ) : filtered.length === 0 ? (
         <EmptyState
-          emoji="\u{1F50D}"
-          title="No loads match your filters"
-          subtitle="Try adjusting your search, sort, or filters. Check back later for new loads."
-          buttonLabel={activeFilterCount > 0 ? "Clear Filters" : undefined}
+          icon={activeFilterCount > 0 || search.trim() ? 'search' : 'package'}
+          title={activeFilterCount > 0 || search.trim()
+            ? 'No loads match your filters'
+            : 'Nothing available in your area right now'}
+          subtitle={activeFilterCount > 0 || search.trim()
+            ? 'Try adjusting your search, sort, or filters.'
+            : "When new loads matching your trucks are posted, they'll appear here."}
+          buttonLabel={activeFilterCount > 0 ? 'Clear filters' : undefined}
           onButton={activeFilterCount > 0 ? clearFilters : undefined}
         />
       ) : (
@@ -172,7 +181,7 @@ export default function AvailableLoadsScreen({ navigation }: any) {
               <Text style={[styles.sortOptionText, sortBy === opt.value && { color: theme.accent }]}>
                 {opt.label}
               </Text>
-              {sortBy === opt.value && <Text style={styles.checkmark}>{"\u2713"}</Text>}
+              {sortBy === opt.value && <Feather name="check" size={16} color={theme.accent} />}
             </TouchableOpacity>
           ))}
         </View>
@@ -186,7 +195,7 @@ export default function AvailableLoadsScreen({ navigation }: any) {
           <Text style={styles.sheetTitle}>Filter loads</Text>
 
           {/* Route corridor (country) */}
-          <Text style={styles.filterSectionLabel}>ROUTE CORRIDOR</Text>
+          <Text style={styles.filterSectionLabel}>Route corridor</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
             {['ALL', ...COUNTRIES].map(c => (
               <TouchableOpacity
@@ -202,7 +211,7 @@ export default function AvailableLoadsScreen({ navigation }: any) {
           </ScrollView>
 
           {/* Weight range */}
-          <Text style={[styles.filterSectionLabel, { marginTop: 20 }]}>WEIGHT RANGE (TONS)</Text>
+          <Text style={[styles.filterSectionLabel, { marginTop: 20 }]}>Weight range (tons)</Text>
           <View style={styles.weightRow}>
             <TextInput
               style={styles.weightInput}
@@ -242,10 +251,12 @@ export default function AvailableLoadsScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  header:         { paddingHorizontal: 16, paddingVertical: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  title:          { fontSize: 22, fontWeight: '500', color: theme.text },
-  searchWrap:     { paddingHorizontal: 16, marginBottom: 10 },
-  searchInput:    { backgroundColor: theme.surface, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, fontSize: 14, color: theme.text },
+  header:         { paddingHorizontal: 16, paddingVertical: 14, flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+  title:          { fontSize: 22, fontWeight: '700', color: theme.text, fontFamily: 'Inter_700Bold' },
+  subtitle:       { fontSize: 13, color: theme.textMuted, marginTop: 2 },
+  searchWrap:     { paddingHorizontal: 16, marginBottom: 10, position: 'relative' },
+  searchIcon:     { position: 'absolute', left: 30, top: 14, zIndex: 1 },
+  searchInput:    { backgroundColor: theme.surface, borderRadius: 12, paddingHorizontal: 14, paddingLeft: 38, paddingVertical: 11, fontSize: 14, color: theme.text },
   controlRow:     { flexDirection: 'row', paddingHorizontal: 16, gap: 8, marginBottom: 10 },
   sortBtn:        { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: theme.surface, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, flex: 1 },
   sortIcon:       { fontSize: 14, color: theme.textMuted },
@@ -275,7 +286,7 @@ const styles = StyleSheet.create({
   // Filter modal
   filterSheet:        { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: theme.surface, borderTopLeftRadius: 14, borderTopRightRadius: 14, padding: 16, paddingBottom: 32 },
   sheetHandle:        { width: 36, height: 4, backgroundColor: theme.border, borderRadius: 2, alignSelf: 'center', marginBottom: 16 },
-  filterSectionLabel: { fontSize: 11, fontWeight: '500', color: theme.textMuted, textTransform: 'uppercase', letterSpacing: 0.9, marginBottom: 10 },
+  filterSectionLabel: { fontSize: 12, fontWeight: '600', color: theme.textMuted, marginBottom: 10 },
   weightRow:          { flexDirection: 'row', alignItems: 'center', gap: 10 },
   weightInput:        { flex: 1, backgroundColor: theme.surface, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 11, fontSize: 14, color: theme.text, borderWidth: 0.5, borderColor: theme.border },
   weightDash:         { color: theme.textMuted, fontSize: 14 },

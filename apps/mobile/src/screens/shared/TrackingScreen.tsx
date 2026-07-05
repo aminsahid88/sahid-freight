@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 // TODO: re-enable react-native-maps when paid Apple Developer account + static frameworks setup
 // import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
+import { Feather } from '@expo/vector-icons';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import api from '../../lib/api';
 import { theme } from '../../theme';
@@ -98,9 +99,16 @@ export default function TrackingScreen({ route, navigation }: any) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backText}>‹ Back</Text>
+          <Text style={styles.backText}>{'‹'} Back</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Live tracking</Text>
+        <View style={styles.headerCenter}>
+          <Text style={styles.headerTitle} numberOfLines={1}>{load?.title || 'Live tracking'}</Text>
+          {(load?.pickupCity || load?.deliveryCity) && (
+            <Text style={styles.headerSub} numberOfLines={1}>
+              {load?.pickupCity || '—'} → {load?.deliveryCity || '—'}
+            </Text>
+          )}
+        </View>
         <View style={{ width: 60 }} />
       </View>
 
@@ -110,7 +118,7 @@ export default function TrackingScreen({ route, navigation }: any) {
         </View>
       ) : !booking ? (
         <View style={styles.center}>
-          <Text style={styles.emptyText}>Booking not found</Text>
+          <Text style={styles.emptyText}>We couldn't find this booking.</Text>
         </View>
       ) : (
         <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
@@ -118,7 +126,7 @@ export default function TrackingScreen({ route, navigation }: any) {
           {/* TODO: re-enable react-native-maps when paid Apple Developer account + static frameworks setup */}
           <View style={styles.mapPlaceholder}>
             <View style={styles.mapPlaceholderInner}>
-              <Text style={styles.mapIcon}>🗺️</Text>
+              <Feather name="map" size={28} color={theme.accent} />
               <Text style={styles.mapRouteText}>
                 {load?.pickupCity || '—'}  →  {load?.deliveryCity || '—'}
               </Text>
@@ -136,14 +144,15 @@ export default function TrackingScreen({ route, navigation }: any) {
                 onPress={() => openInMaps(deliveryLat, deliveryLng, load?.deliveryCity)}
                 disabled={!canOpenMaps}
               >
-                <Text style={styles.mapBtnPrimaryText}>Open in Maps</Text>
+                <Text style={styles.mapBtnPrimaryText}>Open in maps</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.mapBtn, styles.mapBtnSecondary, !driverPhone && styles.mapBtnDisabled]}
                 onPress={() => driverPhone && Linking.openURL('tel:' + driverPhone)}
                 disabled={!driverPhone}
               >
-                <Text style={styles.mapBtnSecondaryText}>📞 Contact Driver</Text>
+                <Feather name="phone" size={14} color={theme.text} />
+                <Text style={styles.mapBtnSecondaryText}>Call driver</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -165,7 +174,7 @@ export default function TrackingScreen({ route, navigation }: any) {
                 <View key={item.key} style={styles.timelineRow}>
                   <View style={styles.timelineLine}>
                     {done ? (
-                      <View style={[styles.dot, styles.dotDone]}><Text style={styles.dotCheck}>✓</Text></View>
+                      <View style={[styles.dot, styles.dotDone]}><Feather name="check" size={12} color={theme.darkGreen} /></View>
                     ) : current ? (
                       <PulsingDot />
                     ) : (
@@ -193,7 +202,8 @@ export default function TrackingScreen({ route, navigation }: any) {
               </View>
               {driverPhone && (
                 <TouchableOpacity style={styles.callBtn} onPress={() => Linking.openURL('tel:' + driverPhone)}>
-                  <Text style={styles.callBtnText}>📞 Call</Text>
+                  <Feather name="phone" size={14} color={theme.accent} />
+                  <Text style={styles.callBtnText}>Call</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -203,7 +213,8 @@ export default function TrackingScreen({ route, navigation }: any) {
           {driverPhone && (
             <View style={styles.footer}>
               <TouchableOpacity style={styles.callLargeBtn} onPress={() => Linking.openURL('tel:' + driverPhone)}>
-                <Text style={styles.callLargeBtnText}>📞 Call driver</Text>
+                <Feather name="phone" size={16} color={theme.darkGreen} />
+                <Text style={styles.callLargeBtnText}>Call driver</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -215,22 +226,23 @@ export default function TrackingScreen({ route, navigation }: any) {
 
 const styles = StyleSheet.create({
   header:              { backgroundColor: theme.bg, paddingHorizontal: 16, paddingVertical: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: 0.5, borderBottomColor: theme.border },
-  backBtn:             { paddingVertical: 4 },
+  backBtn:             { paddingVertical: 4, width: 60 },
   backText:            { color: theme.accent, fontSize: 15, fontWeight: '500' },
-  headerTitle:         { color: theme.text, fontSize: 15, fontWeight: '500' },
+  headerCenter:        { flex: 1, alignItems: 'center' },
+  headerTitle:         { color: theme.text, fontSize: 15, fontWeight: '600' },
+  headerSub:           { color: theme.textMuted, fontSize: 11, marginTop: 1 },
   center:              { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyText:           { color: theme.textSecondary, fontSize: 15 },
 
   // Route placeholder (replaces MapView)
   mapPlaceholder:      { margin: 16, marginBottom: 0, backgroundColor: theme.surface, borderRadius: 14, overflow: 'hidden' },
   mapPlaceholderInner: { paddingVertical: 28, paddingHorizontal: 20, alignItems: 'center', gap: 10, backgroundColor: theme.accentDim },
-  mapIcon:             { fontSize: 32 },
   mapRouteText:        { fontSize: 15, fontWeight: '600', color: theme.text, textAlign: 'center' },
   liveChip:            { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(11,15,14,0.85)', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5, marginTop: 4 },
   liveDot:             { width: 8, height: 8, borderRadius: 4, backgroundColor: theme.accent },
   liveText:            { fontSize: 11, fontWeight: '500', color: theme.accent, letterSpacing: 1 },
   mapButtonRow:        { flexDirection: 'row', gap: 10, padding: 14 },
-  mapBtn:              { flex: 1, borderRadius: 10, paddingVertical: 12, alignItems: 'center' },
+  mapBtn:              { flex: 1, flexDirection: 'row', gap: 6, borderRadius: 10, paddingVertical: 12, alignItems: 'center', justifyContent: 'center' },
   mapBtnPrimary:       { backgroundColor: theme.accent },
   mapBtnPrimaryText:   { color: theme.darkGreen, fontSize: 13, fontWeight: '600' },
   mapBtnSecondary:     { backgroundColor: theme.surface2, borderWidth: 1, borderColor: theme.border },
@@ -246,7 +258,6 @@ const styles = StyleSheet.create({
   dotDone:             { backgroundColor: theme.accent },
   dotActive:           { backgroundColor: theme.accent, opacity: 0.9 },
   dotPending:          { backgroundColor: theme.surface2, borderWidth: 1.5, borderColor: theme.border },
-  dotCheck:            { fontSize: 12, color: theme.darkGreen, fontWeight: '500' },
   connector:           { width: 2, height: 32, backgroundColor: theme.border, marginVertical: 2 },
   connectorDone:       { backgroundColor: theme.accent },
   timelineLabel:       { fontSize: 14, color: theme.textMuted, paddingLeft: 14, paddingTop: 2, paddingBottom: 34 },
@@ -256,9 +267,9 @@ const styles = StyleSheet.create({
   driverLabel:         { fontSize: 11, color: theme.textMuted, fontWeight: '500', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.9 },
   driverName:          { fontSize: 15, fontWeight: '500', color: theme.text },
   truckPlate:          { fontSize: 13, color: theme.textSecondary, marginTop: 2 },
-  callBtn:             { backgroundColor: theme.accentDim, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10 },
+  callBtn:             { flexDirection: 'row', gap: 6, alignItems: 'center', backgroundColor: theme.accentDim, borderRadius: 12, paddingHorizontal: 16, paddingVertical: 10 },
   callBtnText:         { fontSize: 13, fontWeight: '500', color: theme.accent },
   footer:              { padding: 16, paddingTop: 8, paddingBottom: 32 },
-  callLargeBtn:        { backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 13, alignItems: 'center' },
+  callLargeBtn:        { flexDirection: 'row', gap: 8, backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 13, alignItems: 'center', justifyContent: 'center' },
   callLargeBtnText:    { fontSize: 13, fontWeight: '500', color: theme.darkGreen },
 });

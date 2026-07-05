@@ -6,6 +6,7 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import ScreenWrapper from '../../components/ScreenWrapper';
 import api from '../../lib/api';
+import { formatApiError } from '../../lib/errors';
 import { theme } from '../../theme';
 import { useAuthStore } from '../../store/auth';
 
@@ -102,9 +103,9 @@ export default function VerificationScreen({ navigation }: any) {
       });
 
       await fetchDocs();
-      Alert.alert('Uploaded', 'Document submitted for review.');
-    } catch (e: any) {
-      Alert.alert('Upload failed', e?.response?.data?.message || 'Could not upload document. Please try again.');
+      Alert.alert('Document uploaded', "We'll review it and let you know once your account is verified.");
+    } catch (e) {
+      Alert.alert('Upload failed', formatApiError(e, "We couldn't upload that document. Please try again.", 'profile'));
     } finally {
       setUploading(null);
     }

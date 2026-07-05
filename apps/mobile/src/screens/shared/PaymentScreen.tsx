@@ -3,8 +3,10 @@ import {
   View, Text, StyleSheet, TouchableOpacity, TextInput,
   ScrollView, Alert, ActivityIndicator, Linking, StatusBar,
 } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { theme } from '../../theme';
 import { formatPrice } from '../../lib/constants';
+import { formatApiError } from '../../lib/errors';
 import api from '../../lib/api';
 
 export default function PaymentScreen({ route, navigation }: any) {
@@ -49,19 +51,19 @@ export default function PaymentScreen({ route, navigation }: any) {
 
       if (provider === 'CHAPA' && checkoutUrl) {
         await Linking.openURL(checkoutUrl);
-        setStatusMsg('Complete payment in browser, then tap "I\'ve completed payment" below.');
+        setStatusMsg("Finish paying in your browser, then tap \"I've paid — verify now\" below.");
         setStatusType('info');
       } else if (provider === 'WAAFI') {
-        setStatusMsg(message || 'Check your phone for EVC Plus / ZAAD prompt.');
+        setStatusMsg(message || 'Check your phone for the EVC Plus / ZAAD prompt.');
         setStatusType('info');
         startPolling();
       } else if (provider === 'CASH') {
-        setStatusMsg(message || 'Cash payment recorded successfully.');
+        setStatusMsg(message || 'Cash payment recorded.');
         setStatusType('success');
         setPayment({ ...pmt, status: 'COMPLETED' });
       }
-    } catch (err: any) {
-      setStatusMsg(err?.response?.data?.message || 'Payment failed. Please try again.');
+    } catch (err) {
+      setStatusMsg(formatApiError(err, "We couldn't start the payment. Please try again.", 'payment'));
       setStatusType('error');
     } finally {
       setActionLoading(false);
@@ -75,15 +77,15 @@ export default function PaymentScreen({ route, navigation }: any) {
       const pmt = res.data.payment;
       setPayment(pmt);
       if (pmt?.status === 'COMPLETED') {
-        setStatusMsg('Payment confirmed!');
+        setStatusMsg('Payment confirmed.');
         setStatusType('success');
         if (pollRef.current) clearInterval(pollRef.current);
       } else {
-        setStatusMsg('Not confirmed yet. Please wait and try again.');
+        setStatusMsg("We couldn't confirm your payment yet. Wait a moment and try again.");
         setStatusType('info');
       }
-    } catch (err: any) {
-      setStatusMsg(err?.response?.data?.message || 'Verification failed');
+    } catch (err) {
+      setStatusMsg(formatApiError(err, "We couldn't verify your payment. Please try again.", 'payment'));
       setStatusType('error');
     } finally {
       setActionLoading(false);
@@ -99,7 +101,7 @@ export default function PaymentScreen({ route, navigation }: any) {
         if (res.data.payment?.status === 'COMPLETED') {
           if (pollRef.current) clearInterval(pollRef.current);
           setPayment(res.data.payment);
-          setStatusMsg('Payment confirmed!');
+          setStatusMsg('Payment confirmed.');
           setStatusType('success');
         }
       } catch {}
@@ -111,11 +113,11 @@ export default function PaymentScreen({ route, navigation }: any) {
 
   const handleCash = () => {
     Alert.alert(
-      'Cash on Delivery',
-      'Confirm cash payment arrangement with the driver?',
+      'Pay in cash?',
+      "You'll settle with the driver directly on delivery. We'll mark this booking as paid in cash.",
       [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Confirm', onPress: () => initiatePayment('CASH') },
+        { text: 'Not yet', style: 'cancel' },
+        { text: 'Confirm cash', onPress: () => initiatePayment('CASH') },
       ]
     );
   };
@@ -136,23 +138,24 @@ export default function PaymentScreen({ route, navigation }: any) {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <Text style={styles.backText}>← Back</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn} accessibilityLabel="Back">
+          <Feather name="chevron-left" size={20} color={theme.accent} />
+          <Text style={styles.backText}>Back</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Make Payment</Text>
+        <Text style={styles.headerTitle}>Payment</Text>
         <View style={{ width: 60 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         {/* Booking summary */}
         <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>DELIVERY</Text>
-          <Text style={styles.summaryTitle} numberOfLines={2}>{booking?.load?.title || 'Freight Delivery'}</Text>
+          <Text style={styles.summaryLabel}>LOAD</Text>
+          <Text style={styles.summaryTitle} numberOfLines={2}>{booking?.load?.title || 'Load'}</Text>
           <Text style={styles.summaryRoute}>
             {booking?.load?.pickupCity} → {booking?.load?.deliveryCity}
           </Text>
           <View style={styles.summaryPriceRow}>
-            <Text style={styles.summaryPriceLabel}>Amount Due</Text>
+            <Text style={styles.summaryPriceLabel}>Amount due</Text>
             <Text style={styles.summaryPrice}>
               {formatPrice(booking?.agreedPrice, booking?.currency)}
             </Text>
@@ -162,8 +165,14 @@ export default function PaymentScreen({ route, navigation }: any) {
         {/* Payment status */}
         {payment && (
           <View style={[styles.statusBanner, isCompleted ? styles.statusSuccess : payment.status === 'FAILED' ? styles.statusError : styles.statusInfo]}>
+            <Feather
+              name={isCompleted ? 'check-circle' : payment.status === 'FAILED' ? 'x-circle' : 'clock'}
+              size={14}
+              color={isCompleted ? theme.accent : payment.status === 'FAILED' ? theme.danger : theme.warning}
+              style={{ marginRight: 6 }}
+            />
             <Text style={styles.statusBannerText}>
-              {isCompleted ? '✓ Payment Completed' : payment.status === 'FAILED' ? '✗ Payment Failed' : '⏳ Payment Processing'}
+              {isCompleted ? 'Payment complete' : payment.status === 'FAILED' ? "Payment didn't go through" : 'Payment processing…'}
             </Text>
           </View>
         )}
@@ -180,7 +189,9 @@ export default function PaymentScreen({ route, navigation }: any) {
             {/* Chapa card */}
             <View style={styles.methodCard}>
               <View style={styles.methodHeader}>
-                <Text style={styles.methodEmoji}>🏦</Text>
+                <View style={styles.methodIcon}>
+                  <Feather name="credit-card" size={22} color={theme.accent} />
+                </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.methodTitle}>Pay with Chapa</Text>
                   <Text style={styles.methodSub}>Ethiopian Birr · TeleBirr, CBE, Awash Bank</Text>
@@ -195,13 +206,13 @@ export default function PaymentScreen({ route, navigation }: any) {
                 {actionLoading && payment?.provider === 'CHAPA' ? (
                   <ActivityIndicator size="small" color={theme.accent} />
                 ) : (
-                  <Text style={[styles.methodBtnText, { color: theme.accent }]}>Pay with Chapa →</Text>
+                  <Text style={[styles.methodBtnText, { color: theme.accent }]}>Pay with Chapa</Text>
                 )}
               </TouchableOpacity>
               {payment?.provider === 'CHAPA' && payment?.status === 'PROCESSING' && (
                 <TouchableOpacity style={styles.verifyBtn} onPress={verifyPayment} disabled={actionLoading}>
                   <Text style={styles.verifyBtnText}>
-                    {actionLoading ? 'Verifying...' : "I've completed payment — Verify"}
+                    {actionLoading ? 'Checking your payment…' : "I've paid — verify now"}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -210,7 +221,9 @@ export default function PaymentScreen({ route, navigation }: any) {
             {/* Waafi card */}
             <View style={styles.methodCard}>
               <View style={styles.methodHeader}>
-                <Text style={styles.methodEmoji}>📱</Text>
+                <View style={styles.methodIcon}>
+                  <Feather name="smartphone" size={22} color={theme.blue} />
+                </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.methodTitle}>Pay with Waafi</Text>
                   <Text style={styles.methodSub}>EVC Plus / Telesom ZAAD · USD</Text>
@@ -223,13 +236,13 @@ export default function PaymentScreen({ route, navigation }: any) {
                   onPress={() => setShowWaafiInput(true)}
                   disabled={actionLoading}
                 >
-                  <Text style={[styles.methodBtnText, { color: theme.blue }]}>Enter EVC Plus / ZAAD Number</Text>
+                  <Text style={[styles.methodBtnText, { color: theme.blue }]}>Enter your EVC Plus / ZAAD number</Text>
                 </TouchableOpacity>
               ) : (
                 <View>
                   <TextInput
                     style={styles.phoneInput}
-                    placeholder="e.g. 0611234567"
+                    placeholder="611 234 567"
                     placeholderTextColor={theme.textMuted}
                     keyboardType="phone-pad"
                     value={waafiPhone}
@@ -243,7 +256,7 @@ export default function PaymentScreen({ route, navigation }: any) {
                     {actionLoading && payment?.provider === 'WAAFI' ? (
                       <ActivityIndicator size="small" color="#fff" />
                     ) : (
-                      <Text style={[styles.methodBtnText, { color: '#fff' }]}>Send Payment Request</Text>
+                      <Text style={[styles.methodBtnText, { color: '#fff' }]}>Send payment prompt</Text>
                     )}
                   </TouchableOpacity>
                 </View>
@@ -253,10 +266,12 @@ export default function PaymentScreen({ route, navigation }: any) {
             {/* Cash card */}
             <View style={styles.methodCard}>
               <View style={styles.methodHeader}>
-                <Text style={styles.methodEmoji}>💵</Text>
+                <View style={styles.methodIcon}>
+                  <Feather name="dollar-sign" size={22} color={theme.textMuted} />
+                </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.methodTitle}>Cash on Delivery</Text>
-                  <Text style={styles.methodSub}>Pay driver directly upon delivery</Text>
+                  <Text style={styles.methodTitle}>Pay in cash</Text>
+                  <Text style={styles.methodSub}>Settle with the driver on delivery.</Text>
                 </View>
               </View>
               <TouchableOpacity
@@ -264,7 +279,7 @@ export default function PaymentScreen({ route, navigation }: any) {
                 onPress={handleCash}
                 disabled={actionLoading}
               >
-                <Text style={[styles.methodBtnText, { color: theme.textMuted }]}>Confirm Cash Arrangement</Text>
+                <Text style={[styles.methodBtnText, { color: theme.textMuted }]}>Confirm cash arrangement</Text>
               </TouchableOpacity>
             </View>
           </>
@@ -272,13 +287,15 @@ export default function PaymentScreen({ route, navigation }: any) {
 
         {isCompleted && (
           <View style={styles.successCard}>
-            <Text style={styles.successEmoji}>✅</Text>
-            <Text style={styles.successTitle}>Payment Complete</Text>
+            <View style={styles.successIcon}>
+              <Feather name="check-circle" size={48} color={theme.accent} />
+            </View>
+            <Text style={styles.successTitle}>Payment received</Text>
             <Text style={styles.successSub}>
-              Paid via {payment.provider} on {payment.paidAt ? new Date(payment.paidAt).toLocaleDateString() : 'N/A'}
+              Paid via {payment.provider} on {payment.paidAt ? new Date(payment.paidAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}.
             </Text>
             <TouchableOpacity style={styles.doneBtn} onPress={() => navigation.goBack()}>
-              <Text style={styles.doneBtnText}>Done</Text>
+              <Text style={styles.doneBtnText}>Back to booking</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -291,7 +308,7 @@ const styles = StyleSheet.create({
   root:             { flex: 1, backgroundColor: theme.bg },
   center:           { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.bg },
   header:           { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 },
-  backBtn:          { padding: 4 },
+  backBtn:          { padding: 4, flexDirection: 'row', alignItems: 'center', gap: 2 },
   backText:         { color: theme.accent, fontSize: 14, fontWeight: '500' },
   headerTitle:      { fontSize: 15, fontWeight: '500', color: theme.text },
   scroll:           { padding: 16, paddingBottom: 40 },
@@ -303,7 +320,7 @@ const styles = StyleSheet.create({
   summaryPriceLabel:{ fontSize: 11, color: theme.textMuted, textTransform: 'uppercase', letterSpacing: 0.9, fontWeight: '500' },
   summaryPrice:     { fontSize: 22, fontWeight: '500', color: theme.text },
   summaryCurrency:  { fontSize: 14, fontWeight: '400', color: theme.textMuted },
-  statusBanner:     { borderRadius: 10, padding: 12, marginBottom: 12, alignItems: 'center' },
+  statusBanner:     { borderRadius: 10, padding: 12, marginBottom: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
   statusSuccess:    { backgroundColor: theme.accentDim, borderWidth: 0.5, borderColor: theme.accentBorder },
   statusError:      { backgroundColor: theme.dangerDim, borderWidth: 0.5, borderColor: theme.danger },
   statusInfo:       { backgroundColor: theme.warningDim, borderWidth: 0.5, borderColor: theme.warning },
@@ -315,7 +332,7 @@ const styles = StyleSheet.create({
   msgText:          { fontSize: 13, color: theme.text, lineHeight: 18 },
   methodCard:       { backgroundColor: theme.surface, borderRadius: 14, padding: 16, marginBottom: 12 },
   methodHeader:     { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14 },
-  methodEmoji:      { fontSize: 28 },
+  methodIcon:       { width: 40, height: 40, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.surface2 },
   methodTitle:      { fontSize: 15, fontWeight: '500', color: theme.text, marginBottom: 2 },
   methodSub:        { fontSize: 11, color: theme.textMuted },
   methodAmount:     { fontSize: 11, fontWeight: '500' },
@@ -325,7 +342,7 @@ const styles = StyleSheet.create({
   verifyBtnText:    { fontSize: 13, color: theme.textMuted, fontWeight: '400' },
   phoneInput:       { backgroundColor: theme.inputBg, borderRadius: 12, borderWidth: 0.5, borderColor: theme.border, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15, color: theme.text, fontWeight: '400' },
   successCard:      { alignItems: 'center', padding: 32 },
-  successEmoji:     { fontSize: 56, marginBottom: 16 },
+  successIcon:      { width: 72, height: 72, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.accentDim, marginBottom: 16 },
   successTitle:     { fontSize: 22, fontWeight: '500', color: theme.text, marginBottom: 8 },
   successSub:       { fontSize: 14, color: theme.textMuted, textAlign: 'center', marginBottom: 28 },
   doneBtn:          { backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 13, paddingHorizontal: 48 },
