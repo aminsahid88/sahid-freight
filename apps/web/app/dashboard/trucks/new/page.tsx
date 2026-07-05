@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { useAuthStore, useGateStore } from "@/lib/store";
 import { useEffect } from "react";
+import { formatApiError } from "@/lib/errors";
+import { ArrowLeft, FileText, X as XIcon } from "lucide-react";
 
 export default function NewTruckPage() {
   const router = useRouter();
@@ -22,9 +24,9 @@ export default function NewTruckPage() {
   const [truckPreviews, setTruckPreviews] = useState<Record<string, string>>({});
 
   const TRUCK_DOCS = [
-    { key: "TRUCK_REGISTRATION", label: "Truck Registration", desc: "Official registration certificate", required: true },
-    { key: "TRUCK_INSURANCE", label: "Truck Insurance", desc: "Valid insurance document", required: true },
-    { key: "PLATE_NUMBER_PHOTO", label: "Plate Number Photo", desc: "Clear photo of the plate", required: true },
+    { key: "TRUCK_REGISTRATION", label: "Truck registration", desc: "Official registration certificate.", required: true },
+    { key: "TRUCK_INSURANCE", label: "Truck insurance", desc: "Valid insurance document.", required: true },
+    { key: "PLATE_NUMBER_PHOTO", label: "Plate number photo", desc: "Clear photo of the plate.", required: true },
   ];
 
   const handleTruckFile = (key: string, file: File | null) => {
@@ -45,7 +47,7 @@ export default function NewTruckPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!allTruckDocsUploaded) { setError("Please upload all required truck documents"); return; }
+    if (!allTruckDocsUploaded) { setError("Please upload all required truck documents."); return; }
     setLoading(true);
     setError("");
     try {
@@ -66,7 +68,7 @@ export default function NewTruckPage() {
       }
       router.push("/dashboard/trucks");
     } catch (err: any) {
-      setError(err.response?.data?.message || "Something went wrong");
+      setError(formatApiError(err, "We couldn't add your truck. Please try again.", "truck"));
     } finally {
       setLoading(false);
     }
@@ -83,12 +85,12 @@ export default function NewTruckPage() {
   const labelStyle = { display: "block", fontSize: "13px", fontWeight: "700" as const, color: "var(--primary)", marginBottom: "8px" };
 
   const truckTypes = [
-    { value: "FLATBED", label: "Flatbed", desc: "Open flat surface, good for large cargo" },
-    { value: "REFRIGERATED", label: "Refrigerated", desc: "Temperature controlled, for perishables" },
-    { value: "TANKER", label: "Tanker", desc: "For liquids like fuel or water" },
-    { value: "CONTAINER", label: "Container", desc: "Standard shipping containers" },
-    { value: "OPEN_BODY", label: "Open Body", desc: "Open top, flexible loading" },
-    { value: "MINI_TRUCK", label: "Mini Truck", desc: "Small loads, urban deliveries" },
+    { value: "FLATBED", label: "Flatbed", desc: "Open flat surface, good for large cargo." },
+    { value: "REFRIGERATED", label: "Refrigerated", desc: "Temperature controlled, for perishables." },
+    { value: "TANKER", label: "Tanker", desc: "For liquids like fuel or water." },
+    { value: "CONTAINER", label: "Container", desc: "Standard shipping containers." },
+    { value: "OPEN_BODY", label: "Open body", desc: "Open top, flexible loading." },
+    { value: "MINI_TRUCK", label: "Mini truck", desc: "Small loads, urban deliveries." },
   ];
 
   const countries = [
@@ -105,15 +107,15 @@ export default function NewTruckPage() {
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <img src="/logo.svg" alt="Sahid Freight" style={{ height: "40px", objectFit: "contain" }} />
         </div>
-        <button onClick={() => router.push("/dashboard")} style={{ background: "rgba(240,235,224,0.08)", border: "none", borderRadius: "8px", padding: "8px 16px", color: "rgba(240,235,224,0.6)", fontSize: "14px", cursor: "pointer" }}>
-          ← Back to Dashboard
+        <button onClick={() => router.push("/dashboard")} style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "rgba(240,235,224,0.08)", border: "none", borderRadius: "8px", padding: "8px 16px", color: "rgba(240,235,224,0.6)", fontSize: "14px", cursor: "pointer" }}>
+          <ArrowLeft size={14} /> Back to dashboard
         </button>
       </div>
 
       <div style={{ maxWidth: "800px", margin: "0 auto", padding: "40px 32px" }}>
         <div style={{ marginBottom: "32px" }}>
-          <h1 style={{ fontSize: "28px", fontWeight: "800", color: "var(--primary)", margin: "0 0 4px", letterSpacing: "-1px" }}>Add Your Truck</h1>
-          <p style={{ color: "var(--text-secondary)", fontSize: "15px", margin: 0 }}>Register your truck to start receiving load requests</p>
+          <h1 style={{ fontSize: "28px", fontWeight: "800", color: "var(--primary)", margin: "0 0 4px", letterSpacing: "-1px" }}>Add a truck</h1>
+          <p style={{ color: "var(--text-secondary)", fontSize: "15px", margin: 0 }}>Register a truck so brokers can dispatch loads to it.</p>
         </div>
 
         <div style={{ background: "var(--surface)", borderRadius: "20px", padding: "40px", boxShadow: "0 2px 4px rgba(10,31,68,0.04), 0 16px 48px rgba(10,31,68,0.08)", border: "1px solid rgba(10,31,68,0.06)" }}>
@@ -130,11 +132,11 @@ export default function NewTruckPage() {
             <div style={{ marginBottom: "32px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
                 <div style={{ width: "28px", height: "28px", background: "var(--primary)", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", color: "#FAFAF8", fontWeight: "700" }}>1</div>
-                <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--primary)", margin: 0 }}>Truck Details</h3>
+                <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--primary)", margin: 0 }}>Truck details</h3>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                 <div>
-                  <label style={labelStyle}>Plate Number</label>
+                  <label style={labelStyle}>Plate number</label>
                   <input type="text" value={form.plateNumber} onChange={(e) => update("plateNumber", e.target.value)} placeholder="e.g. AA-12345" required onFocus={() => setFocused("plate")} onBlur={() => setFocused(null)} style={{ ...inputStyle("plate"), fontFamily: "monospace", textTransform: "uppercase" as const }} />
                 </div>
                 <div>
@@ -152,7 +154,7 @@ export default function NewTruckPage() {
             <div style={{ marginBottom: "32px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
                 <div style={{ width: "28px", height: "28px", background: "var(--primary)", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", color: "#FAFAF8", fontWeight: "700" }}>2</div>
-                <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--primary)", margin: 0 }}>Truck Type</h3>
+                <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--primary)", margin: 0 }}>Truck type</h3>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
                 {truckTypes.map((t) => (
@@ -168,7 +170,7 @@ export default function NewTruckPage() {
             <div style={{ marginBottom: "36px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
                 <div style={{ width: "28px", height: "28px", background: "var(--primary)", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", color: "#FAFAF8", fontWeight: "700" }}>3</div>
-                <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--primary)", margin: 0 }}>Current Location</h3>
+                <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--primary)", margin: 0 }}>Current location</h3>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                 <div>
@@ -189,9 +191,9 @@ export default function NewTruckPage() {
             <div style={{ marginBottom: "32px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
                 <div style={{ width: "28px", height: "28px", background: "var(--primary)", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", color: "#FAFAF8", fontWeight: "700" }}>4</div>
-                <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--primary)", margin: 0 }}>Truck Documents</h3>
+                <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--primary)", margin: 0 }}>Truck documents</h3>
               </div>
-              <p style={{ fontSize: "13px", color: "var(--text-secondary)", margin: "0 0 16px 38px" }}>Upload registration, insurance and plate photo for verification.</p>
+              <p style={{ fontSize: "13px", color: "var(--text-secondary)", margin: "0 0 16px 38px" }}>Upload registration, insurance, and a plate photo for verification.</p>
               <div style={{ display: "flex", flexDirection: "column" as const, gap: "12px" }}>
                 {TRUCK_DOCS.map(doc => (
                   <div key={doc.key} style={{ background: truckFiles[doc.key] ? "#f0fdf4" : "var(--bg)", borderRadius: "12px", padding: "16px", border: `1.5px solid ${truckFiles[doc.key] ? "#bbf7d0" : "var(--border)"}`, transition: "all 0.2s" }}>
@@ -205,7 +207,9 @@ export default function NewTruckPage() {
                       </div>
                       {truckFiles[doc.key] ? (
                         <button type="button" onClick={() => { setTruckFiles(p => ({ ...p, [doc.key]: null })); setTruckPreviews(p => ({ ...p, [doc.key]: "" })); }}
-                          style={{ background: "#dc2626", color: "#fff", border: "none", borderRadius: "50%", width: "26px", height: "26px", fontSize: "13px", cursor: "pointer", flexShrink: 0 }}>✕</button>
+                          style={{ background: "#DC2626", color: "#fff", border: "none", borderRadius: "50%", width: "26px", height: "26px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }} aria-label="Remove file">
+                          <XIcon size={13} />
+                        </button>
                       ) : (
                         <label style={{ background: "var(--primary)", color: "#FAFAF8", border: "none", borderRadius: "8px", padding: "7px 14px", fontSize: "12px", fontWeight: "700", cursor: "pointer", flexShrink: 0 }}>
                           Upload
@@ -215,7 +219,7 @@ export default function NewTruckPage() {
                     </div>
                     {truckPreviews[doc.key] && (
                       truckFiles[doc.key]?.type === "application/pdf"
-                        ? <div style={{ fontSize: "13px", color: "#16a34a", fontWeight: "600" }}>📄 {truckFiles[doc.key]?.name}</div>
+                        ? <div style={{ fontSize: "13px", color: "#047857", fontWeight: "600", display: "flex", alignItems: "center", gap: "6px" }}><FileText size={14} /> {truckFiles[doc.key]?.name}</div>
                         : <img src={truckPreviews[doc.key]} alt={doc.label} style={{ width: "100%", maxHeight: "140px", objectFit: "cover", borderRadius: "8px" }} />
                     )}
                   </div>
@@ -228,7 +232,7 @@ export default function NewTruckPage() {
                 Cancel
               </button>
               <button type="submit" disabled={loading || !form.truckType || !allTruckDocsUploaded} style={{ flex: 2, background: loading || !form.truckType || !allTruckDocsUploaded ? "var(--border)" : "var(--primary)", border: "none", borderRadius: "10px", padding: "15px", color: loading || !form.truckType || !allTruckDocsUploaded ? "#aaa" : "#FAFAF8", fontSize: "15px", fontWeight: "700", cursor: loading || !form.truckType || !allTruckDocsUploaded ? "not-allowed" : "pointer", transition: "all 0.2s" }}>
-                {loading ? "Saving..." : "Add Truck & Submit Documents →"}
+                {loading ? "Saving your truck…" : "Add truck"}
               </button>
             </div>
           </form>

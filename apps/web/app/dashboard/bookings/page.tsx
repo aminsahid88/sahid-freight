@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
 import api from "@/lib/api";
+import { formatApiError } from "@/lib/errors";
+import { formatPrice, formatDate } from "@/lib/format";
+import { Package, ArrowRight, Star, CheckCircle2, Wallet, Banknote, Smartphone, Landmark } from "lucide-react";
 
 export default function BookingsPage() {
   const router = useRouter();
@@ -77,7 +80,7 @@ export default function BookingsPage() {
       await api.patch(`/bookings/${bookingId}/accept`);
       if (selectedLoad) loadBookingsForLoad(selectedLoad);
       else fetchData();
-    } catch (err) { console.error(err); }
+    } catch (err: any) { alert(formatApiError(err, "We couldn't confirm this booking. Please try again.", "booking")); }
     finally { setActionLoading(null); }
   };
 
@@ -87,7 +90,7 @@ export default function BookingsPage() {
       await api.patch(`/bookings/${bookingId}/reject`);
       if (selectedLoad) loadBookingsForLoad(selectedLoad);
       else fetchData();
-    } catch (err) { console.error(err); }
+    } catch (err: any) { alert(formatApiError(err, "We couldn't reject this booking. Please try again.", "booking")); }
     finally { setActionLoading(null); }
   };
 
@@ -98,7 +101,7 @@ export default function BookingsPage() {
       await api.patch(`/bookings/${rateModal.id}/rate`, { rating: rateValue, comment: rateComment });
       setRateModal(null); setRateValue(0); setRateComment("");
       fetchData();
-    } catch (err: any) { alert(err?.response?.data?.message || "Failed to submit rating"); }
+    } catch (err: any) { alert(formatApiError(err, "We couldn't submit your rating. Please try again.", "booking")); }
     finally { setRateLoading(false); }
   };
 
@@ -123,9 +126,9 @@ export default function BookingsPage() {
       setPayments(prev => ({ ...prev, [booking.id]: payment }));
       if (provider === "CHAPA" && checkoutUrl) {
         window.open(checkoutUrl, "_blank");
-        setPaymentMsg("Complete payment in the Chapa tab, then click Verify below.");
+        setPaymentMsg("Complete payment in the Chapa tab, then tap Verify below.");
       } else if (provider === "WAAFI") {
-        setPaymentMsg(message || "Check your phone for EVC Plus / ZAAD prompt.");
+        setPaymentMsg(message || "Check your phone for the EVC Plus or ZAAD prompt.");
         // Poll for confirmation
         let attempts = 0;
         const poll = setInterval(async () => {
@@ -135,7 +138,7 @@ export default function BookingsPage() {
             if (v.data.payment?.status === "COMPLETED") {
               clearInterval(poll);
               setPayments(prev => ({ ...prev, [booking.id]: v.data.payment }));
-              setPaymentMsg("Payment confirmed!");
+              setPaymentMsg("Payment confirmed — thanks.");
               setTimeout(() => setPaymentModal(null), 1500);
             }
           } catch {}
@@ -146,7 +149,7 @@ export default function BookingsPage() {
         setTimeout(() => setPaymentModal(null), 1500);
       }
     } catch (err: any) {
-      setPaymentMsg(err?.response?.data?.message || "Payment failed. Please try again.");
+      setPaymentMsg(formatApiError(err, "We couldn't start the payment. Please try again.", "payment"));
     } finally {
       setPaymentLoading(false);
     }
@@ -157,9 +160,9 @@ export default function BookingsPage() {
     try {
       const res = await api.post("/payments/verify", { bookingId });
       setPayments(prev => ({ ...prev, [bookingId]: res.data.payment }));
-      setPaymentMsg(res.data.payment?.status === "COMPLETED" ? "Payment verified!" : "Not confirmed yet. Try again in a moment.");
+      setPaymentMsg(res.data.payment?.status === "COMPLETED" ? "Payment verified — thanks." : "Not confirmed yet. Try again in a moment.");
     } catch (err: any) {
-      setPaymentMsg(err?.response?.data?.message || "Verification failed");
+      setPaymentMsg(formatApiError(err, "We couldn't verify this payment. Please try again in a moment.", "payment"));
     } finally {
       setPaymentLoading(false);
     }
@@ -171,7 +174,7 @@ export default function BookingsPage() {
       await api.patch("/bookings/" + assignModal + "/assign-driver", { driverId: selectedDriver });
       setAssignModal(null); setSelectedDriver("");
       fetchData();
-    } catch (err: any) { console.error(err); }
+    } catch (err: any) { alert(formatApiError(err, "We couldn't assign this driver. Please try again.", "booking")); }
   };
 
   const statusColor: any = {
@@ -195,7 +198,7 @@ export default function BookingsPage() {
         <div style={{ marginBottom: "28px" }}>
           <h1 style={{ fontSize: "22px", fontWeight: "800", color: "var(--primary)", margin: "0 0 4px", letterSpacing: "-0.5px" }}>Bookings</h1>
           <p style={{ color: "var(--text-secondary)", fontSize: "13px", margin: "0 0 16px" }}>
-            {user?.role === "CARGO_SENDER" ? "Review and manage applications for your loads" : "Track your booking requests"}
+            Loads you've booked or accepted.
           </p>
           {user?.role === "CARGO_SENDER" && loads.length > 0 && (
             <select value={selectedLoad || ""} onChange={e => loadBookingsForLoad(e.target.value)}
@@ -220,10 +223,12 @@ export default function BookingsPage() {
             <div>
               {bookings.length === 0 ? (
                 <div style={{ background: "var(--surface)", borderRadius: "16px", padding: "64px 24px", textAlign: "center" as const, border: "1px solid rgba(26,39,68,0.06)" }}>
-
+                  <div style={{ display: "inline-flex", padding: "14px", borderRadius: "14px", background: "var(--bg)", marginBottom: "14px", color: "#94A3B8" }}>
+                    <Package size={32} />
+                  </div>
                   <h3 style={{ fontSize: "18px", fontWeight: "700", color: "var(--primary)", margin: "0 0 8px" }}>No bookings yet</h3>
-                  <p style={{ color: "var(--text-secondary)", fontSize: "15px", margin: 0 }}>
-                    {user?.role === "CARGO_SENDER" ? "No truck owners have applied for this load yet" : "You haven't applied for any loads yet"}
+                  <p style={{ color: "var(--text-secondary)", fontSize: "14px", margin: 0, maxWidth: "380px", marginLeft: "auto", marginRight: "auto", lineHeight: "1.5" }}>
+                    Bookings appear here once you post a load and a truck accepts it.
                   </p>
                 </div>
               ) : (
@@ -238,7 +243,7 @@ export default function BookingsPage() {
                                 {booking.truck?.plateNumber} — {booking.truck?.truckType?.replace("_", " ")}
                               </div>
                               <div style={{ fontSize: "13px", color: "var(--text-secondary)" }}>
-                                Owner: {booking.owner?.fullName} · {booking.owner?.phone}
+                                Truck owner: {booking.owner?.fullName} · {booking.owner?.phone}
                               </div>
                             </>
                           ) : (
@@ -246,24 +251,24 @@ export default function BookingsPage() {
                               <div style={{ fontSize: "16px", fontWeight: "700", color: "var(--primary)", marginBottom: "4px" }}>
                                 {booking.load?.title}
                               </div>
-                              <div style={{ fontSize: "13px", color: "var(--text-secondary)" }}>
-                                {booking.load?.pickupCity} → {booking.load?.deliveryCity}
+                              <div style={{ fontSize: "13px", color: "var(--text-secondary)", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                                {booking.load?.pickupCity} <ArrowRight size={12} color="var(--accent)" /> {booking.load?.deliveryCity}
                               </div>
                             </>
                           )}
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                           <span style={{ fontSize: "12px", fontWeight: "600", padding: "5px 12px", borderRadius: "20px", background: statusColor[booking.status]?.bg, color: statusColor[booking.status]?.color, border: `1px solid ${statusColor[booking.status]?.border}`, whiteSpace: "nowrap" as const }}>
-                            {booking.status === "COMPLETED" ? "DELIVERED" : booking.status}
+                            {booking.status === "COMPLETED" ? "Delivered" : booking.status.charAt(0) + booking.status.slice(1).toLowerCase()}
                           </span>
                           {user?.role === "TRUCK_OWNER" && booking.status === "ACCEPTED" && !booking.driverId && (
                             <button onClick={e => { e.stopPropagation(); setAssignModal(booking.id); }} style={{ padding: "5px 12px", borderRadius: "8px", border: "1px solid var(--accent)", background: "#fff7ed", color: "var(--accent)", fontSize: "12px", fontWeight: "700", cursor: "pointer", whiteSpace: "nowrap" as const }}>
-                              + Assign Driver
+                              Assign driver
                             </button>
                           )}
                           {booking.driverId && (
-                            <span style={{ fontSize: "11px", color: "#16a34a", fontWeight: "600", padding: "4px 10px", borderRadius: "99px", background: "#f0fdf4", border: "1px solid #bbf7d0" }}>
-                              Driver assigned
+                            <span style={{ fontSize: "11px", color: "#16a34a", fontWeight: "600", padding: "4px 10px", borderRadius: "99px", background: "#f0fdf4", border: "1px solid #bbf7d0", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                              <CheckCircle2 size={11} /> Driver assigned
                             </span>
                           )}
                         </div>
@@ -273,21 +278,21 @@ export default function BookingsPage() {
                         <div>
                           <div style={{ fontSize: "11px", color: "var(--text-secondary)", letterSpacing: "1px", textTransform: "uppercase" as const, marginBottom: "4px" }}>Price</div>
                           <div style={{ fontSize: "18px", fontWeight: "800", color: "var(--primary)" }}>
-                            ${booking.agreedPrice} <span style={{ fontSize: "12px", fontWeight: "400", color: "var(--text-secondary)" }}>{booking.currency}</span>
+                            {formatPrice(booking.agreedPrice, booking.currency)}
                           </div>
                         </div>
                         <div>
                           <div style={{ fontSize: "11px", color: "var(--text-secondary)", letterSpacing: "1px", textTransform: "uppercase" as const, marginBottom: "4px" }}>Date</div>
-                          <div style={{ fontSize: "13px", color: "var(--primary)" }}>{new Date(booking.createdAt).toLocaleDateString()}</div>
+                          <div style={{ fontSize: "13px", color: "var(--primary)" }}>{formatDate(booking.createdAt)}</div>
                         </div>
 
                         {user?.role === "CARGO_SENDER" && booking.status === "PENDING" && (
                           <div style={{ display: "flex", gap: "10px", marginLeft: "auto" }}>
                             <button onClick={() => handleReject(booking.id)} disabled={actionLoading === booking.id} style={{ padding: "9px 20px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-secondary)", fontSize: "14px", fontWeight: "600", cursor: "pointer", transition: "all 0.15s" }}>
-                              Reject
+                              Decline
                             </button>
                             <button onClick={() => handleAccept(booking.id)} disabled={actionLoading === booking.id} style={{ padding: "9px 20px", borderRadius: "8px", border: "none", background: "var(--primary)", color: "#FAFAF8", fontSize: "14px", fontWeight: "700", cursor: "pointer", transition: "all 0.15s" }}>
-                              {actionLoading === booking.id ? "..." : "Accept"}
+                              {actionLoading === booking.id ? "Confirming…" : "Confirm booking"}
                             </button>
                           </div>
                         )}
@@ -296,7 +301,7 @@ export default function BookingsPage() {
                         {(booking.status === "ACCEPTED" || booking.load?.status === "IN_TRANSIT") && (
                           <div style={{ marginLeft: "auto" }}>
                             <a href={`/tracking/${booking.id}`} style={{ padding: "9px 20px", borderRadius: "8px", border: "none", background: "var(--accent)", color: "#fff", fontSize: "14px", fontWeight: "700", cursor: "pointer", textDecoration: "none" }}>
-                              {user?.role === "TRUCK_OWNER" ? "Share Location" : "Track Shipment"}
+                              {user?.role === "TRUCK_OWNER" ? "Share location" : "Track load"}
                             </a>
                           </div>
                         )}
@@ -305,8 +310,8 @@ export default function BookingsPage() {
                           const pmt = payments[booking.id];
                           if (pmt?.status === "COMPLETED") {
                             return (
-                              <span style={{ marginLeft: "auto", fontSize: "12px", fontWeight: "700", padding: "5px 12px", borderRadius: "20px", background: "#f0fdf4", color: "#16a34a", border: "1px solid #bbf7d0" }}>
-                                ✓ Paid
+                              <span style={{ marginLeft: "auto", fontSize: "12px", fontWeight: "700", padding: "5px 12px", borderRadius: "20px", background: "#f0fdf4", color: "#16a34a", border: "1px solid #bbf7d0", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                                <CheckCircle2 size={12} /> Paid
                               </span>
                             );
                           }
@@ -314,7 +319,7 @@ export default function BookingsPage() {
                             return (
                               <button onClick={() => { setPaymentModal(booking); setPaymentMsg(""); setWaafiPhone(""); }}
                                 style={{ marginLeft: "auto", padding: "9px 18px", borderRadius: "8px", border: "1px solid #fecaca", background: "#fef2f2", color: "#dc2626", fontSize: "13px", fontWeight: "700", cursor: "pointer" }}>
-                                Payment Failed — Try Again
+                                Payment failed — try again
                               </button>
                             );
                           }
@@ -322,31 +327,31 @@ export default function BookingsPage() {
                             return (
                               <div style={{ marginLeft: "auto", display: "flex", gap: "8px", alignItems: "center" }}>
                                 <span style={{ fontSize: "12px", color: "#6b7280", padding: "5px 10px", borderRadius: "20px", background: "#f9fafb", border: "1px solid #e5e7eb" }}>
-                                  Awaiting Payment
+                                  Awaiting payment
                                 </span>
                                 <button onClick={() => { setPaymentModal(booking); setPaymentMsg(""); setWaafiPhone(""); }}
                                   style={{ padding: "7px 14px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--primary)", fontSize: "12px", fontWeight: "600", cursor: "pointer" }}>
-                                  Check / Retry
+                                  Check status
                                 </button>
                               </div>
                             );
                           }
                           return (
                             <button onClick={() => { setPaymentModal(booking); setPaymentMsg(""); setWaafiPhone(""); }}
-                              style={{ marginLeft: "auto", padding: "9px 20px", borderRadius: "8px", border: "none", background: "var(--primary)", color: "#FAFAF8", fontSize: "13px", fontWeight: "700", cursor: "pointer" }}>
-                              💳 Pay
+                              style={{ marginLeft: "auto", padding: "9px 20px", borderRadius: "8px", border: "none", background: "var(--primary)", color: "#FAFAF8", fontSize: "13px", fontWeight: "700", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                              <Wallet size={14} /> Pay
                             </button>
                           );
                         })()}
                         {booking.status === "COMPLETED" && (() => {
                           const hasRated = user?.role === "CARGO_SENDER" ? !!booking.senderRatedAt : !!booking.ownerRatedAt;
                           return hasRated ? (
-                            <div style={{ marginLeft: "auto", fontSize: "12px", color: "#16a34a", fontWeight: "600", padding: "7px 16px", borderRadius: "99px", background: "#f0fdf4", border: "1px solid #bbf7d0" }}>
-                              ★ Rated
+                            <div style={{ marginLeft: "auto", fontSize: "12px", color: "#16a34a", fontWeight: "600", padding: "7px 16px", borderRadius: "99px", background: "#f0fdf4", border: "1px solid #bbf7d0", display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                              <Star size={12} fill="currentColor" /> Rated
                             </div>
                           ) : (
-                            <button onClick={() => { setRateModal(booking); setRateValue(0); setRateComment(""); }} style={{ marginLeft: "auto", padding: "9px 20px", borderRadius: "8px", border: "none", background: "var(--accent)", color: "#fff", fontSize: "13px", fontWeight: "700", cursor: "pointer" }}>
-                              ★ Rate
+                            <button onClick={() => { setRateModal(booking); setRateValue(0); setRateComment(""); }} style={{ marginLeft: "auto", padding: "9px 20px", borderRadius: "8px", border: "none", background: "var(--accent)", color: "#fff", fontSize: "13px", fontWeight: "700", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                              <Star size={13} /> {user?.role === "CARGO_SENDER" ? "Rate truck owner" : "Rate cargo owner"}
                             </button>
                           );
                         })()}
@@ -363,33 +368,33 @@ export default function BookingsPage() {
       {paymentModal && (
         <div style={{ position: "fixed" as const, inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ background: "var(--surface)", borderRadius: "16px", width: "100%", maxWidth: "440px", padding: "28px" }}>
-            <div style={{ fontSize: "16px", fontWeight: "800", color: "var(--primary)", marginBottom: "4px" }}>Pay for Delivery</div>
+            <div style={{ fontSize: "16px", fontWeight: "800", color: "var(--primary)", marginBottom: "4px" }}>Pay for delivery</div>
             <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "20px" }}>
-              {paymentModal.load?.title} · <strong>${paymentModal.agreedPrice} {paymentModal.currency}</strong>
+              {paymentModal.load?.title} · <strong>{formatPrice(paymentModal.agreedPrice, paymentModal.currency)}</strong>
             </div>
 
             {/* Chapa */}
             <div style={{ border: "1.5px solid #bbf7d0", borderRadius: "12px", padding: "16px", marginBottom: "12px" }}>
-              <div style={{ fontSize: "14px", fontWeight: "700", color: "var(--primary)", marginBottom: "4px" }}>🏦 Pay with Chapa</div>
-              <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "12px" }}>For Ethiopian Birr (ETB) — TeleBirr, CBE, Awash Bank</div>
+              <div style={{ fontSize: "14px", fontWeight: "700", color: "var(--primary)", marginBottom: "4px", display: "inline-flex", alignItems: "center", gap: "8px" }}><Landmark size={16} /> Pay with Chapa</div>
+              <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "12px" }}>For Ethiopian Birr (ETB) — TeleBirr, CBE, Awash Bank.</div>
               <button
                 onClick={() => handleInitiatePayment(paymentModal, "CHAPA")}
                 disabled={paymentLoading}
                 style={{ width: "100%", padding: "11px", borderRadius: "9px", border: "none", background: "#16a34a", color: "#fff", fontSize: "13px", fontWeight: "700", cursor: "pointer", opacity: paymentLoading ? 0.7 : 1 }}>
-                Pay with Chapa →
+                {paymentLoading ? "Opening Chapa…" : "Pay with Chapa"}
               </button>
               {payments[paymentModal.id]?.provider === "CHAPA" && payments[paymentModal.id]?.status === "PROCESSING" && (
                 <button onClick={() => handleVerifyChapa(paymentModal.id)} disabled={paymentLoading}
                   style={{ width: "100%", marginTop: "8px", padding: "9px", borderRadius: "9px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--primary)", fontSize: "12px", fontWeight: "600", cursor: "pointer" }}>
-                  I've completed payment — Verify
+                  I've paid — verify now
                 </button>
               )}
             </div>
 
             {/* Waafi */}
             <div style={{ border: "1.5px solid #BBD0FF", borderRadius: "12px", padding: "16px", marginBottom: "12px" }}>
-              <div style={{ fontSize: "14px", fontWeight: "700", color: "var(--primary)", marginBottom: "4px" }}>📱 Pay with Waafi</div>
-              <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "12px" }}>For EVC Plus / Telesom ZAAD (USD)</div>
+              <div style={{ fontSize: "14px", fontWeight: "700", color: "var(--primary)", marginBottom: "4px", display: "inline-flex", alignItems: "center", gap: "8px" }}><Smartphone size={16} /> Pay with Waafi</div>
+              <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "12px" }}>For EVC Plus or Telesom ZAAD (USD).</div>
               <input
                 value={waafiPhone}
                 onChange={e => setWaafiPhone(e.target.value)}
@@ -400,19 +405,19 @@ export default function BookingsPage() {
                 onClick={() => handleInitiatePayment(paymentModal, "WAAFI", waafiPhone)}
                 disabled={paymentLoading || !waafiPhone.trim()}
                 style={{ width: "100%", padding: "11px", borderRadius: "9px", border: "none", background: "#3D7BFF", color: "#fff", fontSize: "13px", fontWeight: "700", cursor: "pointer", opacity: (!waafiPhone.trim() || paymentLoading) ? 0.6 : 1 }}>
-                Send Payment Request
+                {paymentLoading ? "Sending request…" : "Send payment request"}
               </button>
             </div>
 
             {/* Cash */}
             <div style={{ border: "1.5px solid #e5e7eb", borderRadius: "12px", padding: "16px", marginBottom: "16px" }}>
-              <div style={{ fontSize: "14px", fontWeight: "700", color: "var(--primary)", marginBottom: "4px" }}>💵 Cash on Delivery</div>
-              <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "12px" }}>Pay the driver directly upon delivery</div>
+              <div style={{ fontSize: "14px", fontWeight: "700", color: "var(--primary)", marginBottom: "4px", display: "inline-flex", alignItems: "center", gap: "8px" }}><Banknote size={16} /> Cash on delivery</div>
+              <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "12px" }}>Pay the driver directly on delivery.</div>
               <button
                 onClick={() => handleInitiatePayment(paymentModal, "CASH")}
                 disabled={paymentLoading}
                 style={{ width: "100%", padding: "11px", borderRadius: "9px", border: "1px solid var(--border)", background: "#f9fafb", color: "#374151", fontSize: "13px", fontWeight: "700", cursor: "pointer", opacity: paymentLoading ? 0.7 : 1 }}>
-                Confirm Cash Payment
+                Confirm cash payment
               </button>
             </div>
 
@@ -436,23 +441,23 @@ export default function BookingsPage() {
           <div style={{ background: "var(--surface)", borderRadius: "16px", width: "100%", maxWidth: "400px", padding: "28px" }}>
             <div style={{ fontSize: "16px", fontWeight: "800", color: "var(--primary)", marginBottom: "4px" }}>Rate this booking</div>
             <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "20px" }}>
-              {user?.role === "CARGO_SENDER" ? `Rating: ${rateModal.owner?.fullName}` : `Rating: ${rateModal.sender?.fullName || "Cargo sender"}`}
+              {user?.role === "CARGO_SENDER" ? `Rating: ${rateModal.owner?.fullName}` : `Rating: ${rateModal.sender?.fullName || "Cargo owner"}`}
             </div>
             {/* Stars */}
             <div style={{ display: "flex", gap: "8px", marginBottom: "20px", justifyContent: "center" }}>
               {[1,2,3,4,5].map(star => (
                 <button key={star} onClick={() => setRateValue(star)}
-                  style={{ fontSize: "32px", background: "none", border: "none", cursor: "pointer", color: star <= rateValue ? "var(--accent)" : "var(--border)", transition: "color 0.1s", lineHeight: 1 }}>
-                  ★
+                  style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: star <= rateValue ? "var(--accent)" : "var(--border)", transition: "color 0.1s", lineHeight: 1 }}>
+                  <Star size={32} fill={star <= rateValue ? "var(--accent)" : "none"} strokeWidth={1.6} />
                 </button>
               ))}
             </div>
-            <textarea value={rateComment} onChange={e => setRateComment(e.target.value)} placeholder="Leave a comment (optional)..."
+            <textarea value={rateComment} onChange={e => setRateComment(e.target.value)} placeholder="Leave a comment (optional)…"
               style={{ width: "100%", padding: "10px 14px", borderRadius: "9px", border: "1px solid var(--border)", fontSize: "13px", color: "var(--primary)", minHeight: "80px", resize: "vertical", outline: "none", marginBottom: "16px", boxSizing: "border-box" as const }} />
             <div style={{ display: "flex", gap: "10px" }}>
               <button onClick={() => { setRateModal(null); setRateValue(0); setRateComment(""); }} style={{ flex: 1, padding: "11px", borderRadius: "9px", border: "1px solid var(--border)", background: "var(--surface)", color: "#6b7280", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
               <button onClick={handleRate} disabled={rateValue === 0 || rateLoading} style={{ flex: 2, padding: "11px", borderRadius: "9px", border: "none", background: "var(--primary)", color: "#FAFAF8", fontSize: "13px", fontWeight: "700", cursor: rateValue === 0 ? "not-allowed" : "pointer", opacity: rateValue === 0 ? 0.6 : 1 }}>
-                {rateLoading ? "Submitting..." : `Submit ${rateValue > 0 ? rateValue + "★" : ""}`}
+                {rateLoading ? "Saving your rating…" : `Save rating${rateValue > 0 ? ` (${rateValue}/5)` : ""}`}
               </button>
             </div>
           </div>
@@ -463,17 +468,17 @@ export default function BookingsPage() {
       {assignModal && (
         <div style={{ position: "fixed" as const, inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ background: "var(--surface)", borderRadius: "16px", width: "100%", maxWidth: "400px", padding: "28px" }}>
-            <div style={{ fontSize: "16px", fontWeight: "800", color: "var(--primary)", marginBottom: "16px" }}>Assign Driver</div>
+            <div style={{ fontSize: "16px", fontWeight: "800", color: "var(--primary)", marginBottom: "16px" }}>Assign driver</div>
             <select value={selectedDriver} onChange={e => setSelectedDriver(e.target.value)}
               style={{ width: "100%", padding: "10px 14px", borderRadius: "9px", border: "1px solid var(--border)", fontSize: "13px", color: "var(--primary)", marginBottom: "16px", outline: "none" }}>
-              <option value="">Select a driver...</option>
+              <option value="">Select a driver…</option>
               {drivers.map((d: any) => <option key={d.id} value={d.id}>{d.fullName} — {d.phone}</option>)}
             </select>
-            {drivers.length === 0 && <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "16px" }}>No drivers yet. Add drivers from My Drivers page.</div>}
+            {drivers.length === 0 && <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "16px" }}>No drivers yet. Add drivers from the My drivers page.</div>}
             <div style={{ display: "flex", gap: "10px" }}>
               <button onClick={() => { setAssignModal(null); setSelectedDriver(""); }} style={{ flex: 1, padding: "11px", borderRadius: "9px", border: "1px solid var(--border)", background: "var(--surface)", color: "#6b7280", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
               <button onClick={handleAssignDriver} disabled={!selectedDriver} style={{ flex: 2, padding: "11px", borderRadius: "9px", border: "none", background: "var(--primary)", color: "#FAFAF8", fontSize: "13px", fontWeight: "700", cursor: !selectedDriver ? "not-allowed" : "pointer", opacity: !selectedDriver ? 0.6 : 1 }}>
-                Assign Driver
+                Assign driver
               </button>
             </div>
           </div>

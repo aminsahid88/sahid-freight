@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store";
 import api from "@/lib/api";
+import { formatApiError } from "@/lib/errors";
+import { formatPrice } from "@/lib/format";
 import {
   Navigation, Package, User, MapPin, Truck, CheckCircle,
   Phone, ChevronRight, AlertCircle, Star,
@@ -142,8 +144,8 @@ function SlideButton({
             animation: "fadeIn 0.2s ease",
           }}
         >
-          <span style={{ fontSize: "14px", fontWeight: "700", color: "#fff" }}>
-            {loading ? "Processing…" : "✓ Confirmed!"}
+          <span style={{ fontSize: "14px", fontWeight: "700", color: "#fff", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+            {loading ? "Processing…" : (<><CheckCircle size={16} /> Confirmed</>)}
           </span>
         </div>
       )}
@@ -256,20 +258,24 @@ export default function DriverDashboard() {
       const token = localStorage.getItem("accessToken")!;
       const refresh = localStorage.getItem("refreshToken")!;
       setAuth({ ...user!, fullName, city } as any, token, refresh);
-      showToast("Profile updated");
-    } catch { setProfileMsg("Failed to update profile"); }
+      showToast("Profile saved");
+    } catch (err: any) {
+      setProfileMsg(formatApiError(err, "Couldn't save your profile. Please try again.", "profile"));
+    }
     finally { setSaving(false); }
   };
 
   const changePassword = async () => {
-    if (newPassword !== confirmPassword) { setPwError("Passwords do not match"); return; }
-    if (newPassword.length < 8) { setPwError("Minimum 8 characters"); return; }
+    if (newPassword !== confirmPassword) { setPwError("New passwords don't match."); return; }
+    if (newPassword.length < 8) { setPwError("Use at least 8 characters."); return; }
     setChangingPw(true); setPwError(""); setPwMsg("");
     try {
       await api.patch("/users/me/password", { currentPassword, newPassword });
       setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
-      showToast("Password changed");
-    } catch (err: any) { setPwError(err.response?.data?.message || "Failed"); }
+      showToast("Password updated");
+    } catch (err: any) {
+      setPwError(formatApiError(err, "Couldn't change your password. Please try again.", "auth"));
+    }
     finally { setChangingPw(false); }
   };
 
@@ -280,7 +286,7 @@ export default function DriverDashboard() {
     ));
     try {
       await api.patch(`/bookings/${bookingId}/start`);
-      showToast("Journey started! 🚛");
+      showToast("Trip started — drive safe.");
       // Immediately push first location — don't wait for the useEffect interval
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(pos => {
@@ -290,7 +296,9 @@ export default function DriverDashboard() {
           }).catch(() => {});
         });
       }
-    } catch { /* revert on error */ }
+    } catch (err: any) {
+      showToast(formatApiError(err, "Couldn't start the trip. Please try again.", "booking"));
+    }
     fetchBookings();
   };
 
@@ -302,9 +310,10 @@ export default function DriverDashboard() {
     setJustDeliveredId(bookingId);
     try {
       await api.patch(`/bookings/${bookingId}/deliver`);
-      showToast("Delivery completed! 🎉");
-    } catch {
+      showToast("Marked delivered — great work.");
+    } catch (err: any) {
       setJustDeliveredId(null);
+      showToast(formatApiError(err, "Couldn't mark this delivered. Please try again.", "booking"));
     }
     fetchBookings();
   };
@@ -360,14 +369,14 @@ export default function DriverDashboard() {
           <div>
             <div style={{ marginBottom: "20px" }}>
               <h1 style={{ fontSize: "20px", fontWeight: "800", color: "var(--primary)", margin: "0 0 2px" }}>
-                Hello, {user?.fullName?.split(" ")[0]}
+                Your trips
               </h1>
               <p style={{ fontSize: "13px", color: "var(--text-secondary)", margin: 0 }}>
                 {activeBooking
-                  ? "You have an active journey"
+                  ? "You're on the road right now."
                   : pendingBooking
-                  ? "You have a new assignment"
-                  : "No active assignments"}
+                  ? "You've been dispatched to a new load."
+                  : "Every load you're moving right now."}
               </p>
             </div>
 
@@ -381,7 +390,7 @@ export default function DriverDashboard() {
               <div style={{ background: "var(--surface)", borderRadius: "12px", padding: "16px", border: "1px solid var(--border)" }}>
                 <div style={{ fontSize: "11px", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "6px" }}>Status</div>
                 <div style={{ fontSize: "14px", fontWeight: "700", color: activeBooking ? "#16a34a" : pendingBooking ? "#F59E0B" : "#6b7280" }}>
-                  {activeBooking ? "On Trip" : pendingBooking ? "Assigned" : "Available"}
+                  {activeBooking ? "On the road" : pendingBooking ? "Dispatched" : "Available"}
                 </div>
               </div>
             </div>
@@ -392,17 +401,17 @@ export default function DriverDashboard() {
                 <div style={{ width: "64px", height: "64px", borderRadius: "50%", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", border: "2px solid #bbf7d0" }}>
                   <CheckCircle size={30} color="#16a34a" />
                 </div>
-                <div style={{ fontSize: "18px", fontWeight: "800", color: "var(--primary)", marginBottom: "6px" }}>Delivery Complete!</div>
-                <div style={{ fontSize: "13px", color: "#6b7280", marginBottom: "20px" }}>Great work. The cargo has been delivered successfully.</div>
+                <div style={{ fontSize: "18px", fontWeight: "800", color: "var(--primary)", marginBottom: "6px" }}>Delivered!</div>
+                <div style={{ fontSize: "13px", color: "#6b7280", marginBottom: "20px" }}>Great work. The cargo owner has been notified.</div>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
                   {[1,2,3,4,5].map(s => <Star key={s} size={20} fill="#F59E0B" color="#F59E0B" />)}
                 </div>
-                <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "8px" }}>Excellent delivery</div>
+                <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "8px" }}>Excellent trip</div>
                 <button
                   onClick={() => setJustDeliveredId(null)}
                   style={{ marginTop: "20px", padding: "10px 28px", borderRadius: "9px", border: "1px solid var(--border)", background: "var(--bg)", color: "var(--primary)", fontSize: "13px", fontWeight: "700", cursor: "pointer" }}
                 >
-                  Back to Home
+                  Back to home
                 </button>
               </div>
             )}
@@ -412,7 +421,7 @@ export default function DriverDashboard() {
               <div style={{ background: "#0A1F44", borderRadius: "14px", padding: "20px", marginBottom: "16px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
                   <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#5BE3C4", animation: "pulse 1.5s infinite" }} />
-                  <span style={{ fontSize: "11px", fontWeight: "700", color: "#5BE3C4", letterSpacing: "0.8px" }}>ACTIVE JOURNEY</span>
+                  <span style={{ fontSize: "11px", fontWeight: "700", color: "#5BE3C4", letterSpacing: "0.8px" }}>ON THE ROAD</span>
                 </div>
                 <div style={{ fontSize: "16px", fontWeight: "700", color: "#FFFFFF", marginBottom: "6px" }}>{activeBooking.load?.title}</div>
                 <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "rgba(255,255,255,0.5)", marginBottom: "16px" }}>
@@ -434,12 +443,12 @@ export default function DriverDashboard() {
                   href={"/tracking/" + activeBooking.id}
                   style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "13px", borderRadius: "10px", background: "#3D7BFF", color: "#fff", fontSize: "14px", fontWeight: "700", textDecoration: "none", marginBottom: "12px" }}
                 >
-                  <Navigation size={16} /> View Live Tracking
+                  <Navigation size={16} /> View live tracking
                 </a>
 
-                {/* Slide to complete delivery */}
+                {/* Slide to mark delivered */}
                 <SlideButton
-                  label="Slide to complete delivery →"
+                  label="Slide to mark delivered"
                   color="#16a34a"
                   onConfirm={() => completeDelivery(activeBooking.id)}
                 />
@@ -449,7 +458,7 @@ export default function DriverDashboard() {
             {/* ── PENDING ASSIGNMENT ── */}
             {pendingBooking && !activeBooking && (
               <div style={{ background: "var(--surface)", borderRadius: "14px", padding: "20px", marginBottom: "16px", border: "1px solid var(--border)" }}>
-                <div style={{ fontSize: "11px", fontWeight: "700", color: "#F59E0B", marginBottom: "10px", letterSpacing: "0.8px" }}>NEW ASSIGNMENT</div>
+                <div style={{ fontSize: "11px", fontWeight: "700", color: "#F59E0B", marginBottom: "10px", letterSpacing: "0.8px" }}>NEW DISPATCH</div>
                 <div style={{ fontSize: "16px", fontWeight: "700", color: "var(--primary)", marginBottom: "6px" }}>{pendingBooking.load?.title}</div>
                 <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "#6b7280", marginBottom: "14px" }}>
                   <MapPin size={12} />{pendingBooking.load?.pickupCity} → {pendingBooking.load?.deliveryCity}
@@ -464,14 +473,14 @@ export default function DriverDashboard() {
                     <div style={{ fontSize: "12px", fontWeight: "700", color: "var(--primary)" }}>{pendingBooking.load?.weightTons}t</div>
                   </div>
                   <div style={{ background: "var(--bg)", borderRadius: "8px", padding: "10px" }}>
-                    <div style={{ fontSize: "10px", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "3px" }}>Price</div>
-                    <div style={{ fontSize: "12px", fontWeight: "700", color: "var(--primary)" }}>${pendingBooking.agreedPrice}</div>
+                    <div style={{ fontSize: "10px", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "3px" }}>Rate</div>
+                    <div style={{ fontSize: "12px", fontWeight: "700", color: "var(--primary)" }}>{formatPrice(pendingBooking.agreedPrice, pendingBooking.currency || "ETB")}</div>
                   </div>
                 </div>
 
-                {/* Slide to start journey */}
+                {/* Slide to start trip */}
                 <SlideButton
-                  label="Slide to start journey →"
+                  label="Slide to start trip"
                   color="#3D7BFF"
                   onConfirm={() => startJourney(pendingBooking.id)}
                 />
@@ -484,15 +493,15 @@ export default function DriverDashboard() {
                 <div style={{ width: "52px", height: "52px", borderRadius: "14px", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: "#94A3B8" }}>
                   <Truck size={24} />
                 </div>
-                <div style={{ fontSize: "15px", fontWeight: "700", color: "var(--primary)", marginBottom: "6px" }}>No assignments yet</div>
-                <div style={{ fontSize: "13px", color: "var(--text-secondary)" }}>Your fleet owner will assign you to a booking soon.</div>
+                <div style={{ fontSize: "15px", fontWeight: "700", color: "var(--primary)", marginBottom: "6px" }}>No active trips</div>
+                <div style={{ fontSize: "13px", color: "var(--text-secondary)" }}>When you're dispatched to a load, it'll show up here.</div>
               </div>
             )}
 
             {/* Past deliveries */}
             {bookings.filter(b => b.status === "COMPLETED").length > 0 && (
               <div style={{ marginTop: "20px" }}>
-                <div style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "10px" }}>Past Deliveries</div>
+                <div style={{ fontSize: "12px", fontWeight: "700", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "10px" }}>Completed trips</div>
                 {bookings.filter(b => b.status === "COMPLETED").map((b: any) => (
                   <div key={b.id} style={{ background: "var(--surface)", borderRadius: "10px", padding: "14px 16px", marginBottom: "8px", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div>
@@ -512,7 +521,7 @@ export default function DriverDashboard() {
           <div>
             <div style={{ marginBottom: "20px" }}>
               <h1 style={{ fontSize: "20px", fontWeight: "800", color: "var(--primary)", margin: 0 }}>Profile</h1>
-              <p style={{ fontSize: "13px", color: "var(--text-secondary)", margin: "3px 0 0" }}>Manage your account</p>
+              <p style={{ fontSize: "13px", color: "var(--text-secondary)", margin: "3px 0 0" }}>Your account and password.</p>
             </div>
 
             <div style={{ background: "var(--surface)", borderRadius: "12px", padding: "20px", border: "1px solid var(--border)", marginBottom: "14px", display: "flex", alignItems: "center", gap: "16px" }}>
@@ -526,17 +535,17 @@ export default function DriverDashboard() {
                 </div>
                 <div style={{ marginTop: "6px" }}>
                   <span style={{ fontSize: "11px", fontWeight: "700", padding: "3px 8px", borderRadius: "99px", background: "#f0fdf4", color: "#16a34a", border: "1px solid #bbf7d0" }}>
-                    {completedCount} deliveries completed
+                    {completedCount} trip{completedCount === 1 ? "" : "s"} completed
                   </span>
                 </div>
               </div>
             </div>
 
             <div style={{ background: "var(--surface)", borderRadius: "12px", padding: "20px", border: "1px solid var(--border)", marginBottom: "14px" }}>
-              <div style={{ fontSize: "13px", fontWeight: "700", color: "var(--primary)", marginBottom: "14px" }}>Personal Information</div>
+              <div style={{ fontSize: "13px", fontWeight: "700", color: "var(--primary)", marginBottom: "14px" }}>Personal info</div>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 <div>
-                  <label style={{ fontSize: "11px", fontWeight: "600", color: "#6b7280", display: "block", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Full Name</label>
+                  <label style={{ fontSize: "11px", fontWeight: "600", color: "#6b7280", display: "block", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Full name</label>
                   <input style={inp} value={fullName} onChange={e => setFullName(e.target.value)} />
                 </div>
                 <div>
@@ -545,22 +554,22 @@ export default function DriverDashboard() {
                 </div>
                 <div>
                   <label style={{ fontSize: "11px", fontWeight: "600", color: "#6b7280", display: "block", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.5px" }}>City</label>
-                  <input style={inp} value={city} onChange={e => setCity(e.target.value)} placeholder="Your city" />
+                  <input style={inp} value={city} onChange={e => setCity(e.target.value)} placeholder="Your home city" />
                 </div>
               </div>
               {profileMsg && <div style={{ fontSize: "12px", color: "#dc2626", marginTop: "10px" }}>{profileMsg}</div>}
               <button onClick={saveProfile} disabled={saving} style={{ marginTop: "14px", width: "100%", padding: "11px", borderRadius: "9px", border: "none", background: saving ? "var(--border)" : "var(--primary)", color: saving ? "#aaa" : "#FFFFFF", fontSize: "13px", fontWeight: "700", cursor: saving ? "not-allowed" : "pointer" }}>
-                {saving ? "Saving…" : "Save Changes"}
+                {saving ? "Saving…" : "Save changes"}
               </button>
             </div>
 
             <div style={{ background: "var(--surface)", borderRadius: "12px", padding: "20px", border: "1px solid var(--border)", marginBottom: "14px" }}>
-              <div style={{ fontSize: "13px", fontWeight: "700", color: "var(--primary)", marginBottom: "14px" }}>Change Password</div>
+              <div style={{ fontSize: "13px", fontWeight: "700", color: "var(--primary)", marginBottom: "14px" }}>Change password</div>
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 {[
-                  { label: "Current Password", val: currentPassword, set: setCurrentPassword },
-                  { label: "New Password",      val: newPassword,      set: setNewPassword      },
-                  { label: "Confirm Password",  val: confirmPassword,  set: setConfirmPassword  },
+                  { label: "Current password", val: currentPassword, set: setCurrentPassword },
+                  { label: "New password",     val: newPassword,      set: setNewPassword      },
+                  { label: "Confirm password", val: confirmPassword,  set: setConfirmPassword  },
                 ].map(({ label, val, set }) => (
                   <div key={label}>
                     <label style={{ fontSize: "11px", fontWeight: "600", color: "#6b7280", display: "block", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.5px" }}>{label}</label>
@@ -570,15 +579,15 @@ export default function DriverDashboard() {
               </div>
               {pwError && <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "#dc2626", marginTop: "10px" }}><AlertCircle size={13} />{pwError}</div>}
               <button onClick={changePassword} disabled={changingPw} style={{ marginTop: "14px", width: "100%", padding: "11px", borderRadius: "9px", border: "none", background: changingPw ? "var(--border)" : "var(--primary)", color: changingPw ? "#aaa" : "#FFFFFF", fontSize: "13px", fontWeight: "700", cursor: changingPw ? "not-allowed" : "pointer" }}>
-                {changingPw ? "Updating…" : "Update Password"}
+                {changingPw ? "Updating…" : "Update password"}
               </button>
             </div>
 
             <div style={{ background: "var(--surface)", borderRadius: "12px", padding: "20px", border: "1px solid #fecaca" }}>
-              <div style={{ fontSize: "13px", fontWeight: "700", color: "#dc2626", marginBottom: "6px" }}>Sign Out</div>
+              <div style={{ fontSize: "13px", fontWeight: "700", color: "#dc2626", marginBottom: "6px" }}>Sign out</div>
               <p style={{ fontSize: "12px", color: "var(--text-secondary)", margin: "0 0 12px" }}>Sign out of your driver account.</p>
               <button onClick={() => { logout(); router.push("/auth/login"); }} style={{ width: "100%", padding: "11px", borderRadius: "9px", border: "none", background: "#fef2f2", color: "#dc2626", fontSize: "13px", fontWeight: "700", cursor: "pointer" }}>
-                Sign Out
+                Sign out
               </button>
             </div>
           </div>

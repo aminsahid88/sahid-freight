@@ -5,6 +5,8 @@ import api from "@/lib/api";
 import { formatPrice } from "@/lib/format";
 import { formatApiError } from "@/lib/errors";
 import type { Load, Truck } from "@/lib/types";
+import { motion } from "framer-motion";
+import { ChevronLeft, ShieldCheck, Truck as TruckIcon, X as XIcon } from "lucide-react";
 
 // Broker design language — locked light/airy palette.
 const P      = "var(--primary)";
@@ -65,7 +67,7 @@ export default function FindTruckPage() {
       const trucksRes = await api.get(`/trucks?${qs.toString()}`);
       setTrucks((trucksRes.data?.trucks || []) as Truck[]);
     } catch (e: any) {
-      setError(formatApiError(e, "Could not load this dispatch context."));
+      setError(formatApiError(e, "Couldn't load this dispatch. Please try again.", "load"));
     } finally {
       setLoading(false);
     }
@@ -111,7 +113,7 @@ export default function FindTruckPage() {
       router.push("/dashboard/broker");
     } catch (e: any) {
       const status = e?.response?.status;
-      const msg = formatApiError(e, "Could not dispatch this truck.");
+      const msg = formatApiError(e, "Couldn't dispatch this truck. Please try again.", "booking");
       if (status === 400 && /no longer available/i.test(msg)) {
         setError(msg);
         // Load taken by someone else — bounce home after a beat.
@@ -131,8 +133,18 @@ export default function FindTruckPage() {
     <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
       {/* Back link */}
       <button onClick={() => router.push("/dashboard/broker")} style={styles.backBtn}>
-        ← Back to dashboard
+        <ChevronLeft size={16} strokeWidth={2.4} /> Back to dashboard
       </button>
+
+      {/* Page header */}
+      <div style={{ marginBottom: "16px" }}>
+        <h1 style={{ fontSize: "26px", fontWeight: 800, color: "var(--primary)", margin: "0 0 4px", letterSpacing: "-0.5px" }}>
+          Find a truck
+        </h1>
+        <p style={{ fontSize: "14px", color: MUTED, margin: 0 }}>
+          Choose a verified truck to dispatch to this load.
+        </p>
+      </div>
 
       {/* Load context strip */}
       {load ? (
@@ -179,7 +191,9 @@ export default function FindTruckPage() {
       {error && (
         <div style={styles.errorBanner}>
           <span>{error}</span>
-          <button onClick={() => setError("")} style={styles.errorClose}>×</button>
+          <button onClick={() => setError("")} style={styles.errorClose} aria-label="Dismiss">
+            <XIcon size={16} />
+          </button>
         </div>
       )}
 
@@ -192,19 +206,25 @@ export default function FindTruckPage() {
           </>
         ) : enriched.length === 0 ? (
           <EmptyCard
-            emoji="🚛"
-            title="No trucks match this load"
-            body="Try loosening a filter, or check back in a few minutes — owners update availability as trucks free up."
+            icon={<TruckIcon size={32} color={SUBTLE} strokeWidth={1.8} />}
+            title="No trucks match this load right now"
+            body="Try relaxing the availability or capacity filters, or check back in a few minutes — owners update availability as trucks free up."
           />
         ) : (
-          enriched.map((t) => (
-            <TruckCard
+          enriched.map((t, i) => (
+            <motion.div
               key={t.id}
-              truck={t}
-              isBestMatch={t.id === firstEligibleId}
-              anyDispatching={dispatchingId !== null}
-              onDispatch={() => setConfirmTruck(t)}
-            />
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: Math.min(i * 0.05, 0.4) }}
+            >
+              <TruckCard
+                truck={t}
+                isBestMatch={t.id === firstEligibleId}
+                anyDispatching={dispatchingId !== null}
+                onDispatch={() => setConfirmTruck(t)}
+              />
+            </motion.div>
           ))
         )}
       </section>
@@ -250,8 +270,8 @@ function TruckCard({
   truck, isBestMatch, anyDispatching, onDispatch,
 }: { truck: EnrichedTruck; isBestMatch: boolean; anyDispatching: boolean; onDispatch: () => void }) {
   const eligible = truck._eligible;
-  const reason = !truck._availOk ? "Truck is currently unavailable"
-    : !truck._capOk ? `Capacity too low (${truck.capacityTons}t)`
+  const reason = !truck._availOk ? "Truck is currently unavailable."
+    : !truck._capOk ? `Capacity too low — only ${truck.capacityTons}t.`
     : null;
 
   return (
@@ -270,7 +290,9 @@ function TruckCard({
               {(truck.truckType || "").replace(/_/g, " ")} · {truck.capacityTons}t
             </div>
             {truck.isVerified && (
-              <span style={{ ...styles.pill, background: TEAL_BG, color: TEAL_FG, borderColor: TEAL_BD }}>✓ VERIFIED</span>
+              <span style={{ ...styles.pill, background: TEAL_BG, color: TEAL_FG, borderColor: TEAL_BD, display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                <ShieldCheck size={10} strokeWidth={2.6} /> VERIFIED
+              </span>
             )}
           </div>
           <div style={{ ...styles.truckPlate, color: eligible ? MUTED : SUBTLE }}>{truck.plateNumber}</div>
@@ -303,9 +325,10 @@ function TruckCard({
       </div>
 
       <div style={styles.truckRow}>
-        <span style={styles.truckRowLabel}>Owner</span>
-        <span style={{ ...styles.truckRowValue, color: eligible ? P : SUBTLE }}>
-          {truck.owner?.fullName || "—"}{truck.owner?.isVerified ? " ✓" : ""}
+        <span style={styles.truckRowLabel}>Truck owner</span>
+        <span style={{ ...styles.truckRowValue, color: eligible ? P : SUBTLE, display: "inline-flex", alignItems: "center", gap: "6px", justifyContent: "flex-end" }}>
+          {truck.owner?.fullName || "—"}
+          {truck.owner?.isVerified && <ShieldCheck size={12} color={TEAL_FG} strokeWidth={2.6} />}
         </span>
       </div>
 
@@ -323,12 +346,15 @@ function TruckCard({
             style={{
               ...(isBestMatch ? styles.dispatchPrimary : styles.dispatchSecondary),
               ...(anyDispatching && { opacity: 0.5, cursor: "not-allowed" }),
+              transition: "filter 0.15s, background 0.15s",
             }}
+            onMouseEnter={(e) => { if (!anyDispatching) e.currentTarget.style.filter = "brightness(0.94)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.filter = "none"; }}
           >
             Dispatch this truck →
           </button>
         ) : (
-          <div style={styles.dispatchDisabled}>Unavailable for this load</div>
+          <div style={styles.dispatchDisabled}>Not a fit for this load</div>
         )}
       </div>
     </article>
@@ -342,6 +368,9 @@ function ConfirmModal({
     <div style={styles.modalBackdrop} onClick={() => !loading && onCancel()}>
       <div style={styles.modalCard} onClick={(e) => e.stopPropagation()}>
         <div style={styles.modalTitle}>Dispatch this truck?</div>
+        <p style={{ fontSize: "13px", color: MUTED, margin: "-8px 0 12px", lineHeight: 1.5 }}>
+          The cargo owner and truck owner will be notified, and the load will be marked as booked.
+        </p>
         <div style={styles.modalRow}>
           <span style={styles.modalLabel}>Load</span>
           <span style={styles.modalValue}>{load.title}</span>
@@ -355,7 +384,7 @@ function ConfirmModal({
           <span style={styles.modalValue}>{truck.plateNumber} · {(truck.truckType || "").replace(/_/g, " ")}</span>
         </div>
         <div style={styles.modalRow}>
-          <span style={styles.modalLabel}>Owner</span>
+          <span style={styles.modalLabel}>Truck owner</span>
           <span style={styles.modalValue}>{truck.owner?.fullName || "—"}</span>
         </div>
         <div style={{ ...styles.modalRow, borderBottom: "none", paddingBottom: 0 }}>
@@ -363,12 +392,18 @@ function ConfirmModal({
           <span style={{ ...styles.modalValue, fontWeight: 800, color: P }}>{formatPrice(load.offeredPrice, load.currency || "ETB")}</span>
         </div>
         <div style={styles.modalNote}>
-          The sender will be notified and the load moves to <strong>in transit</strong> immediately.
+          The cargo owner and truck owner will be notified, and the load will move to <strong>in transit</strong> immediately.
         </div>
         <div style={styles.modalActions}>
           <button onClick={onCancel} disabled={loading} style={styles.modalCancel}>Cancel</button>
-          <button onClick={onConfirm} disabled={loading} style={{ ...styles.modalConfirm, ...(loading && { opacity: 0.6 }) }}>
-            {loading ? "Dispatching…" : "Dispatch"}
+          <button
+            onClick={onConfirm}
+            disabled={loading}
+            style={{ ...styles.modalConfirm, ...(loading && { opacity: 0.6 }), transition: "filter 0.15s" }}
+            onMouseEnter={(e) => { if (!loading) e.currentTarget.style.filter = "brightness(0.94)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.filter = "none"; }}
+          >
+            {loading ? "Dispatching…" : "Dispatch this truck"}
           </button>
         </div>
       </div>
@@ -376,10 +411,10 @@ function ConfirmModal({
   );
 }
 
-function EmptyCard({ emoji, title, body }: { emoji: string; title: string; body: string }) {
+function EmptyCard({ icon, title, body }: { icon: React.ReactNode; title: string; body: string }) {
   return (
     <div style={styles.emptyCard}>
-      <div style={styles.emptyEmoji}>{emoji}</div>
+      <div style={styles.emptyIcon}>{icon}</div>
       <div style={styles.emptyTitle}>{title}</div>
       <div style={styles.emptyBody}>{body}</div>
     </div>
@@ -403,7 +438,7 @@ function CardSkeleton() {
 const cardShadow = "0 2px 4px rgba(10,31,68,0.04), 0 16px 48px rgba(10,31,68,0.06)";
 
 const styles: Record<string, React.CSSProperties> = {
-  backBtn:        { background: "none", border: "none", color: A, fontSize: "13px", fontWeight: 600, cursor: "pointer", padding: "0 0 12px", display: "flex", alignItems: "center", gap: "4px" },
+  backBtn:        { background: "none", border: "none", color: A, fontSize: "13px", fontWeight: 600, cursor: "pointer", padding: "0 0 12px", display: "inline-flex", alignItems: "center", gap: "4px" },
 
   /* load context */
   loadContext:    { background: "#FFFFFF", borderRadius: "14px", padding: "20px 24px", marginBottom: "20px", border: `1px solid ${BORDER}`, boxShadow: cardShadow },
@@ -417,7 +452,7 @@ const styles: Record<string, React.CSSProperties> = {
 
   /* error banner */
   errorBanner:    { background: DANGER_BG, border: "1px solid #FECACA", borderRadius: "12px", padding: "12px 16px", color: DANGER, fontSize: "13px", marginBottom: "16px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px" },
-  errorClose:     { background: "none", border: "none", color: DANGER, fontSize: "20px", lineHeight: 1, cursor: "pointer", padding: "0 4px" },
+  errorClose:     { background: "none", border: "none", color: DANGER, lineHeight: 1, cursor: "pointer", padding: "0 4px", display: "flex", alignItems: "center" },
 
   /* truck card */
   truckCard:      { borderRadius: "14px", padding: "20px 22px", marginBottom: "12px", border: `1px solid ${BORDER}`, boxShadow: cardShadow },
@@ -443,7 +478,7 @@ const styles: Record<string, React.CSSProperties> = {
 
   /* empty + skel */
   emptyCard:      { background: "#FFFFFF", border: `1px solid ${BORDER}`, borderRadius: "14px", padding: "40px 24px", textAlign: "center" },
-  emptyEmoji:     { fontSize: "40px", marginBottom: "14px" },
+  emptyIcon:      { display: "flex", justifyContent: "center", marginBottom: "14px" },
   emptyTitle:     { fontSize: "15px", fontWeight: 700, color: P, marginBottom: "6px" },
   emptyBody:      { fontSize: "13px", color: MUTED, lineHeight: 1.6, maxWidth: "320px", margin: "0 auto" },
   skelCard:       { background: "#FFFFFF", border: `1px solid ${BORDER}`, borderRadius: "14px", padding: "20px", marginBottom: "12px" },

@@ -353,7 +353,7 @@ export default function PrivacyPolicyPage() {
             <span style={{ color: "#fff", fontSize: "15px", fontWeight: "700", letterSpacing: "-0.3px" }}>Sahid Freight</span>
           </div>
           <p style={{ margin: 0, fontSize: "13px", color: "rgba(255,255,255,0.4)" }}>
-            © 2026 Sahid Freight. All rights reserved. · 🇪🇹 🇸🇴 🇩🇯
+            © {new Date().getFullYear()} Sahid Freight · Ethiopia · Somalia · Djibouti
           </p>
           <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "rgba(255,255,255,0.55)", fontSize: "13px", textDecoration: "none" }}>
             {CONTACT_EMAIL}

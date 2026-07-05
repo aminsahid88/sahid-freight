@@ -2,6 +2,8 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
+import { formatApiError } from "@/lib/errors";
+import { Lock, Mail, ShieldCheck, CheckCircle2, Eye, EyeOff } from "lucide-react";
 
 type Step = "email" | "otp" | "password" | "success";
 
@@ -40,7 +42,7 @@ export default function ForgotPasswordPage() {
       startCountdown();
       setTimeout(() => inputs.current[0]?.focus(), 100);
     } catch (err: any) {
-      setError(err.response?.data?.message || "Couldn't send the code, please try again.");
+      setError(formatApiError(err, "We couldn't send the reset code. Please try again.", "auth"));
     } finally { setLoading(false); }
   };
 
@@ -53,7 +55,7 @@ export default function ForgotPasswordPage() {
       startCountdown();
       inputs.current[0]?.focus();
     } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to resend code");
+      setError(formatApiError(err, "We couldn't resend the reset code. Please try again.", "auth"));
     } finally { setResending(false); }
   };
 
@@ -92,7 +94,7 @@ export default function ForgotPasswordPage() {
       setVerificationToken(res.data.verificationToken);
       setStep("password");
     } catch (err: any) {
-      setError(err.response?.data?.message || "Incorrect code");
+      setError(formatApiError(err, "That code isn't right. Please try again.", "auth"));
       setOtp(["", "", "", "", "", ""]);
       inputs.current[0]?.focus();
     } finally { setLoading(false); }
@@ -100,8 +102,8 @@ export default function ForgotPasswordPage() {
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPassword !== confirmPassword) { setError("Passwords do not match"); return; }
-    if (newPassword.length < 8) { setError("Password must be at least 8 characters"); return; }
+    if (newPassword !== confirmPassword) { setError("Those passwords don't match. Please retype them."); return; }
+    if (newPassword.length < 8) { setError("Use at least 8 characters for your new password."); return; }
     setLoading(true); setError("");
     try {
       await api.post("/auth/reset-password", { verificationToken, newPassword });
@@ -109,7 +111,6 @@ export default function ForgotPasswordPage() {
       setTimeout(() => router.push("/auth/login?reset=success"), 1500);
     } catch (err: any) {
       const status = err.response?.status;
-      const msg = err.response?.data?.message || "Something went wrong";
       if (status === 401) {
         setError("Your verification expired. Please request a new code.");
         setVerificationToken("");
@@ -118,7 +119,7 @@ export default function ForgotPasswordPage() {
         setConfirmPassword("");
         setStep("email");
       } else {
-        setError(msg);
+        setError(formatApiError(err, "We couldn't save your new password. Please try again.", "auth"));
       }
     } finally { setLoading(false); }
   };
@@ -143,7 +144,7 @@ export default function ForgotPasswordPage() {
         </p>
       </div>
       <div style={{ position: "relative", zIndex: 1, borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: "24px" }}>
-        <p style={{ color: "rgba(255,255,255,0.2)", fontSize: "12px", margin: 0 }}>© 2025 Sahid Freight.et</p>
+        <p style={{ color: "rgba(255,255,255,0.2)", fontSize: "12px", margin: 0 }}>© {new Date().getFullYear()} Sahid Freight</p>
       </div>
     </div>
   );
@@ -167,18 +168,16 @@ export default function ForgotPasswordPage() {
           {step === "email" && (
             <Card>
               <div style={{ width: "56px", height: "56px", background: "#F8FAFC", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "24px" }}>
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0A1F44" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/>
-                </svg>
+                <Lock size={22} color="#0A1F44" strokeWidth={2} />
               </div>
-              <h2 style={{ fontSize: "24px", fontWeight: "800", color: "#0A1F44", margin: "0 0 8px", letterSpacing: "-0.5px" }}>Forgot password?</h2>
-              <p style={{ color: "#94A3B8", fontSize: "14px", margin: "0 0 32px", lineHeight: "1.6" }}>Enter your email and we'll send a 6-digit reset code to verify your account.</p>
+              <h2 style={{ fontSize: "24px", fontWeight: "800", color: "#0A1F44", margin: "0 0 8px", letterSpacing: "-0.5px" }}>Forgot your password?</h2>
+              <p style={{ color: "#94A3B8", fontSize: "14px", margin: "0 0 32px", lineHeight: "1.6" }}>Enter the email on your account and we'll send a 6-digit code to reset it.</p>
 
               {error && <div style={{ background: "#fff5f5", border: "1px solid #fecaca", borderRadius: "10px", padding: "12px 16px", color: "#dc2626", fontSize: "14px", marginBottom: "20px" }}>{error}</div>}
 
               <form onSubmit={handleSendCode} style={{ display: "flex", flexDirection: "column" as const, gap: "18px" }}>
                 <div>
-                  <label style={{ display: "block", fontSize: "13px", fontWeight: "700", color: "#0A1F44", marginBottom: "8px" }}>Email Address</label>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: "700", color: "#0A1F44", marginBottom: "8px" }}>Email address</label>
                   <input
                     type="email"
                     value={email}
@@ -193,13 +192,13 @@ export default function ForgotPasswordPage() {
                 </div>
                 <button type="submit" disabled={loading || !email.trim()}
                   style={{ width: "100%", height: "50px", background: loading || !email.trim() ? "#E2E8F0" : "#3D7BFF", border: "none", borderRadius: "10px", color: loading || !email.trim() ? "#aaa" : "#FFFFFF", fontSize: "15px", fontWeight: "700", cursor: loading || !email.trim() ? "not-allowed" : "pointer", transition: "all 0.2s" }}>
-                  {loading ? "Sending..." : "Send Reset Code →"}
+                  {loading ? "Sending code…" : "Send reset code →"}
                 </button>
               </form>
 
               <div style={{ marginTop: "28px", paddingTop: "24px", borderTop: "1px solid #E2E8F0", textAlign: "center" as const }}>
                 <a href="/auth/login" style={{ color: "#94A3B8", fontSize: "14px", textDecoration: "none" }}>
-                  Remember it? <span style={{ color: "#3D7BFF", fontWeight: "700" }}>Sign in</span>
+                  Remembered it? <span style={{ color: "#3D7BFF", fontWeight: "700" }}>Sign in</span>
                 </a>
               </div>
             </Card>
@@ -209,13 +208,11 @@ export default function ForgotPasswordPage() {
           {step === "otp" && (
             <Card>
               <div style={{ width: "56px", height: "56px", background: "#F8FAFC", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "24px" }}>
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0A1F44" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
-                </svg>
+                <Mail size={22} color="#0A1F44" strokeWidth={2} />
               </div>
-              <h2 style={{ fontSize: "24px", fontWeight: "800", color: "#0A1F44", margin: "0 0 8px", letterSpacing: "-0.5px" }}>Enter reset code</h2>
+              <h2 style={{ fontSize: "24px", fontWeight: "800", color: "#0A1F44", margin: "0 0 8px", letterSpacing: "-0.5px" }}>Enter your reset code</h2>
               <p style={{ color: "#94A3B8", fontSize: "14px", margin: "0 0 32px", lineHeight: "1.6" }}>
-                We sent a 6-digit code to <strong style={{ color: "#0A1F44" }}>{normalizedEmail()}</strong>
+                We sent a 6-digit code to <strong style={{ color: "#0A1F44" }}>{normalizedEmail()}</strong>.
               </p>
 
               {error && <div style={{ background: "#fff5f5", border: "1px solid #fecaca", borderRadius: "10px", padding: "12px 16px", color: "#dc2626", fontSize: "14px", marginBottom: "20px" }}>{error}</div>}
@@ -230,7 +227,7 @@ export default function ForgotPasswordPage() {
 
               <button onClick={() => handleVerifyOtp()} disabled={loading || otp.some((d) => d === "")}
                 style={{ width: "100%", height: "50px", background: loading || otp.some((d) => d === "") ? "#E2E8F0" : "#3D7BFF", border: "none", borderRadius: "10px", color: loading || otp.some((d) => d === "") ? "#aaa" : "#FFFFFF", fontSize: "15px", fontWeight: "700", cursor: loading || otp.some((d) => d === "") ? "not-allowed" : "pointer", transition: "all 0.2s", marginBottom: "20px" }}>
-                {loading ? "Verifying..." : "Verify Code →"}
+                {loading ? "Verifying…" : "Verify code →"}
               </button>
 
               <div style={{ textAlign: "center" as const }}>
@@ -238,7 +235,7 @@ export default function ForgotPasswordPage() {
                   <p style={{ color: "#94A3B8", fontSize: "14px", margin: 0 }}>Resend code in <span style={{ fontWeight: "700", color: "#0A1F44" }}>{countdown}s</span></p>
                 ) : (
                   <button type="button" onClick={handleResend} disabled={resending} style={{ background: "none", border: "none", color: "#3D7BFF", fontSize: "14px", fontWeight: "700", cursor: resending ? "not-allowed" : "pointer" }}>
-                    {resending ? "Sending..." : "Resend code"}
+                    {resending ? "Sending code…" : "Resend code"}
                   </button>
                 )}
               </div>
@@ -255,42 +252,37 @@ export default function ForgotPasswordPage() {
           {step === "password" && (
             <Card>
               <div style={{ width: "56px", height: "56px", background: "#F8FAFC", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "24px" }}>
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#0A1F44" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                </svg>
+                <ShieldCheck size={22} color="#0A1F44" strokeWidth={2} />
               </div>
-              <h2 style={{ fontSize: "24px", fontWeight: "800", color: "#0A1F44", margin: "0 0 8px", letterSpacing: "-0.5px" }}>Set new password</h2>
-              <p style={{ color: "#94A3B8", fontSize: "14px", margin: "0 0 32px", lineHeight: "1.6" }}>Choose a strong password for your account.</p>
+              <h2 style={{ fontSize: "24px", fontWeight: "800", color: "#0A1F44", margin: "0 0 8px", letterSpacing: "-0.5px" }}>Set a new password</h2>
+              <p style={{ color: "#94A3B8", fontSize: "14px", margin: "0 0 32px", lineHeight: "1.6" }}>Choose something strong you'll remember.</p>
 
               {error && <div style={{ background: "#fff5f5", border: "1px solid #fecaca", borderRadius: "10px", padding: "12px 16px", color: "#dc2626", fontSize: "14px", marginBottom: "20px" }}>{error}</div>}
 
               <form onSubmit={handleResetPassword} style={{ display: "flex", flexDirection: "column" as const, gap: "18px" }}>
                 <div>
-                  <label style={{ display: "block", fontSize: "13px", fontWeight: "700", color: "#0A1F44", marginBottom: "8px" }}>New Password</label>
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: "700", color: "#0A1F44", marginBottom: "8px" }}>New password</label>
                   <div style={{ position: "relative" }}>
                     <input type={showPassword ? "text" : "password"} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="At least 8 characters" required
                       onFocus={() => setFocused("new")} onBlur={() => setFocused(null)}
                       style={{ width: "100%", height: "50px", background: focused === "new" ? "#fff" : "#F8FAFC", border: `1.5px solid ${focused === "new" ? "#0A1F44" : "#E2E8F0"}`, borderRadius: "10px", padding: "0 44px 0 16px", color: "#0A1F44", fontSize: "15px", outline: "none", boxSizing: "border-box" as const, transition: "all 0.15s" }} />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#94A3B8" }}>
-                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                        <path d="M1 9s3-6 8-6 8 6 8 6-3 6-8 6-8-6-8-6z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
-                        <circle cx="9" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.3"/>
-                      </svg>
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Hide password" : "Show password"} style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#94A3B8", display: "flex", alignItems: "center" }}>
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
                 </div>
                 <div>
-                  <label style={{ display: "block", fontSize: "13px", fontWeight: "700", color: "#0A1F44", marginBottom: "8px" }}>Confirm Password</label>
-                  <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repeat your password" required
+                  <label style={{ display: "block", fontSize: "13px", fontWeight: "700", color: "#0A1F44", marginBottom: "8px" }}>Confirm password</label>
+                  <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Retype your new password" required
                     onFocus={() => setFocused("confirm")} onBlur={() => setFocused(null)}
                     style={{ width: "100%", height: "50px", background: focused === "confirm" ? "#fff" : "#F8FAFC", border: `1.5px solid ${focused === "confirm" ? "#0A1F44" : (confirmPassword && confirmPassword !== newPassword ? "#fecaca" : "#E2E8F0")}`, borderRadius: "10px", padding: "0 16px", color: "#0A1F44", fontSize: "15px", outline: "none", boxSizing: "border-box" as const, transition: "all 0.15s" }} />
                   {confirmPassword && confirmPassword !== newPassword && (
-                    <p style={{ color: "#dc2626", fontSize: "12px", margin: "6px 0 0" }}>Passwords do not match</p>
+                    <p style={{ color: "#dc2626", fontSize: "12px", margin: "6px 0 0" }}>Those passwords don't match yet.</p>
                   )}
                 </div>
                 <button type="submit" disabled={loading}
                   style={{ width: "100%", height: "50px", background: loading ? "#E2E8F0" : "#3D7BFF", border: "none", borderRadius: "10px", color: loading ? "#aaa" : "#FFFFFF", fontSize: "15px", fontWeight: "700", cursor: loading ? "not-allowed" : "pointer", transition: "all 0.2s" }}>
-                  {loading ? "Saving..." : "Reset Password →"}
+                  {loading ? "Saving password…" : "Save new password →"}
                 </button>
               </form>
             </Card>
@@ -300,13 +292,11 @@ export default function ForgotPasswordPage() {
           {step === "success" && (
             <Card>
               <div style={{ width: "56px", height: "56px", background: "#E8F0FF", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "24px" }}>
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3D7BFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
+                <CheckCircle2 size={26} color="#3D7BFF" strokeWidth={2.5} />
               </div>
-              <h2 style={{ fontSize: "24px", fontWeight: "800", color: "#0A1F44", margin: "0 0 8px", letterSpacing: "-0.5px" }}>Password reset</h2>
+              <h2 style={{ fontSize: "24px", fontWeight: "800", color: "#0A1F44", margin: "0 0 8px", letterSpacing: "-0.5px" }}>Password updated</h2>
               <p style={{ color: "#94A3B8", fontSize: "14px", margin: "0 0 24px", lineHeight: "1.6" }}>
-                Your password has been updated. Redirecting you to sign in…
+                Your new password is saved. Taking you to sign in…
               </p>
               <a href="/auth/login?reset=success" style={{ display: "block", width: "100%", height: "50px", lineHeight: "50px", background: "#3D7BFF", borderRadius: "10px", color: "#FFFFFF", fontSize: "15px", fontWeight: "700", textAlign: "center" as const, textDecoration: "none" }}>
                 Go to sign in →

@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Briefcase, CheckCircle2 } from "lucide-react";
 import api from "@/lib/api";
 import { formatPrice, formatDate } from "@/lib/format";
 import { formatApiError } from "@/lib/errors";
@@ -271,8 +272,8 @@ function BookingCard({
         </button>
       )}
       {s === "SETTLED" && (
-        <div style={{ background: TEAL_BG, border: `1px solid ${TEAL_BD}`, borderRadius: "10px", padding: "11px", textAlign: "center", fontSize: "13px", fontWeight: 700, color: TEAL_FG, letterSpacing: "0.3px" }}>
-          ✓ Settled
+        <div style={{ background: TEAL_BG, border: `1px solid ${TEAL_BD}`, borderRadius: "10px", padding: "11px", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", fontSize: "13px", fontWeight: 700, color: TEAL_FG, letterSpacing: "0.3px" }}>
+          <CheckCircle2 size={15} strokeWidth={2.4} /> Settled
         </div>
       )}
       {s === "IN_PROGRESS" && (
@@ -322,7 +323,9 @@ function btnStyle(variant: "blue"): React.CSSProperties {
 function EmptyCard() {
   return (
     <div style={{ background: "#FFFFFF", border: `1px solid ${BD}`, borderRadius: "16px", padding: "48px 32px", textAlign: "center", boxShadow: CARD_SHADOW }}>
-      <div style={{ fontSize: "40px", marginBottom: "14px" }}>💼</div>
+      <div style={{ width: "56px", height: "56px", borderRadius: "14px", background: "#F8FAFC", display: "inline-flex", alignItems: "center", justifyContent: "center", color: SUBTLE, marginBottom: "14px" }}>
+        <Briefcase size={24} strokeWidth={1.7} />
+      </div>
       <div style={{ fontSize: "16px", fontWeight: 700, color: NAVY, marginBottom: "8px" }}>No earnings yet</div>
       <div style={{ fontSize: "13px", color: MUTED, lineHeight: 1.6, maxWidth: "320px", margin: "0 auto" }}>
         Once you dispatch loads, they'll appear here for you to settle with the cargo owner and the truck owner.

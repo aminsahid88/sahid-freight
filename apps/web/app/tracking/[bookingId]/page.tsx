@@ -5,6 +5,8 @@ import { useAuthStore } from "@/lib/store";
 import api from "@/lib/api";
 import { Socket } from "socket.io-client";
 import { connectAuthedSocket } from "@/lib/socket";
+import { formatApiError } from "@/lib/errors";
+import { ArrowLeft, CheckCircle2 } from "lucide-react";
 
 const GOOGLE_MAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || "";
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || "https://sahid-freight-production.up.railway.app").replace("/api", "");
@@ -24,7 +26,7 @@ export default function TrackingPage() {
   const [loading, setLoading] = useState(true);
   const [isSharing, setIsSharing] = useState(false);
   const [location, setLocation] = useState<{ lat: number; lng: number; timestamp?: string } | null>(null);
-  const [status, setStatus] = useState("Waiting for location...");
+  const [status, setStatus] = useState("Waiting for a location update…");
   const [error, setError] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
   const socketRef = useRef<Socket | null>(null);
@@ -49,7 +51,9 @@ export default function TrackingPage() {
     try {
       const res = await api.get("/bookings/" + bookingId);
       setBooking(res.data.booking);
-    } catch { setError("Booking not found"); }
+    } catch (err: any) {
+      setError(formatApiError(err, "We couldn't find this booking. It may have been cancelled or removed.", "booking"));
+    }
     finally { setLoading(false); }
   };
 
@@ -141,11 +145,11 @@ export default function TrackingPage() {
     const socket = connectAuthedSocket();
     socketRef.current = socket;
     socket.on("connect", () => socket.emit("join_tracking", bookingId));
-    socket.on("tracking_error", (e: any) => setError(e?.message || "Tracking error"));
+    socket.on("tracking_error", (e: any) => setError(e?.message || "We lost the live tracking connection. Please refresh."));
 
     socket.on("location_updated", (data: any) => {
       setLocation(data);
-      setStatus("Live · " + new Date(data.timestamp).toLocaleTimeString());
+      setStatus("Live · updated " + new Date(data.timestamp).toLocaleTimeString());
 
       const pos = { lat: data.lat, lng: data.lng };
       pathPointsRef.current.push(pos);
@@ -170,39 +174,39 @@ export default function TrackingPage() {
             scaledSize: new window.google.maps.Size(48, 48),
             anchor: new window.google.maps.Point(24, 24),
           },
-          title: "Truck Location",
+          title: "Truck location",
         });
       }
       map.panTo(pos);
     });
 
     socket.on("tracking_stopped", () => {
-      setStatus("Location sharing stopped");
+      setStatus("Location sharing paused.");
       setIsSharing(false);
     });
 
     socket.on("journey_started", () => {
-      setStatus("Journey started — waiting for location...");
+      setStatus("Journey started — waiting for the first location update…");
       fetchBooking();
     });
 
     socket.on("delivered", () => {
-      setStatus("Cargo delivered!");
+      setStatus("Load delivered.");
       fetchBooking();
     });
   };
 
   const startSharing = () => {
-    if (!navigator.geolocation) { setError("GPS not supported on this device"); return; }
+    if (!navigator.geolocation) { setError("This device doesn't support GPS location sharing."); return; }
     setIsSharing(true);
-    setStatus("Sharing location...");
+    setStatus("Sharing your live location…");
     watchRef.current = navigator.geolocation.watchPosition(
       (pos) => {
         const data = { bookingId, lat: pos.coords.latitude, lng: pos.coords.longitude, speed: pos.coords.speed || 0 };
         socketRef.current?.emit("location_update", data);
         setLocation({ lat: data.lat, lng: data.lng, timestamp: new Date().toISOString() });
       },
-      (err) => { setError("GPS error: " + err.message); setIsSharing(false); },
+      (err) => { setError("We couldn't read your GPS location: " + err.message); setIsSharing(false); },
       { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 }
     );
   };
@@ -224,7 +228,7 @@ export default function TrackingPage() {
       await fetchBooking();
       startSharing();
     } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to start journey");
+      setError(formatApiError(err, "We couldn't start the journey. Please try again.", "booking"));
     } finally { setActionLoading(false); }
   };
 
@@ -236,7 +240,7 @@ export default function TrackingPage() {
       socketRef.current?.emit("delivered_broadcast", { bookingId });
       await fetchBooking();
     } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to mark as delivered");
+      setError(formatApiError(err, "We couldn't mark this load as delivered. Please try again.", "booking"));
     } finally { setActionLoading(false); }
   };
 
@@ -261,16 +265,18 @@ export default function TrackingPage() {
       {/* Header */}
       <div style={{ padding: "12px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.08)", flexShrink: 0, background: "#0A1F44", zIndex: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <button onClick={() => router.back()} style={{ background: "rgba(255,255,255,0.08)", border: "none", borderRadius: "8px", padding: "7px 12px", color: "#F8FAFC", fontSize: "13px", cursor: "pointer" }}>← Back</button>
+          <button onClick={() => router.back()} aria-label="Go back" style={{ background: "rgba(255,255,255,0.08)", border: "none", borderRadius: "8px", padding: "7px 10px", color: "#F8FAFC", fontSize: "13px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}>
+            <ArrowLeft size={14} /> Back
+          </button>
           <div>
-            <div style={{ fontSize: "14px", fontWeight: "700", color: "#F8FAFC" }}>{booking?.load?.title || "Tracking"}</div>
+            <div style={{ fontSize: "14px", fontWeight: "700", color: "#F8FAFC" }}>{booking?.load?.title || "Live tracking"}</div>
             <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginTop: "1px" }}>{booking?.load?.pickupCity} → {booking?.load?.deliveryCity}</div>
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
           <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: isSharing ? "#5BE3C4" : isDelivered ? "#16A34A" : "#6b7280", animation: isSharing ? "pulse 1.5s infinite" : "none" }} />
-          <span style={{ fontSize: "11px", color: isSharing ? "#5BE3C4" : "rgba(255,255,255,0.4)", fontWeight: "700" }}>
-            {isSharing ? "LIVE" : isDelivered ? "DELIVERED" : isInTransit ? "IN TRANSIT" : bStatus || "—"}
+          <span style={{ fontSize: "11px", color: isSharing ? "#5BE3C4" : "rgba(255,255,255,0.4)", fontWeight: "700", letterSpacing: "0.5px" }}>
+            {isSharing ? "Live" : isDelivered ? "Delivered" : isInTransit ? "In transit" : bStatus || "—"}
           </span>
         </div>
       </div>
@@ -302,24 +308,24 @@ export default function TrackingPage() {
             {!isInTransit && !isDelivered && (
               <button onClick={handleStartJourney} disabled={actionLoading}
                 style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "none", background: "#3D7BFF", color: "#fff", fontSize: "14px", fontWeight: "700", cursor: actionLoading ? "not-allowed" : "pointer", opacity: actionLoading ? 0.7 : 1 }}>
-                {actionLoading ? "Starting..." : "Start Journey"}
+                {actionLoading ? "Starting journey…" : "Start journey"}
               </button>
             )}
             {isInTransit && !isDelivered && (
               <>
                 <button onClick={isSharing ? stopSharing : startSharing}
                   style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#F8FAFC", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>
-                  {isSharing ? "Pause Location Sharing" : "Resume Sharing"}
+                  {isSharing ? "Pause location sharing" : "Resume location sharing"}
                 </button>
                 <button onClick={handleMarkDelivered} disabled={actionLoading}
                   style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "none", background: "#16a34a", color: "#fff", fontSize: "14px", fontWeight: "700", cursor: actionLoading ? "not-allowed" : "pointer", opacity: actionLoading ? 0.7 : 1 }}>
-                  {actionLoading ? "Updating..." : "Mark as Delivered"}
+                  {actionLoading ? "Marking delivered…" : "Mark delivered"}
                 </button>
               </>
             )}
             {isDelivered && (
-              <div style={{ textAlign: "center" as const, padding: "14px", background: "rgba(22,163,74,0.1)", borderRadius: "10px", color: "#16A34A", fontSize: "14px", fontWeight: "600" }}>
-                Delivery Completed
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "14px", background: "rgba(22,163,74,0.1)", borderRadius: "10px", color: "#16A34A", fontSize: "14px", fontWeight: "600" }}>
+                <CheckCircle2 size={16} /> Delivery completed
               </div>
             )}
           </div>
@@ -329,12 +335,12 @@ export default function TrackingPage() {
           <div>
             {!isInTransit && !isDelivered && (
               <div style={{ textAlign: "center" as const, padding: "12px", color: "rgba(255,255,255,0.4)", fontSize: "13px" }}>
-                Waiting for journey to start...
+                Waiting for the driver to start the journey…
               </div>
             )}
             {isInTransit && !location && (
               <div style={{ textAlign: "center" as const, padding: "12px", color: "rgba(255,255,255,0.4)", fontSize: "13px" }}>
-                Journey started — waiting for location update...
+                Journey started — waiting for the first location update…
               </div>
             )}
             {isInTransit && location && (
@@ -344,8 +350,8 @@ export default function TrackingPage() {
               </a>
             )}
             {isDelivered && (
-              <div style={{ textAlign: "center" as const, padding: "14px", background: "rgba(22,163,74,0.1)", borderRadius: "10px", color: "#16A34A", fontSize: "14px", fontWeight: "600" }}>
-                {user?.role === "CARGO_SENDER" ? "Your cargo has been delivered!" : "Delivery Completed"}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "14px", background: "rgba(22,163,74,0.1)", borderRadius: "10px", color: "#16A34A", fontSize: "14px", fontWeight: "600" }}>
+                <CheckCircle2 size={16} /> {user?.role === "CARGO_SENDER" ? "Your load has been delivered." : "Delivery completed"}
               </div>
             )}
           </div>

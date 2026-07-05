@@ -302,9 +302,9 @@ export default function RegisterPage() {
                     <label style={labelStyle}>Phone number</label>
                     <div style={{ display: "flex", gap: "8px" }}>
                       <select value={form.countryCode} onChange={(e) => { update("countryCode", e.target.value); update("phone", e.target.value + form.phoneNumber.replace(/^0/, "")); }} style={{ ...inputStyle("countryCode"), width: "140px", flexShrink: 0, appearance: "none" as const, fontFamily: "monospace" }}>
-                        <option value="+251">🇪🇹 +251</option>
-                        <option value="+252">🇸🇴 +252</option>
-                        <option value="+253">🇩🇯 +253</option>
+                        <option value="+251">ET  +251</option>
+                        <option value="+252">SO  +252</option>
+                        <option value="+253">DJ  +253</option>
                       </select>
                       <input type="tel" value={form.phoneNumber} onChange={(e) => { const clean = e.target.value.replace(/[^0-9]/g, ""); update("phoneNumber", clean); update("phone", form.countryCode + clean.replace(/^0+/, "")); }} placeholder="911 234 567" required onFocus={() => setFocused("phone")} onBlur={() => setFocused(null)} style={{ ...inputStyle("phone"), fontFamily: "monospace", flex: 1 }} />
                     </div>

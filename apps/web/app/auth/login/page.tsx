@@ -6,9 +6,9 @@ import { useAuthStore } from "@/lib/store";
 import { formatApiError } from "@/lib/errors";
 
 const COUNTRIES = [
-  { code: "ET", name: "Ethiopia",  dial: "+251", flag: "🇪🇹" },
-  { code: "SO", name: "Somalia",   dial: "+252", flag: "🇸🇴" },
-  { code: "DJ", name: "Djibouti", dial: "+253", flag: "🇩🇯" },
+  { code: "ET", name: "Ethiopia", dial: "+251" },
+  { code: "SO", name: "Somalia",  dial: "+252" },
+  { code: "DJ", name: "Djibouti", dial: "+253" },
 ];
 
 export default function LoginPage() {
@@ -150,8 +150,8 @@ export default function LoginPage() {
                         gap: "6px", cursor: "pointer", minWidth: "110px", transition: "all 0.15s",
                       }}
                     >
-                      <span style={{ fontSize: "18px", lineHeight: "1" }}>{country.flag}</span>
-                      <span style={{ fontSize: "14px", fontWeight: "700", color: A }}>{country.dial}</span>
+                      <span style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-secondary)", letterSpacing: "0.5px" }}>{country.code}</span>
+                      <span style={{ fontSize: "14px", fontWeight: "700", color: A, fontFamily: "monospace" }}>{country.dial}</span>
                       <svg width="10" height="10" viewBox="0 0 10 10" fill="none"
                         style={{ marginLeft: "auto", transform: dropdownOpen ? "rotate(180deg)" : "none", transition: "transform 0.2s" }}>
                         <path d="M1 3l4 4 4-4" stroke="var(--text-secondary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -175,10 +175,9 @@ export default function LoginPage() {
                               border: "none", borderBottom: "1px solid #E2E8F0", cursor: "pointer", textAlign: "left" as const,
                             }}
                           >
-                            <span style={{ fontSize: "20px" }}>{c.flag}</span>
                             <div style={{ flex: 1 }}>
                               <div style={{ fontSize: "13px", fontWeight: "700", color: P }}>{c.name}</div>
-                              <div style={{ fontSize: "12px", color: A }}>{c.dial}</div>
+                              <div style={{ fontSize: "12px", color: A, fontFamily: "monospace" }}>{c.dial}</div>
                             </div>
                             {country.code === c.code && (
                               <svg width="14" height="14" viewBox="0 0 14 14" fill="none">

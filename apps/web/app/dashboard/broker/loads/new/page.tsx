@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { ShieldAlert } from "lucide-react";
 import { useAuthStore } from "@/lib/store";
 import api from "@/lib/api";
 import { formatApiError } from "@/lib/errors";
@@ -168,10 +169,12 @@ export default function BrokerNewLoadPage() {
   if (user && user.role !== "BROKER") {
     return (
       <div style={{ maxWidth: "520px", margin: "60px auto", textAlign: "center", padding: "0 24px" }}>
-        <div style={{ fontSize: "32px", marginBottom: "12px" }}>⛔</div>
-        <h2 style={{ fontSize: "20px", fontWeight: 800, color: NAVY, margin: "0 0 8px" }}>Brokers Only</h2>
+        <div style={{ width: "56px", height: "56px", borderRadius: "14px", background: "#FEF2F2", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#DC2626", marginBottom: "14px" }}>
+          <ShieldAlert size={24} strokeWidth={1.8} />
+        </div>
+        <h2 style={{ fontSize: "20px", fontWeight: 800, color: NAVY, margin: "0 0 8px" }}>For brokers only</h2>
         <p style={{ fontSize: "14px", color: MUTED, lineHeight: 1.6 }}>
-          This page is restricted to broker accounts.
+          Only broker accounts can post loads on behalf of offline cargo owners.
         </p>
         <button
           onClick={() => router.push("/dashboard")}

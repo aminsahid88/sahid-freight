@@ -3,22 +3,23 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuthStore, useGateStore, useSettingsStore } from "@/lib/store";
 import { tr } from "@/lib/translations";
+import { LayoutGrid, Package, Bookmark, Bell, User, Truck, Users, LogOut, ShieldCheck, Wallet, Clock } from "lucide-react";
 
 // Colors pulled from CSS variables at render time via inline styles
 // Use var(--primary), var(--accent), etc. in styles
 const P = "var(--primary)";
 const A = "var(--accent)";
 
-const IconGrid     = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>);
-const IconPackage  = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>);
-const IconBookmark = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>);
-const IconBell     = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>);
-const IconUser     = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>);
-const IconTruck    = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>);
-const IconUsers    = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>);
-const IconLogout   = () => (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>);
-const IconShield   = () => (<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>);
-const IconMoney    = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>);
+const IconGrid     = () => <LayoutGrid  size={18} />;
+const IconPackage  = () => <Package     size={18} />;
+const IconBookmark = () => <Bookmark    size={18} />;
+const IconBell     = () => <Bell        size={18} />;
+const IconUser     = () => <User        size={18} />;
+const IconTruck    = () => <Truck       size={18} />;
+const IconUsers    = () => <Users       size={18} />;
+const IconLogout   = () => <LogOut      size={16} />;
+const IconShield   = () => <ShieldCheck size={13} />;
+const IconMoney    = () => <Wallet      size={18} />;
 
 function timeAgo(date: string) {
   const s = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
@@ -113,8 +114,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           { key: "/dashboard",           label: tr("overview", language),   icon: <IconGrid /> },
           { key: "/dashboard/loads",     label: user?.role === "CARGO_SENDER" ? tr("my_loads", language) : tr("loads", language), icon: <IconPackage /> },
           ...(user?.role === "TRUCK_OWNER" ? [
-            { key: "/dashboard/trucks",  label: "My Trucks",  icon: <IconTruck /> },
-            { key: "/dashboard/drivers", label: "Drivers",    icon: <IconUsers /> },
+            { key: "/dashboard/trucks",  label: "My trucks", icon: <IconTruck /> },
+            { key: "/dashboard/drivers", label: "Drivers",   icon: <IconUsers /> },
           ] : []),
           { key: "/dashboard/bookings",  label: tr("bookings", language),   icon: <IconBookmark /> },
           { key: "/dashboard/profile",   label: tr("profile", language),    icon: <IconUser /> },
@@ -134,22 +135,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div style={{ background: "#fff", borderRadius: "20px", padding: "36px 32px", maxWidth: "380px", width: "100%", textAlign: "center" }}>
           <div style={{ width: "60px", height: "60px", borderRadius: "16px", background: isPending ? "#FFFBEB" : "#E8F0FF", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px" }}>
             {isPending
-              ? <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={A} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
-              : <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3D7BFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            }
+              ? <ShieldCheck size={28} color={A} />
+              : <Clock size={28} color="#3D7BFF" />}
           </div>
           <h3 style={{ fontSize: "18px", fontWeight: "800", color: P, margin: "0 0 10px" }}>
-            {isPending ? "Verification Required" : "Documents Under Review"}
+            {isPending ? "Verification required" : "Documents under review"}
           </h3>
           <p style={{ fontSize: "14px", color: "#6B6B6B", lineHeight: "1.6", margin: "0 0 24px" }}>
             {isPending
-              ? "Upload your verification documents before accessing this feature."
-              : "Your documents are under review. You'll be notified within 24 hours once approved."}
+              ? "Upload your verification documents before using this feature."
+              : "Your documents are under review. We'll notify you within 24 hours once approved."}
           </p>
           <div style={{ display: "flex", gap: "10px" }}>
             <button onClick={() => closeGate()} style={{ flex: 1, height: "44px", background: "#FAFAF8", border: "1px solid #E8E4DC", borderRadius: "10px", fontSize: "14px", fontWeight: "600", color: "#6B6B6B", cursor: "pointer" }}>Close</button>
             {isPending && (
-              <button onClick={() => { closeGate(); router.push("/dashboard/verify"); }} style={{ flex: 1, height: "44px", background: P, border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700", color: "#fff", cursor: "pointer" }}>Upload Docs</button>
+              <button onClick={() => { closeGate(); router.push("/dashboard/verify"); }} style={{ flex: 1, height: "44px", background: P, border: "none", borderRadius: "10px", fontSize: "14px", fontWeight: "700", color: "#fff", cursor: "pointer" }}>Upload documents</button>
             )}
           </div>
         </div>
@@ -161,7 +161,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, width: "320px", background: "#fff", borderRadius: "14px", border: "1px solid #E8E4DC", boxShadow: "0 16px 48px rgba(0,0,0,0.14)", zIndex: 500, overflow: "hidden" }}>
       <div style={{ padding: "14px 16px", borderBottom: "1px solid #F0EDE8", fontSize: "13px", fontWeight: "700", color: P }}>Notifications</div>
       {notifs.length === 0 ? (
-        <div style={{ padding: "32px 16px", textAlign: "center", fontSize: "13px", color: "#6B6B6B" }}>No notifications yet</div>
+        <div style={{ padding: "32px 16px", textAlign: "center", fontSize: "13px", color: "#6B6B6B" }}>You&apos;re all caught up.</div>
       ) : notifs.map((n: any) => (
         <div key={n.id} style={{ padding: "12px 16px", borderBottom: "1px solid #FAFAF8", background: n.isRead ? "#fff" : "rgba(245,158,11,0.04)" }}>
           <div style={{ fontSize: "13px", fontWeight: n.isRead ? "400" : "600", color: P, marginBottom: "3px" }}>{n.title}</div>
@@ -171,7 +171,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       ))}
       <div style={{ padding: "10px 16px", borderTop: "1px solid #F0EDE8" }}>
         <button onClick={() => { setShowBell(false); router.push("/dashboard/notifications"); }} style={{ width: "100%", background: "none", border: "none", fontSize: "13px", color: A, fontWeight: "600", cursor: "pointer", textAlign: "center" as const }}>
-          View all notifications
+          View all notifications →
         </button>
       </div>
     </div>
@@ -209,13 +209,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </main>
       {/* Bottom nav */}
       <nav style={{ position: "fixed", bottom: 0, left: 0, right: 0, height: "64px", background: P, zIndex: 200, display: "flex", alignItems: "center", justifyContent: "space-around", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-        {navItems.map((item) => (
-          <button key={item.key} onClick={() => navigate(item.key)}
-            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px", background: "none", border: "none", cursor: "pointer", padding: "6px 8px", color: active(item.key) ? A : "rgba(255,255,255,0.4)", minWidth: "48px" }}>
-            {item.icon}
-            <span style={{ fontSize: "9px", fontWeight: active(item.key) ? "700" : "400", whiteSpace: "nowrap" }}>{item.label}</span>
-          </button>
-        ))}
+        {navItems.map((item) => {
+          const isActive = active(item.key);
+          return (
+            <button key={item.key} onClick={() => navigate(item.key)}
+              style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px", background: "none", border: "none", cursor: "pointer", padding: "6px 8px", color: isActive ? A : "rgba(255,255,255,0.55)", minWidth: "48px", transition: "color 0.12s" }}>
+              {item.icon}
+              <span style={{ fontSize: "9px", fontWeight: isActive ? "700" : "500", whiteSpace: "nowrap" }}>{item.label}</span>
+            </button>
+          );
+        })}
       </nav>
     </div>
   );
@@ -259,19 +262,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Nav links — max 4 items */}
         <nav style={{ flex: 1, padding: "10px 10px", overflowY: "auto" }}>
           <div style={{ fontSize: "10px", fontWeight: "700", color: "rgba(255,255,255,0.2)", letterSpacing: "1.5px", padding: "6px 8px 8px", textTransform: "uppercase" }}>Navigation</div>
-          {navItems.map((item) => (
-            <button key={item.key} onClick={() => navigate(item.key)}
-              style={{ width: "100%", display: "flex", alignItems: "center", gap: "10px", padding: "9px 10px", borderRadius: "9px", border: "none", borderLeft: active(item.key) ? `3px solid ${A}` : "3px solid transparent", background: active(item.key) ? "rgba(255,255,255,0.08)" : "transparent", color: active(item.key) ? "#fff" : "rgba(255,255,255,0.42)", fontSize: "13px", fontWeight: active(item.key) ? "600" : "400", cursor: "pointer", textAlign: "left", marginBottom: "1px", transition: "all 0.12s" }}>
-              {item.icon}{item.label}
-            </button>
-          ))}
+          {navItems.map((item) => {
+            const isActive = active(item.key);
+            return (
+              <button key={item.key} onClick={() => navigate(item.key)}
+                style={{ width: "100%", display: "flex", alignItems: "center", gap: "10px", padding: "10px 10px", borderRadius: "9px", border: "none", borderLeft: isActive ? `3px solid ${A}` : "3px solid transparent", background: isActive ? "rgba(255,255,255,0.12)" : "transparent", color: isActive ? "#fff" : "rgba(255,255,255,0.55)", fontSize: "13px", fontWeight: isActive ? "700" : "500", cursor: "pointer", textAlign: "left", marginBottom: "2px", transition: "all 0.12s", fontFamily: "inherit" }}
+                onMouseOver={e => { if (!isActive) { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; e.currentTarget.style.color = "rgba(255,255,255,0.85)"; } }}
+                onMouseOut={e => { if (!isActive) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.55)"; } }}>
+                {item.icon}{item.label}
+              </button>
+            );
+          })}
         </nav>
         {/* Sign out */}
         <div style={{ padding: "10px 10px 16px", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-          <button onClick={() => { logout(); router.push("/"); }}
-            style={{ width: "100%", display: "flex", alignItems: "center", gap: "10px", padding: "10px 10px", borderRadius: "9px", border: "none", background: "transparent", color: "rgba(255,255,255,0.4)", fontSize: "13px", cursor: "pointer", textAlign: "left", fontFamily: "inherit" }}
-            onMouseOver={e => { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; e.currentTarget.style.color = "rgba(255,255,255,0.7)"; }}
-            onMouseOut={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.4)"; }}>
+          <button onClick={() => { if (confirm("Sign out of Sahid?")) { logout(); router.push("/"); } }}
+            style={{ width: "100%", display: "flex", alignItems: "center", gap: "10px", padding: "10px 10px", borderRadius: "9px", border: "none", background: "transparent", color: "rgba(255,255,255,0.5)", fontSize: "13px", cursor: "pointer", textAlign: "left", fontFamily: "inherit", transition: "all 0.12s" }}
+            onMouseOver={e => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; e.currentTarget.style.color = "#fff"; }}
+            onMouseOut={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.5)"; }}>
             <IconLogout />{tr("sign_out", language)}
           </button>
         </div>

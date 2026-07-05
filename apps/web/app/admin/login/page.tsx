@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAdminStore } from "@/lib/admin-store";
 import adminApi from "@/lib/admin-api";
+import { formatApiError } from "@/lib/errors";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -15,16 +16,16 @@ export default function AdminLoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim()) { setError("Email is required"); return; }
-    if (!password) { setError("Password is required"); return; }
+    if (!email.trim()) { setError("Enter your email to continue."); return; }
+    if (!password)     { setError("Enter your password to continue."); return; }
     setError("");
     setLoading(true);
     try {
       const res = await adminApi.post("/admin/auth/login", { email, password });
       setAdminAuth(res.data.user, res.data.accessToken);
       router.push("/admin");
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Invalid credentials");
+    } catch (err) {
+      setError(formatApiError(err, "We couldn't sign you in. Please try again.", "auth"));
     } finally {
       setLoading(false);
     }

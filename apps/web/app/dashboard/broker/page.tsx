@@ -5,6 +5,7 @@ import api from "@/lib/api";
 import { useAuthStore } from "@/lib/store";
 import { formatPrice } from "@/lib/format";
 import type { Load, Booking, Truck } from "@/lib/types";
+import { CheckCircle2, Truck as TruckIcon } from "lucide-react";
 
 // Web reuses CSS variables from globals.css for the broker surface — same
 // palette as the mobile broker app (navy/blue + light/airy cards).
@@ -84,8 +85,8 @@ export default function BrokerDashboardPage() {
 
   const summary =
     openLoads.length === 0 && inTransit.length === 0
-      ? "No active dispatches today."
-      : `${openLoads.length} load${openLoads.length === 1 ? "" : "s"} need a truck · ${inTransit.length} in transit`;
+      ? "Nothing waiting on you right now — a quiet, clean board."
+      : `${openLoads.length} load${openLoads.length === 1 ? "" : "s"} waiting on a truck · ${inTransit.length} on the road`;
 
   const onRefresh = () => { setRefreshing(true); fetchAll(); };
 
@@ -111,7 +112,7 @@ export default function BrokerDashboardPage() {
       <section style={styles.statRow}>
         <Stat label="OPEN LOADS"        value={loading ? null : String(openLoads.length)} hint="waiting for a truck" tone="navy" />
         <Stat label="TRUCKS AVAILABLE"  value={loading ? null : String(trucksAvailable)}  hint="across the network"  tone="navy" />
-        <Stat label="IN TRANSIT"        value={loading ? null : String(inTransit.length)} hint="active trips"        tone={inTransit.length > 0 ? "teal" : "navy"} />
+        <Stat label="ON THE ROAD"       value={loading ? null : String(inTransit.length)} hint="active dispatches"   tone={inTransit.length > 0 ? "teal" : "navy"} />
       </section>
 
       {/* ── TWO-COLUMN LAYOUT (auto-stacks on narrow) ───────────────── */}
@@ -124,9 +125,9 @@ export default function BrokerDashboardPage() {
             <ListSkeleton rows={3} />
           ) : openLoads.length === 0 ? (
             <EmptyCard
-              emoji="✓"
+              icon={<CheckCircle2 size={28} color={TEAL_FG} strokeWidth={2} />}
               title="All loads matched"
-              body="Nothing waiting. When a sender posts a load, or you post one for an offline owner, it appears here."
+              body="Nothing waiting. When a cargo owner posts a load, or you post one for an offline owner, it appears here."
             />
           ) : (
             openLoads.map((load) => (
@@ -154,6 +155,8 @@ export default function BrokerDashboardPage() {
                   <button
                     onClick={() => router.push(`/dashboard/broker/find-truck/${load.id}`)}
                     style={styles.findBtn}
+                    onMouseEnter={(e) => (e.currentTarget.style.filter = "brightness(0.94)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.filter = "none")}
                   >
                     Find a truck →
                   </button>
@@ -170,8 +173,8 @@ export default function BrokerDashboardPage() {
             <ListSkeleton rows={2} />
           ) : inTransit.length === 0 ? (
             <EmptyCard
-              emoji="—"
-              title="Nothing in transit"
+              icon={<TruckIcon size={26} color={SUBTLE} strokeWidth={2} />}
+              title="Nothing on the road"
               body="Dispatches you make will appear here while the truck is on the road."
             />
           ) : (
@@ -201,8 +204,10 @@ export default function BrokerDashboardPage() {
                   <button
                     onClick={() => router.push(`/dashboard/tracking/${b.id}`)}
                     style={styles.trackBtn}
+                    onMouseEnter={(e) => (e.currentTarget.style.background = "#F1F5F9")}
+                    onMouseLeave={(e) => (e.currentTarget.style.background = "#F8FAFC")}
                   >
-                    Track shipment →
+                    Track this trip →
                   </button>
                 </article>
               );
@@ -242,10 +247,10 @@ function MetaPill({ label }: { label: string }) {
   return <span style={styles.metaPill}>{label}</span>;
 }
 
-function EmptyCard({ emoji, title, body }: { emoji: string; title: string; body: string }) {
+function EmptyCard({ icon, title, body }: { icon: React.ReactNode; title: string; body: string }) {
   return (
     <div style={styles.emptyCard}>
-      <div style={styles.emptyEmoji}>{emoji}</div>
+      <div style={styles.emptyIcon}>{icon}</div>
       <div style={styles.emptyTitle}>{title}</div>
       <div style={styles.emptyBody}>{body}</div>
     </div>
@@ -321,7 +326,7 @@ const styles: Record<string, React.CSSProperties> = {
 
   /* EMPTY + SKELETON */
   emptyCard:    { background: "#FFFFFF", border: `1px solid ${BORDER}`, borderRadius: "14px", padding: "32px", textAlign: "center" },
-  emptyEmoji:   { fontSize: "32px", color: SUBTLE, marginBottom: "10px" },
+  emptyIcon:    { display: "flex", justifyContent: "center", marginBottom: "12px" },
   emptyTitle:   { fontSize: "14px", fontWeight: 700, color: P, marginBottom: "6px" },
   emptyBody:    { fontSize: "13px", color: MUTED, lineHeight: 1.6, maxWidth: "320px", margin: "0 auto" },
   skelCard:     { background: "#FFFFFF", border: `1px solid ${BORDER}`, borderRadius: "14px", padding: "18px", marginBottom: "10px" },
