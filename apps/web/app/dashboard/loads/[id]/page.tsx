@@ -135,29 +135,60 @@ export default function LoadDetailPage() {
 
   return (
     <div>
+      <style>{`
+        @media (max-width: 640px) {
+          .sender-detail-toast { top: auto !important; bottom: 80px !important; left: 16px !important; right: 16px !important; text-align: center; }
+          .sender-detail-header { margin-bottom: 20px !important; gap: 12px !important; }
+          .sender-detail-title { font-size: 20px !important; }
+          .sender-detail-price { padding: 14px 18px !important; text-align: left !important; width: 100% !important; }
+          .sender-detail-price-value { font-size: 22px !important; }
+          .sender-route-card { padding: 18px !important; }
+          .sender-route-row { flex-wrap: wrap !important; gap: 12px !important; }
+          .sender-route-city { font-size: 16px !important; }
+          .sender-route-arrow { flex-direction: row !important; width: 100% !important; justify-content: center !important; order: 2 !important; }
+          .sender-route-arrow > div { width: 32px !important; height: 2px !important; }
+          .sender-route-pickup { flex: 1 1 45% !important; order: 1 !important; }
+          .sender-route-delivery { flex: 1 1 45% !important; order: 3 !important; }
+          .sender-details-card { padding: 18px !important; }
+          .sender-details-grid { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+          .sender-details-cell { padding: 12px !important; }
+          .sender-bids-header { padding: 14px 16px !important; }
+          .sender-bid-row { padding: 14px 16px !important; }
+          .sender-bid-inner { flex-direction: column !important; align-items: stretch !important; }
+          .sender-bid-right { justify-content: space-between !important; width: 100% !important; }
+          .sender-booking-row { padding: 14px 16px !important; flex-direction: column !important; align-items: stretch !important; }
+          .sender-booking-right { flex-wrap: wrap !important; width: 100% !important; justify-content: flex-start !important; }
+          .sender-booking-right button { flex: 1 1 auto !important; min-height: 44px !important; }
+          .sender-postedby { padding: 16px !important; }
+        }
+        @media (max-width: 380px) {
+          .sender-detail-title { font-size: 18px !important; }
+          .sender-details-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
       {/* Toast */}
       {toast && (
-        <div style={{ position: "fixed", top: "24px", right: "24px", background: P, color: "#fff", padding: "12px 20px", borderRadius: "10px", fontSize: "13px", fontWeight: "600", zIndex: 9999, boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}>
+        <div className="sender-detail-toast" style={{ position: "fixed", top: "24px", right: "24px", background: P, color: "#fff", padding: "12px 20px", borderRadius: "10px", fontSize: "13px", fontWeight: "600", zIndex: 9999, boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}>
           {toast}
         </div>
       )}
 
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "28px", gap: "16px", flexWrap: "wrap" }}>
+      <div className="sender-detail-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "28px", gap: "16px", flexWrap: "wrap" }}>
         <div>
-          <button onClick={() => router.back()} style={{ background: "none", border: "none", color: "var(--text-secondary)", fontSize: "13px", cursor: "pointer", padding: "0 0 8px", display: "flex", alignItems: "center", gap: "4px" }}>
+          <button onClick={() => router.back()} style={{ background: "none", border: "none", color: "var(--text-secondary)", fontSize: "13px", cursor: "pointer", padding: "4px 0 8px", display: "flex", alignItems: "center", gap: "4px", minHeight: "32px" }}>
             ← Back
           </button>
-          <h1 style={{ margin: 0, fontSize: "24px", fontWeight: "800", color: P, letterSpacing: "-0.5px" }}>{load.title}</h1>
+          <h1 className="sender-detail-title" style={{ margin: 0, fontSize: "24px", fontWeight: "800", color: P, letterSpacing: "-0.5px" }}>{load.title}</h1>
           <div style={{ display: "flex", alignItems: "center", gap: "10px", marginTop: "8px", flexWrap: "wrap" }}>
             <StatusBadge status={load.status} />
             <span style={{ fontSize: "13px", color: "var(--text-secondary)" }}>Posted {formatDate(load.createdAt)}</span>
             {bids.length > 0 && <span style={{ fontSize: "13px", color: A, fontWeight: "600" }}>{bids.length} offer{bids.length !== 1 ? "s" : ""}</span>}
           </div>
         </div>
-        <div style={{ background: P, borderRadius: "14px", padding: "16px 24px", textAlign: "right" }}>
+        <div className="sender-detail-price" style={{ background: P, borderRadius: "14px", padding: "16px 24px", textAlign: "right" }}>
           <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.5)", letterSpacing: "1px", textTransform: "uppercase", marginBottom: "4px" }}>Offered price</div>
-          <div style={{ fontSize: "28px", fontWeight: "800", color: "#fff", letterSpacing: "-1px" }}>{formatPrice(load.offeredPrice, load.currency)}</div>
+          <div className="sender-detail-price-value" style={{ fontSize: "28px", fontWeight: "800", color: "#fff", letterSpacing: "-1px" }}>{formatPrice(load.offeredPrice, load.currency)}</div>
           {lowestBid && lowestBid < load.offeredPrice && (
             <div style={{ fontSize: "11px", color: A, marginTop: "4px" }}>Lowest offer: {formatPrice(lowestBid, load.currency)}</div>
           )}
@@ -167,38 +198,38 @@ export default function LoadDetailPage() {
       <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "16px" }}>
 
         {/* Route card */}
-        <div style={{ background: "var(--surface)", borderRadius: "16px", padding: "24px", border: "1px solid var(--border)" }}>
+        <div className="sender-route-card" style={{ background: "var(--surface)", borderRadius: "16px", padding: "24px", border: "1px solid var(--border)" }}>
           <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-secondary)", letterSpacing: "1px", textTransform: "uppercase", marginBottom: "20px" }}>Route</div>
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-            <div style={{ flex: 1 }}>
+          <div className="sender-route-row" style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <div className="sender-route-pickup" style={{ flex: 1 }}>
               <div style={{ fontSize: "11px", color: "var(--text-secondary)", letterSpacing: "1px", textTransform: "uppercase", marginBottom: "6px" }}>Pickup</div>
-              <div style={{ fontSize: "20px", fontWeight: "800", color: P }}>{load.pickupCity}</div>
+              <div className="sender-route-city" style={{ fontSize: "20px", fontWeight: "800", color: P }}>{load.pickupCity}</div>
               <div style={{ fontSize: "13px", color: "var(--text-secondary)" }}>{load.pickupCountry}</div>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px" }}>
+            <div className="sender-route-arrow" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "3px" }}>
               <div style={{ width: "48px", height: "2px", background: A }} />
               <Truck size={18} color={A} />
               <div style={{ width: "48px", height: "2px", background: A }} />
             </div>
-            <div style={{ flex: 1, textAlign: "right" }}>
+            <div className="sender-route-delivery" style={{ flex: 1, textAlign: "right" }}>
               <div style={{ fontSize: "11px", color: "var(--text-secondary)", letterSpacing: "1px", textTransform: "uppercase", marginBottom: "6px" }}>Delivery</div>
-              <div style={{ fontSize: "20px", fontWeight: "800", color: P }}>{load.deliveryCity}</div>
+              <div className="sender-route-city" style={{ fontSize: "20px", fontWeight: "800", color: P }}>{load.deliveryCity}</div>
               <div style={{ fontSize: "13px", color: "var(--text-secondary)" }}>{load.deliveryCountry}</div>
             </div>
           </div>
         </div>
 
         {/* Details card */}
-        <div style={{ background: "var(--surface)", borderRadius: "16px", padding: "24px", border: "1px solid var(--border)" }}>
+        <div className="sender-details-card" style={{ background: "var(--surface)", borderRadius: "16px", padding: "24px", border: "1px solid var(--border)" }}>
           <div style={{ fontSize: "11px", fontWeight: "700", color: "var(--text-secondary)", letterSpacing: "1px", textTransform: "uppercase", marginBottom: "16px" }}>Load details</div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div className="sender-details-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
             {[
               ["Weight", `${load.weightTons} tons`],
               ["Truck type", load.truckTypeNeeded?.replace(/_/g, " ")],
               ["Scheduled", load.scheduledDate ? formatDate(load.scheduledDate) : "Flexible"],
               ["Currency", load.currency],
             ].map(([label, value]) => (
-              <div key={label} style={{ background: "var(--bg)", borderRadius: "10px", padding: "14px" }}>
+              <div key={label} className="sender-details-cell" style={{ background: "var(--bg)", borderRadius: "10px", padding: "14px" }}>
                 <div style={{ fontSize: "11px", color: "var(--text-secondary)", letterSpacing: "1px", textTransform: "uppercase", marginBottom: "6px" }}>{label}</div>
                 <div style={{ fontSize: "15px", fontWeight: "700", color: P }}>{value}</div>
               </div>
@@ -215,7 +246,7 @@ export default function LoadDetailPage() {
         {/* ── BIDS PANEL — hidden during broker pivot (P2) ── */}
         {BIDDING_ENABLED && user?.role === "CARGO_SENDER" && (
           <div style={{ background: "var(--surface)", borderRadius: "16px", border: "1px solid var(--border)", overflow: "hidden" }}>
-            <div style={{ padding: "18px 24px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div className="sender-bids-header" style={{ padding: "18px 24px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ fontSize: "14px", fontWeight: "700", color: P }}>
                 Offers <span style={{ color: "var(--text-secondary)", fontWeight: "400" }}>({bids.length})</span>
               </div>
@@ -233,8 +264,8 @@ export default function LoadDetailPage() {
                 <div style={{ fontSize: "14px", color: "var(--text-secondary)" }}>No offers yet. A broker will match your load with a verified truck shortly.</div>
               </div>
             ) : bids.map((bid: any, i: number) => (
-              <div key={bid.id} style={{ padding: "18px 24px", borderBottom: i < bids.length - 1 ? "1px solid var(--bg)" : "none" }}>
-                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
+              <div key={bid.id} className="sender-bid-row" style={{ padding: "18px 24px", borderBottom: i < bids.length - 1 ? "1px solid var(--bg)" : "none" }}>
+                <div className="sender-bid-inner" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
                   <div>
                     <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
                       <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: `rgba(27,58,45,0.1)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "15px", fontWeight: "800", color: P, flexShrink: 0 }}>
@@ -272,7 +303,7 @@ export default function LoadDetailPage() {
                     )}
                     <div style={{ fontSize: "11px", color: "var(--text-secondary)", marginTop: "6px" }}>{formatDate(bid.createdAt)}</div>
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                  <div className="sender-bid-right" style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
                     <div style={{ textAlign: "right" }}>
                       <div style={{ fontSize: "22px", fontWeight: "800", color: P, letterSpacing: "-0.5px" }}>{formatPrice(bid.price, load.currency)}</div>
                       <StatusBadge status={bid.status} />
@@ -280,11 +311,11 @@ export default function LoadDetailPage() {
                     {bid.status === "PENDING" && load.status === "OPEN" && (
                       <div style={{ display: "flex", gap: "8px" }}>
                         <button onClick={() => handleRejectBid(bid.id)} disabled={actionLoading === bid.id}
-                          style={{ padding: "8px 16px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-secondary)", fontSize: "13px", fontWeight: "600", cursor: "pointer", minHeight: "36px" }}>
+                          style={{ padding: "8px 16px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-secondary)", fontSize: "13px", fontWeight: "600", cursor: "pointer", minHeight: "44px" }}>
                           Decline
                         </button>
                         <button onClick={() => handleAcceptBid(bid.id)} disabled={actionLoading === bid.id}
-                          style={{ padding: "8px 16px", borderRadius: "8px", border: "none", background: P, color: "#fff", fontSize: "13px", fontWeight: "700", cursor: "pointer", minHeight: "36px" }}>
+                          style={{ padding: "8px 16px", borderRadius: "8px", border: "none", background: P, color: "#fff", fontSize: "13px", fontWeight: "700", cursor: "pointer", minHeight: "44px" }}>
                           {actionLoading === bid.id ? "Accepting…" : "Accept offer"}
                         </button>
                       </div>
@@ -305,7 +336,7 @@ export default function LoadDetailPage() {
               </div>
             </div>
             {bookings.map((booking: any, i: number) => (
-              <div key={booking.id} style={{ padding: "16px 24px", borderBottom: i < bookings.length - 1 ? "1px solid var(--bg)" : "none", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
+              <div key={booking.id} className="sender-booking-row" style={{ padding: "16px 24px", borderBottom: i < bookings.length - 1 ? "1px solid var(--bg)" : "none", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", flexWrap: "wrap" }}>
                 <div>
                   <div style={{ fontSize: "14px", fontWeight: "600", color: P }}>
                     {booking.truck?.plateNumber} · {booking.truck?.truckType?.replace(/_/g, " ")}
@@ -314,17 +345,17 @@ export default function LoadDetailPage() {
                     {booking.owner?.fullName} · {booking.owner?.phone}
                   </div>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <div className="sender-booking-right" style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
                   <span style={{ fontSize: "18px", fontWeight: "800", color: P }}>{formatPrice(booking.agreedPrice, booking.currency || load.currency)}</span>
                   <StatusBadge status={booking.status} />
                   {booking.status === "PENDING" && (
-                    <div style={{ display: "flex", gap: "8px" }}>
+                    <div style={{ display: "flex", gap: "8px", flex: "1 1 auto" }}>
                       <button onClick={() => handleRejectBooking(booking.id)} disabled={actionLoading === booking.id}
-                        style={{ padding: "7px 14px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-secondary)", fontSize: "12px", fontWeight: "600", cursor: "pointer" }}>
+                        style={{ padding: "7px 14px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-secondary)", fontSize: "12px", fontWeight: "600", cursor: "pointer", minHeight: "44px" }}>
                         Decline
                       </button>
                       <button onClick={() => handleAcceptBooking(booking.id)} disabled={actionLoading === booking.id}
-                        style={{ padding: "7px 14px", borderRadius: "8px", border: "none", background: P, color: "#fff", fontSize: "12px", fontWeight: "700", cursor: "pointer" }}>
+                        style={{ padding: "7px 14px", borderRadius: "8px", border: "none", background: P, color: "#fff", fontSize: "12px", fontWeight: "700", cursor: "pointer", minHeight: "44px" }}>
                         {actionLoading === booking.id ? "Confirming…" : "Confirm booking"}
                       </button>
                     </div>
@@ -337,7 +368,7 @@ export default function LoadDetailPage() {
 
         {/* Posted by */}
         {load.sender && (
-          <div style={{ background: "var(--surface)", borderRadius: "16px", padding: "20px 24px", border: "1px solid var(--border)", display: "flex", alignItems: "center", gap: "14px" }}>
+          <div className="sender-postedby" style={{ background: "var(--surface)", borderRadius: "16px", padding: "20px 24px", border: "1px solid var(--border)", display: "flex", alignItems: "center", gap: "14px" }}>
             <div style={{ width: "44px", height: "44px", borderRadius: "10px", background: `rgba(27,58,45,0.1)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", fontWeight: "800", color: P, flexShrink: 0 }}>
               {load.sender.fullName?.charAt(0)}
             </div>

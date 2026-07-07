@@ -94,10 +94,29 @@ export default function DashboardPage() {
 
   return (
     <div>
+      <style>{`
+        @media (max-width: 640px) {
+          .sender-overview-header { margin-bottom: 20px !important; gap: 12px !important; flex-wrap: wrap !important; }
+          .sender-overview-title { font-size: 20px !important; }
+          .sender-verify-banner { padding: 14px 16px !important; flex-wrap: wrap !important; gap: 10px !important; }
+          .sender-verify-banner-btn { width: 100% !important; }
+          .sender-stat-grid { gap: 10px !important; margin-bottom: 20px !important; }
+          .sender-stat-card { padding: 14px !important; }
+          .sender-stat-value { font-size: 22px !important; }
+          .sender-recent-header { padding: 14px 16px !important; }
+          .sender-loads-row { grid-template-columns: 1fr !important; gap: 6px !important; padding: 14px 16px !important; }
+          .sender-loads-header { display: none !important; }
+          .sender-return-row { grid-template-columns: 1fr !important; gap: 6px !important; padding: 14px 16px !important; }
+        }
+        @media (max-width: 380px) {
+          .sender-overview-title { font-size: 18px !important; }
+          .sender-stat-value { font-size: 20px !important; }
+        }
+      `}</style>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px" }}>
+      <div className="sender-overview-header" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px" }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: "22px", fontWeight: "800", color: P, letterSpacing: "-0.5px" }}>
+          <h1 className="sender-overview-title" style={{ margin: 0, fontSize: "22px", fontWeight: "800", color: P, letterSpacing: "-0.5px" }}>
             Overview
           </h1>
           <div style={{ marginTop: "4px", fontSize: "13px", color: "var(--text-secondary)" }}>
@@ -116,8 +135,8 @@ export default function DashboardPage() {
 
       {/* Verification banners */}
       {user && !user.isVerified && user.status === "PENDING_VERIFICATION" && (
-        <div style={{ background: "#FFFBEB", border: "1px solid #FCD34D", borderRadius: "14px", padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px", gap: "12px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+        <div className="sender-verify-banner" style={{ background: "#FFFBEB", border: "1px solid #FCD34D", borderRadius: "14px", padding: "16px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px", gap: "12px", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "14px", flex: 1, minWidth: 0 }}>
             <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(245,158,11,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <ShieldCheck size={18} color={A} />
             </div>
@@ -126,7 +145,7 @@ export default function DashboardPage() {
               <div style={{ fontSize: "12px", color: "#B45309", marginTop: "2px" }}>Upload your documents to unlock full platform access.</div>
             </div>
           </div>
-          <button onClick={() => router.push("/dashboard/verify")} style={{ background: A, color: "#fff", border: "none", borderRadius: "8px", padding: "9px 18px", fontSize: "13px", fontWeight: "700", cursor: "pointer", whiteSpace: "nowrap", minHeight: "40px" }}>
+          <button className="sender-verify-banner-btn" onClick={() => router.push("/dashboard/verify")} style={{ background: A, color: "#fff", border: "none", borderRadius: "8px", padding: "9px 18px", fontSize: "13px", fontWeight: "700", cursor: "pointer", whiteSpace: "nowrap", minHeight: "44px" }}>
             Upload documents
           </button>
         </div>
@@ -158,7 +177,7 @@ export default function DashboardPage() {
       )}
 
       {/* Stat cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px", marginBottom: "24px" }}>
+      <div className="sender-stat-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "12px", marginBottom: "24px" }}>
         {(user?.role === "CARGO_SENDER" ? [
           { label: "Total loads", value: loads.length, sub: "all time", color: P, icon: Package, href: "/dashboard/loads" },
           { label: "Active", value: activeLoads, sub: "open and booked", color: "#3D7BFF", icon: CheckCircle2, href: "/dashboard/loads" },
@@ -172,7 +191,7 @@ export default function DashboardPage() {
         ]).map((card, i) => {
           const Icon = card.icon;
           return (
-          <div key={i} onClick={() => router.push(card.href)}
+          <div key={i} onClick={() => router.push(card.href)} className="sender-stat-card"
             style={{ background: "var(--surface)", borderRadius: "14px", padding: "18px", border: "1px solid var(--border)", position: "relative", overflow: "hidden", cursor: "pointer", transition: "transform 0.12s, box-shadow 0.12s" }}
             onMouseOver={e => { e.currentTarget.style.transform = "scale(0.97)"; }}
             onMouseOut={e => { e.currentTarget.style.transform = "none"; }}>
@@ -183,7 +202,7 @@ export default function DashboardPage() {
               </div>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C4C4C4" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </div>
-            <div style={{ fontSize: "26px", fontWeight: "800", color: P, letterSpacing: "-1px", lineHeight: 1 }}>{card.value}</div>
+            <div className="sender-stat-value" style={{ fontSize: "26px", fontWeight: "800", color: P, letterSpacing: "-1px", lineHeight: 1 }}>{card.value}</div>
             <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "4px" }}>{card.label}</div>
             <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "2px" }}>{card.sub}</div>
           </div>
@@ -193,7 +212,7 @@ export default function DashboardPage() {
 
       {/* Recent loads */}
       <div style={{ background: "var(--surface)", borderRadius: "14px", border: "1px solid var(--border)", overflow: "hidden" }}>
-        <div style={{ padding: "18px 24px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div className="sender-recent-header" style={{ padding: "18px 24px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
             <div style={{ fontSize: "15px", fontWeight: "700", color: P }}>Recent loads</div>
             <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "2px" }}>Latest activity</div>
@@ -215,7 +234,7 @@ export default function DashboardPage() {
           </div>
         )}
         {loads.length > 0 && (
-          <div className="loads-table-header" style={{ display: "grid", gridTemplateColumns: "1fr 180px 80px 80px 110px", padding: "10px 24px", background: "var(--bg)", borderBottom: "1px solid var(--border)" }}>
+          <div className="loads-table-header sender-loads-header" style={{ display: "grid", gridTemplateColumns: "1fr 180px 80px 80px 110px", padding: "10px 24px", background: "var(--bg)", borderBottom: "1px solid var(--border)" }}>
             {["Load", "Route", "Weight", "Price", "Status"].map(h => (
               <span key={h} style={{ fontSize: "10px", fontWeight: "700", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.8px" }}>{h}</span>
             ))}
@@ -241,7 +260,7 @@ export default function DashboardPage() {
             )}
           </div>
         ) : loads.slice(0, 6).map((load: any, i: number) => (
-          <div key={load.id} onClick={() => router.push(`/dashboard/loads/${load.id}`)}
+          <div key={load.id} onClick={() => router.push(`/dashboard/loads/${load.id}`)} className="loads-table-row sender-loads-row"
             style={{ display: "grid", gridTemplateColumns: "1fr 180px 80px 80px 110px", padding: "14px 24px", borderBottom: i < 5 ? "1px solid var(--border)" : "none", alignItems: "center", cursor: "pointer", transition: "background 0.15s" }}
             onMouseOver={e => (e.currentTarget.style.background = "var(--bg)")}
             onMouseOut={e => (e.currentTarget.style.background = "transparent")}>
@@ -278,7 +297,7 @@ export default function DashboardPage() {
             <button onClick={() => router.push("/dashboard/loads")} style={{ background: "none", border: "none", color: A, fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>View all</button>
           </div>
           {returnLoads.map((load: any, i: number) => (
-            <div key={load.id} onClick={() => router.push(`/dashboard/loads/${load.id}`)}
+            <div key={load.id} onClick={() => router.push(`/dashboard/loads/${load.id}`)} className="sender-return-row"
               style={{ display: "grid", gridTemplateColumns: "1fr 200px 100px", padding: "14px 24px", borderBottom: i < returnLoads.length - 1 ? "1px solid var(--bg)" : "none", alignItems: "center", cursor: "pointer" }}
               onMouseOver={e => e.currentTarget.style.background = "var(--bg)"}
               onMouseOut={e => e.currentTarget.style.background = "transparent"}>

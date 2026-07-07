@@ -73,13 +73,22 @@ export default function NotificationsPage() {
 
   return (
     <div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}>
+        <style>{`
+          @media (max-width: 640px) {
+            .notif-header { flex-direction: column !important; align-items: stretch !important; gap: 12px; margin-bottom: 20px !important; }
+            .notif-h1 { font-size: 22px !important; letter-spacing: -0.5px !important; }
+            .notif-mark-all { width: 100%; min-height: 44px; text-align: center; }
+            .notif-row { padding: 14px 16px !important; gap: 12px !important; }
+            .notif-empty { padding: 48px 20px !important; }
+          }
+        `}</style>
+        <div className="notif-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}>
           <div>
-            <h1 style={{ fontSize: "28px", fontWeight: "800", color: "var(--primary)", margin: "0 0 4px", letterSpacing: "-1px" }}>Notifications</h1>
+            <h1 className="notif-h1" style={{ fontSize: "28px", fontWeight: "800", color: "var(--primary)", margin: "0 0 4px", letterSpacing: "-1px" }}>Notifications</h1>
             <p style={{ color: "var(--text-secondary)", fontSize: "15px", margin: 0 }}>Updates about your loads, bookings, and trucks.</p>
           </div>
           {unreadCount > 0 && (
-            <button onClick={markAllRead} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "8px", padding: "9px 16px", color: "var(--primary)", fontSize: "13px", fontWeight: "600", cursor: "pointer", transition: "background 0.15s" }}
+            <button onClick={markAllRead} className="notif-mark-all" style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "8px", padding: "9px 16px", color: "var(--primary)", fontSize: "13px", fontWeight: "600", cursor: "pointer", transition: "background 0.15s" }}
               onMouseOver={e => { e.currentTarget.style.background = "var(--bg)"; }}
               onMouseOut={e => { e.currentTarget.style.background = "var(--surface)"; }}>
               Mark all as read
@@ -100,7 +109,7 @@ export default function NotificationsPage() {
             {[1,2,3,4].map((i: number) => <div key={i} className="sk" style={{ height: "72px", marginBottom: "10px" }} />)}
           </div>
         ) : notifications.length === 0 ? (
-          <div style={{ background: "var(--surface)", borderRadius: "16px", padding: "64px 24px", textAlign: "center" as const, border: "1px solid rgba(26,39,68,0.06)" }}>
+          <div className="notif-empty" style={{ background: "var(--surface)", borderRadius: "16px", padding: "64px 24px", textAlign: "center" as const, border: "1px solid rgba(26,39,68,0.06)" }}>
             <div style={{ width: "56px", height: "56px", borderRadius: "14px", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 18px", color: "#94A3B8" }}>
               <Bell size={26} />
             </div>
@@ -112,6 +121,7 @@ export default function NotificationsPage() {
             {notifications.map((n: any, i: number) => (
               <div
                 key={n.id}
+                className="notif-row"
                 onClick={() => !n.isRead && markRead(n.id)}
                 style={{ padding: "18px 24px", borderBottom: i < notifications.length - 1 ? "1px solid var(--bg)" : "none", display: "flex", alignItems: "flex-start", gap: "16px", background: n.isRead ? "var(--surface)" : "#fdfcfa", cursor: n.isRead ? "default" : "pointer", transition: "background 0.15s" }}
                 onMouseOver={e => { if (!n.isRead) e.currentTarget.style.background = "#faf7f1"; }}

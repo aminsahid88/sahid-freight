@@ -259,22 +259,37 @@ export default function TrackingPage() {
 
   return (
     <div style={{ height: "100vh", background: "#0A1F44", fontFamily: "\'Helvetica Neue\', Arial, sans-serif", display: "flex", flexDirection: "column" as const, overflow: "hidden" }}>
-      <style>{`@keyframes spin{to{transform:rotate(360deg);}} @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}`}</style>
+      <style>{`
+        @keyframes spin{to{transform:rotate(360deg);}} @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+        @media (max-width: 640px) {
+          .track-header { padding: 10px 12px !important; gap: 8px; }
+          .track-header-left { gap: 8px !important; min-width: 0; flex: 1; }
+          .track-back-label { display: none; }
+          .track-back-btn { padding: 8px !important; min-width: 40px; min-height: 40px; justify-content: center; }
+          .track-title-block { min-width: 0; flex: 1; }
+          .track-title { font-size: 13px !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+          .track-subtitle { font-size: 10px !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+          .track-status-label { font-size: 10px !important; }
+          .track-bottom { padding: 12px 14px !important; max-height: 50vh; overflow-y: auto; }
+          .track-latlng { gap: 8px !important; }
+          .track-action-btn { min-height: 44px !important; padding: 12px !important; }
+        }
+      `}</style>
 
       {/* Header */}
-      <div style={{ padding: "12px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.08)", flexShrink: 0, background: "#0A1F44", zIndex: 10 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <button onClick={() => router.back()} aria-label="Go back" style={{ background: "rgba(255,255,255,0.08)", border: "none", borderRadius: "8px", padding: "7px 10px", color: "#F8FAFC", fontSize: "13px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}>
-            <ArrowLeft size={14} /> Back
+      <div className="track-header" style={{ padding: "12px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.08)", flexShrink: 0, background: "#0A1F44", zIndex: 10 }}>
+        <div className="track-header-left" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <button onClick={() => router.back()} aria-label="Go back" className="track-back-btn" style={{ background: "rgba(255,255,255,0.08)", border: "none", borderRadius: "8px", padding: "7px 10px", color: "#F8FAFC", fontSize: "13px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px" }}>
+            <ArrowLeft size={14} /> <span className="track-back-label">Back</span>
           </button>
-          <div>
-            <div style={{ fontSize: "14px", fontWeight: "700", color: "#F8FAFC" }}>{booking?.load?.title || "Live tracking"}</div>
-            <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginTop: "1px" }}>{booking?.load?.pickupCity} → {booking?.load?.deliveryCity}</div>
+          <div className="track-title-block">
+            <div className="track-title" style={{ fontSize: "14px", fontWeight: "700", color: "#F8FAFC" }}>{booking?.load?.title || "Live tracking"}</div>
+            <div className="track-subtitle" style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginTop: "1px" }}>{booking?.load?.pickupCity} → {booking?.load?.deliveryCity}</div>
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
           <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: isSharing ? "#5BE3C4" : isDelivered ? "#16A34A" : "#6b7280", animation: isSharing ? "pulse 1.5s infinite" : "none" }} />
-          <span style={{ fontSize: "11px", color: isSharing ? "#5BE3C4" : "rgba(255,255,255,0.4)", fontWeight: "700", letterSpacing: "0.5px" }}>
+          <span className="track-status-label" style={{ fontSize: "11px", color: isSharing ? "#5BE3C4" : "rgba(255,255,255,0.4)", fontWeight: "700", letterSpacing: "0.5px" }}>
             {isSharing ? "Live" : isDelivered ? "Delivered" : isInTransit ? "In transit" : bStatus || "—"}
           </span>
         </div>
@@ -284,13 +299,13 @@ export default function TrackingPage() {
       <div ref={mapContainerRef} style={{ flex: 1 }} />
 
       {/* Bottom panel */}
-      <div style={{ background: "#0A1F44", padding: "16px 20px", flexShrink: 0, zIndex: 10 }}>
+      <div className="track-bottom" style={{ background: "#0A1F44", padding: "16px 20px", flexShrink: 0, zIndex: 10 }}>
         {error && <div style={{ background: "rgba(220,38,38,0.15)", border: "1px solid rgba(220,38,38,0.3)", borderRadius: "8px", padding: "10px 14px", color: "#fca5a5", fontSize: "13px", marginBottom: "10px" }}>{error}</div>}
 
         <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.35)", marginBottom: "10px" }}>{status}</div>
 
         {location && (
-          <div style={{ display: "flex", gap: "10px", marginBottom: "12px" }}>
+          <div className="track-latlng" style={{ display: "flex", gap: "10px", marginBottom: "12px" }}>
             <div style={{ background: "rgba(255,255,255,0.05)", borderRadius: "8px", padding: "8px 12px", flex: 1, textAlign: "center" as const }}>
               <div style={{ fontSize: "9px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase" as const, letterSpacing: "1px", marginBottom: "3px" }}>Lat</div>
               <div style={{ fontSize: "12px", fontWeight: "700", color: "#F8FAFC", fontFamily: "monospace" }}>{location.lat.toFixed(5)}</div>
@@ -305,18 +320,18 @@ export default function TrackingPage() {
         {isTruckOwner && (
           <div style={{ display: "flex", flexDirection: "column" as const, gap: "8px" }}>
             {!isInTransit && !isDelivered && (
-              <button onClick={handleStartJourney} disabled={actionLoading}
+              <button onClick={handleStartJourney} disabled={actionLoading} className="track-action-btn"
                 style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "none", background: "#3D7BFF", color: "#fff", fontSize: "14px", fontWeight: "700", cursor: actionLoading ? "not-allowed" : "pointer", opacity: actionLoading ? 0.7 : 1 }}>
                 {actionLoading ? "Starting journey…" : "Start journey"}
               </button>
             )}
             {isInTransit && !isDelivered && (
               <>
-                <button onClick={isSharing ? stopSharing : startSharing}
+                <button onClick={isSharing ? stopSharing : startSharing} className="track-action-btn"
                   style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)", color: "#F8FAFC", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>
                   {isSharing ? "Pause location sharing" : "Resume location sharing"}
                 </button>
-                <button onClick={handleMarkDelivered} disabled={actionLoading}
+                <button onClick={handleMarkDelivered} disabled={actionLoading} className="track-action-btn"
                   style={{ width: "100%", padding: "14px", borderRadius: "10px", border: "none", background: "#16a34a", color: "#fff", fontSize: "14px", fontWeight: "700", cursor: actionLoading ? "not-allowed" : "pointer", opacity: actionLoading ? 0.7 : 1 }}>
                   {actionLoading ? "Marking delivered…" : "Mark delivered"}
                 </button>
@@ -343,7 +358,7 @@ export default function TrackingPage() {
               </div>
             )}
             {isInTransit && location && (
-              <a href={"https://maps.google.com/?q=" + location.lat + "," + location.lng} target="_blank" rel="noopener noreferrer"
+              <a href={"https://maps.google.com/?q=" + location.lat + "," + location.lng} target="_blank" rel="noopener noreferrer" className="track-action-btn"
                 style={{ display: "block", width: "100%", padding: "14px", borderRadius: "10px", background: "#3D7BFF", color: "#fff", fontSize: "14px", fontWeight: "700", textAlign: "center" as const, textDecoration: "none" }}>
                 Open in Google Maps
               </a>

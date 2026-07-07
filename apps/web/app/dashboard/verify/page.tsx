@@ -73,7 +73,12 @@ export default function VerifyPage() {
 
   if (submitted) return (
     <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Inter, system-ui, sans-serif" }}>
-      <div style={{ textAlign: "center", maxWidth: "440px", padding: "48px 32px", background: "var(--surface)", borderRadius: "24px", boxShadow: "0 8px 40px rgba(0,0,0,0.08)" }}>
+      <style>{`
+        @media (max-width: 640px) {
+          .verify-success-card { padding: 32px 20px !important; margin: 12px !important; }
+        }
+      `}</style>
+      <div className="verify-success-card" style={{ textAlign: "center", maxWidth: "440px", padding: "48px 32px", background: "var(--surface)", borderRadius: "24px", boxShadow: "0 8px 40px rgba(0,0,0,0.08)" }}>
         <div style={{ width: "72px", height: "72px", background: "#fef3c7", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px" }}>
           <ShieldCheck size={36} color="#C2791A" strokeWidth={1.5} />
         </div>
@@ -98,14 +103,31 @@ export default function VerifyPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)", fontFamily: "Inter, system-ui, sans-serif" }}>
-      <div style={{ background: "var(--primary)", padding: "0 32px", height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
+      <style>{`
+        @media (max-width: 640px) {
+          .verify-nav { padding: 0 16px !important; height: 56px !important; }
+          .verify-nav-tag { font-size: 12px !important; }
+          .verify-container { padding: 20px 16px !important; }
+          .verify-h1 { font-size: 22px !important; }
+          .verify-progress { padding: 16px !important; }
+          .verify-doc-card { padding: 16px !important; }
+          .verify-doc-top { flex-wrap: wrap; gap: 8px; }
+          .verify-upload-drop { padding: 20px 12px !important; }
+          .verify-submit-btn { padding: 14px !important; min-height: 48px; font-size: 15px !important; }
+          .verify-success-card { padding: 32px 20px !important; margin: 12px !important; }
+        }
+        @media (max-width: 380px) {
+          .verify-doc-title-row { flex-wrap: wrap; }
+        }
+      `}</style>
+      <div className="verify-nav" style={{ background: "var(--primary)", padding: "0 32px", height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
         <img src="/logo.svg" alt="Sahid Freight" style={{ height: "40px", objectFit: "contain" }} />
-        <span style={{ color: "rgba(240,235,224,0.6)", fontSize: "14px" }}>Account verification</span>
+        <span className="verify-nav-tag" style={{ color: "rgba(240,235,224,0.6)", fontSize: "14px" }}>Account verification</span>
       </div>
 
-      <div style={{ maxWidth: "680px", margin: "0 auto", padding: "40px 24px" }}>
+      <div className="verify-container" style={{ maxWidth: "680px", margin: "0 auto", padding: "40px 24px" }}>
         <div style={{ marginBottom: "32px" }}>
-          <h1 style={{ margin: "0 0 8px", fontSize: "26px", fontWeight: "800", color: "var(--primary)" }}>
+          <h1 className="verify-h1" style={{ margin: "0 0 8px", fontSize: "26px", fontWeight: "800", color: "var(--primary)" }}>
             Verify your account
           </h1>
           <p style={{ margin: 0, color: "#6b7280", fontSize: "15px", lineHeight: "1.6" }}>
@@ -113,7 +135,7 @@ export default function VerifyPage() {
           </p>
         </div>
 
-        <div style={{ background: "var(--surface)", borderRadius: "16px", padding: "20px 24px", marginBottom: "24px", border: "1px solid var(--bg)" }}>
+        <div className="verify-progress" style={{ background: "var(--surface)", borderRadius: "16px", padding: "20px 24px", marginBottom: "24px", border: "1px solid var(--bg)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
             <span style={{ fontSize: "14px", fontWeight: "600", color: "var(--primary)" }}>Required documents uploaded</span>
             <span style={{ fontSize: "14px", fontWeight: "700", color: "#C2791A" }}>{uploadedRequired}/{requiredDocs.length}</span>
@@ -127,14 +149,14 @@ export default function VerifyPage() {
           {docs.map(doc => {
             const DocIcon = doc.Icon;
             return (
-            <div key={doc.key} style={{ background: "var(--surface)", borderRadius: "16px", padding: "24px", border: `2px solid ${files[doc.key] ? "#16a34a" : "var(--bg)"}`, transition: "border 0.2s" }}>
-              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "16px" }}>
+            <div key={doc.key} className="verify-doc-card" style={{ background: "var(--surface)", borderRadius: "16px", padding: "24px", border: `2px solid ${files[doc.key] ? "#16a34a" : "var(--bg)"}`, transition: "border 0.2s" }}>
+              <div className="verify-doc-top" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "16px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                   <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                     <DocIcon size={20} color="#0A1F44" strokeWidth={1.8} />
                   </div>
                   <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <div className="verify-doc-title-row" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                       <h3 style={{ margin: 0, fontSize: "15px", fontWeight: "700", color: "var(--primary)" }}>{doc.label}</h3>
                       {doc.required
                         ? <span style={{ fontSize: "11px", fontWeight: "700", color: "#dc2626", background: "#fef2f2", padding: "2px 8px", borderRadius: "99px", border: "1px solid #fecaca" }}>Required</span>
@@ -165,7 +187,7 @@ export default function VerifyPage() {
                   </button>
                 </div>
               ) : (
-                <label style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "8px", padding: "24px", borderRadius: "10px", border: "2px dashed var(--border)", cursor: "pointer", background: "var(--bg)", transition: "border-color 0.15s, background 0.15s" }}
+                <label className="verify-upload-drop" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "8px", padding: "24px", borderRadius: "10px", border: "2px dashed var(--border)", cursor: "pointer", background: "var(--bg)", transition: "border-color 0.15s, background 0.15s" }}
                   onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "#3D7BFF"; }}
                   onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--border)"; }}>
                   <FolderUp size={26} color="#64748B" strokeWidth={1.7} />
@@ -198,6 +220,7 @@ export default function VerifyPage() {
         )}
 
         <button onClick={handleSubmit} disabled={!allRequiredUploaded || uploading}
+          className="verify-submit-btn"
           style={{ width: "100%", padding: "16px", borderRadius: "12px", border: "none", background: allRequiredUploaded && !uploading ? "var(--primary)" : "var(--border)", color: allRequiredUploaded && !uploading ? "#FAFAF8" : "var(--text-secondary)", fontSize: "16px", fontWeight: "700", cursor: allRequiredUploaded && !uploading ? "pointer" : "not-allowed" }}>
           {uploading ? `Uploading… ${progress}%` : "Submit for verification →"}
         </button>

@@ -326,7 +326,8 @@ export default function DriverDashboard() {
     width: "100%", padding: "10px 14px", borderRadius: "9px",
     border: "1px solid var(--border)", fontSize: "13px", color: "var(--primary)",
     outline: "none", background: "var(--bg)", boxSizing: "border-box" as const,
-  };
+  } as const;
+  const inpClass = "driver-input";
 
   if (loading) return (
     <div style={{ minHeight: "100vh", background: "#0A1F44", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -342,33 +343,55 @@ export default function DriverDashboard() {
         @keyframes pulse   { 0%,100%{opacity:1} 50%{opacity:0.3} }
         @keyframes fadeIn  { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
         @keyframes popIn   { from{opacity:0;transform:scale(0.92)} to{opacity:1;transform:scale(1)} }
+        @media (max-width: 640px) {
+          .driver-top { padding: 0 14px !important; }
+          .driver-top-brand-text { display: none; }
+          .driver-top-avatar { width: 38px !important; height: 38px !important; min-width: 38px; }
+          .driver-toast { top: 12px !important; right: 12px !important; left: 12px !important; font-size: 12px !important; padding: 10px 14px !important; }
+          .driver-content { padding: 16px 14px !important; }
+          .driver-h1 { font-size: 18px !important; }
+          .driver-stats { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+          .driver-stats > div { padding: 14px !important; }
+          .driver-active-card, .driver-pending-card { padding: 16px !important; border-radius: 12px !important; }
+          .driver-pending-facts { grid-template-columns: 1fr 1fr 1fr !important; gap: 6px !important; }
+          .driver-pending-facts > div { padding: 8px !important; }
+          .driver-tracking-link { min-height: 44px !important; }
+          .driver-profile-card { padding: 16px !important; }
+          .driver-profile-header { flex-direction: column !important; text-align: center !important; align-items: center !important; gap: 12px !important; }
+          .driver-input { min-height: 44px; font-size: 16px !important; }
+          .driver-save-btn, .driver-signout-btn { min-height: 44px !important; }
+        }
+        @media (max-width: 380px) {
+          .driver-stats { grid-template-columns: 1fr !important; }
+          .driver-pending-facts { grid-template-columns: 1fr 1fr !important; }
+        }
       `}</style>
 
       {toast && (
-        <div style={{ position: "fixed", top: "16px", right: "16px", background: "var(--primary)", color: "#FFFFFF", padding: "12px 18px", borderRadius: "10px", fontSize: "13px", fontWeight: "600", zIndex: 9999, animation: "fadeIn 0.2s ease" }}>
+        <div className="driver-toast" style={{ position: "fixed", top: "16px", right: "16px", background: "var(--primary)", color: "#FFFFFF", padding: "12px 18px", borderRadius: "10px", fontSize: "13px", fontWeight: "600", zIndex: 9999, animation: "fadeIn 0.2s ease" }}>
           {toast}
         </div>
       )}
 
       {/* Header */}
-      <div style={{ background: "#0A1F44", padding: "0 20px", height: "56px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
+      <div className="driver-top" style={{ background: "#0A1F44", padding: "0 20px", height: "56px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, zIndex: 100 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <img src="/logo.svg" alt="Sahid Freight" style={{ width: "30px", height: "30px", objectFit: "contain" }} />
-          <span style={{ fontSize: "15px", fontWeight: "900", color: "#fff" }}>Sahid Freight</span>
+          <span className="driver-top-brand-text" style={{ fontSize: "15px", fontWeight: "900", color: "#fff" }}>Sahid Freight</span>
           <span style={{ background: "#3D7BFF", color: "#fff", fontSize: "10px", fontWeight: "700", padding: "2px 7px", borderRadius: "5px" }}>DRIVER</span>
         </div>
-        <div style={{ width: "34px", height: "34px", borderRadius: "9px", background: "#3D7BFF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: "800", color: "#fff" }}>
+        <div className="driver-top-avatar" style={{ width: "34px", height: "34px", borderRadius: "9px", background: "#3D7BFF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "14px", fontWeight: "800", color: "#fff" }}>
           {user?.fullName?.charAt(0)}
         </div>
       </div>
 
-      <div style={{ padding: "20px 16px", maxWidth: "600px", margin: "0 auto" }}>
+      <div className="driver-content" style={{ padding: "20px 16px", maxWidth: "600px", margin: "0 auto" }}>
 
         {/* ── HOME TAB ── */}
         {tab === "home" && (
           <div>
             <div style={{ marginBottom: "20px" }}>
-              <h1 style={{ fontSize: "20px", fontWeight: "800", color: "var(--primary)", margin: "0 0 2px" }}>
+              <h1 className="driver-h1" style={{ fontSize: "20px", fontWeight: "800", color: "var(--primary)", margin: "0 0 2px" }}>
                 Your trips
               </h1>
               <p style={{ fontSize: "13px", color: "var(--text-secondary)", margin: 0 }}>
@@ -381,7 +404,7 @@ export default function DriverDashboard() {
             </div>
 
             {/* Stats */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "20px" }}>
+            <div className="driver-stats" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "20px" }}>
               <div style={{ background: "var(--surface)", borderRadius: "12px", padding: "16px", border: "1px solid var(--border)" }}>
                 <div style={{ fontSize: "11px", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "6px" }}>Completed</div>
                 <div style={{ fontSize: "26px", fontWeight: "800", color: "var(--primary)" }}>{completedCount}</div>
@@ -418,7 +441,7 @@ export default function DriverDashboard() {
 
             {/* ── ACTIVE JOURNEY ── */}
             {activeBooking && (
-              <div style={{ background: "#0A1F44", borderRadius: "14px", padding: "20px", marginBottom: "16px" }}>
+              <div className="driver-active-card" style={{ background: "#0A1F44", borderRadius: "14px", padding: "20px", marginBottom: "16px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
                   <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#5BE3C4", animation: "pulse 1.5s infinite" }} />
                   <span style={{ fontSize: "11px", fontWeight: "700", color: "#5BE3C4", letterSpacing: "0.8px" }}>ON THE ROAD</span>
@@ -441,6 +464,7 @@ export default function DriverDashboard() {
                 {/* Continue journey tracking link */}
                 <a
                   href={"/tracking/" + activeBooking.id}
+                  className="driver-tracking-link"
                   style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "13px", borderRadius: "10px", background: "#3D7BFF", color: "#fff", fontSize: "14px", fontWeight: "700", textDecoration: "none", marginBottom: "12px" }}
                 >
                   <Navigation size={16} /> View live tracking
@@ -457,13 +481,13 @@ export default function DriverDashboard() {
 
             {/* ── PENDING ASSIGNMENT ── */}
             {pendingBooking && !activeBooking && (
-              <div style={{ background: "var(--surface)", borderRadius: "14px", padding: "20px", marginBottom: "16px", border: "1px solid var(--border)" }}>
+              <div className="driver-pending-card" style={{ background: "var(--surface)", borderRadius: "14px", padding: "20px", marginBottom: "16px", border: "1px solid var(--border)" }}>
                 <div style={{ fontSize: "11px", fontWeight: "700", color: "#F59E0B", marginBottom: "10px", letterSpacing: "0.8px" }}>NEW DISPATCH</div>
                 <div style={{ fontSize: "16px", fontWeight: "700", color: "var(--primary)", marginBottom: "6px" }}>{pendingBooking.load?.title}</div>
                 <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "#6b7280", marginBottom: "14px" }}>
                   <MapPin size={12} />{pendingBooking.load?.pickupCity} → {pendingBooking.load?.deliveryCity}
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", marginBottom: "16px" }}>
+                <div className="driver-pending-facts" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "8px", marginBottom: "16px" }}>
                   <div style={{ background: "var(--bg)", borderRadius: "8px", padding: "10px" }}>
                     <div style={{ fontSize: "10px", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "3px" }}>Truck</div>
                     <div style={{ fontSize: "12px", fontWeight: "700", color: "var(--primary)", fontFamily: "monospace" }}>{pendingBooking.truck?.plateNumber}</div>
@@ -524,7 +548,7 @@ export default function DriverDashboard() {
               <p style={{ fontSize: "13px", color: "var(--text-secondary)", margin: "3px 0 0" }}>Your account and password.</p>
             </div>
 
-            <div style={{ background: "var(--surface)", borderRadius: "12px", padding: "20px", border: "1px solid var(--border)", marginBottom: "14px", display: "flex", alignItems: "center", gap: "16px" }}>
+            <div className="driver-profile-card driver-profile-header" style={{ background: "var(--surface)", borderRadius: "12px", padding: "20px", border: "1px solid var(--border)", marginBottom: "14px", display: "flex", alignItems: "center", gap: "16px" }}>
               <div style={{ width: "56px", height: "56px", borderRadius: "14px", background: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", fontWeight: "800", color: "#FFFFFF", flexShrink: 0 }}>
                 {user?.fullName?.charAt(0)}
               </div>
@@ -541,29 +565,29 @@ export default function DriverDashboard() {
               </div>
             </div>
 
-            <div style={{ background: "var(--surface)", borderRadius: "12px", padding: "20px", border: "1px solid var(--border)", marginBottom: "14px" }}>
+            <div className="driver-profile-card" style={{ background: "var(--surface)", borderRadius: "12px", padding: "20px", border: "1px solid var(--border)", marginBottom: "14px" }}>
               <div style={{ fontSize: "13px", fontWeight: "700", color: "var(--primary)", marginBottom: "14px" }}>Personal info</div>
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 <div>
                   <label style={{ fontSize: "11px", fontWeight: "600", color: "#6b7280", display: "block", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Full name</label>
-                  <input style={inp} value={fullName} onChange={e => setFullName(e.target.value)} />
+                  <input className={inpClass} style={inp} value={fullName} onChange={e => setFullName(e.target.value)} />
                 </div>
                 <div>
                   <label style={{ fontSize: "11px", fontWeight: "600", color: "#6b7280", display: "block", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Phone</label>
-                  <input style={{ ...inp, background: "#F1F5F9", color: "var(--text-secondary)" }} value={user?.phone} disabled />
+                  <input className={inpClass} style={{ ...inp, background: "#F1F5F9", color: "var(--text-secondary)" }} value={user?.phone} disabled />
                 </div>
                 <div>
                   <label style={{ fontSize: "11px", fontWeight: "600", color: "#6b7280", display: "block", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.5px" }}>City</label>
-                  <input style={inp} value={city} onChange={e => setCity(e.target.value)} placeholder="Your home city" />
+                  <input className={inpClass} style={inp} value={city} onChange={e => setCity(e.target.value)} placeholder="Your home city" />
                 </div>
               </div>
               {profileMsg && <div style={{ fontSize: "12px", color: "#dc2626", marginTop: "10px" }}>{profileMsg}</div>}
-              <button onClick={saveProfile} disabled={saving} style={{ marginTop: "14px", width: "100%", padding: "11px", borderRadius: "9px", border: "none", background: saving ? "var(--border)" : "var(--primary)", color: saving ? "#aaa" : "#FFFFFF", fontSize: "13px", fontWeight: "700", cursor: saving ? "not-allowed" : "pointer" }}>
+              <button onClick={saveProfile} disabled={saving} className="driver-save-btn" style={{ marginTop: "14px", width: "100%", padding: "11px", borderRadius: "9px", border: "none", background: saving ? "var(--border)" : "var(--primary)", color: saving ? "#aaa" : "#FFFFFF", fontSize: "13px", fontWeight: "700", cursor: saving ? "not-allowed" : "pointer" }}>
                 {saving ? "Saving…" : "Save changes"}
               </button>
             </div>
 
-            <div style={{ background: "var(--surface)", borderRadius: "12px", padding: "20px", border: "1px solid var(--border)", marginBottom: "14px" }}>
+            <div className="driver-profile-card" style={{ background: "var(--surface)", borderRadius: "12px", padding: "20px", border: "1px solid var(--border)", marginBottom: "14px" }}>
               <div style={{ fontSize: "13px", fontWeight: "700", color: "var(--primary)", marginBottom: "14px" }}>Change password</div>
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 {[
@@ -573,20 +597,20 @@ export default function DriverDashboard() {
                 ].map(({ label, val, set }) => (
                   <div key={label}>
                     <label style={{ fontSize: "11px", fontWeight: "600", color: "#6b7280", display: "block", marginBottom: "5px", textTransform: "uppercase", letterSpacing: "0.5px" }}>{label}</label>
-                    <input type="password" style={inp} value={val} onChange={e => set(e.target.value)} placeholder="••••••••" />
+                    <input type="password" className={inpClass} style={inp} value={val} onChange={e => set(e.target.value)} placeholder="••••••••" />
                   </div>
                 ))}
               </div>
               {pwError && <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "#dc2626", marginTop: "10px" }}><AlertCircle size={13} />{pwError}</div>}
-              <button onClick={changePassword} disabled={changingPw} style={{ marginTop: "14px", width: "100%", padding: "11px", borderRadius: "9px", border: "none", background: changingPw ? "var(--border)" : "var(--primary)", color: changingPw ? "#aaa" : "#FFFFFF", fontSize: "13px", fontWeight: "700", cursor: changingPw ? "not-allowed" : "pointer" }}>
+              <button onClick={changePassword} disabled={changingPw} className="driver-save-btn" style={{ marginTop: "14px", width: "100%", padding: "11px", borderRadius: "9px", border: "none", background: changingPw ? "var(--border)" : "var(--primary)", color: changingPw ? "#aaa" : "#FFFFFF", fontSize: "13px", fontWeight: "700", cursor: changingPw ? "not-allowed" : "pointer" }}>
                 {changingPw ? "Updating…" : "Update password"}
               </button>
             </div>
 
-            <div style={{ background: "var(--surface)", borderRadius: "12px", padding: "20px", border: "1px solid #fecaca" }}>
+            <div className="driver-profile-card" style={{ background: "var(--surface)", borderRadius: "12px", padding: "20px", border: "1px solid #fecaca" }}>
               <div style={{ fontSize: "13px", fontWeight: "700", color: "#dc2626", marginBottom: "6px" }}>Sign out</div>
               <p style={{ fontSize: "12px", color: "var(--text-secondary)", margin: "0 0 12px" }}>Sign out of your driver account.</p>
-              <button onClick={() => { logout(); router.push("/auth/login"); }} style={{ width: "100%", padding: "11px", borderRadius: "9px", border: "none", background: "#fef2f2", color: "#dc2626", fontSize: "13px", fontWeight: "700", cursor: "pointer" }}>
+              <button onClick={() => { logout(); router.push("/auth/login"); }} className="driver-signout-btn" style={{ width: "100%", padding: "11px", borderRadius: "9px", border: "none", background: "#fef2f2", color: "#dc2626", fontSize: "13px", fontWeight: "700", cursor: "pointer" }}>
                 Sign out
               </button>
             </div>

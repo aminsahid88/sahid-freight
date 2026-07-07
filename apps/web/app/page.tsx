@@ -3,14 +3,15 @@
 import { useEffect, useRef, useState, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { motion, useInView, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { motion, AnimatePresence, useInView, useMotionValue, useSpring, useTransform } from "framer-motion";
 import {
   Radio, MapPin, ShieldCheck, Globe2, Wallet, BellRing,
   Truck, Snowflake, Fuel, Package, Boxes, CarFront,
-  ArrowRight, Mail, PhoneCall, Clock,
+  ArrowRight, Mail, Menu, X,
 } from "lucide-react";
 
 import HeroFallback from "@/components/landing/HeroFallback";
+import { useIsMobile } from "@/lib/useBreakpoint";
 
 const NAVY   = "var(--navy, #0A1F44)";
 const BLUE   = "var(--accent, #3D7BFF)";
@@ -69,8 +70,10 @@ function CountUp({ to, suffix = "", duration = 1.4 }: { to: number; suffix?: str
 
 export default function LandingPage() {
   const router = useRouter();
+  const isMobile = useIsMobile();
   const [prefersReducedMotion, setPRM] = useState(false);
   const [stats, setStats] = useState({ loads: 0, trucks: 0 });
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     // Redirect signed-in users
@@ -98,18 +101,48 @@ export default function LandingPage() {
   return (
     <div style={{ fontFamily: "var(--font-inter, Inter, system-ui, sans-serif)", background: BG, color: TXT, overflowX: "hidden", width: "100%" }}>
       <style>{`
-        @media (max-width: 900px) {
-          .hero-inner { padding: 100px 20px 60px !important; }
-          .hero-copy { max-width: 100% !important; }
-          .hero-h1 { font-size: clamp(36px, 10vw, 56px) !important; }
-          .hero-scene-wrap { opacity: 0.55 !important; }
-        }
+        /* ── Nav — hamburger on ≤768px ── */
+        .nav-desktop { display: flex; }
+        .nav-mobile-toggle { display: none; }
         @media (max-width: 768px) {
-          .features-grid { grid-template-columns: 1fr !important; }
-          .steps-grid { grid-template-columns: 1fr !important; }
-          .trucks-grid { grid-template-columns: 1fr 1fr !important; }
-          .nav-ctas .nav-link { display: none !important; }
-          .footer-row { flex-direction: column !important; align-items: flex-start !important; }
+          .nav-desktop { display: none !important; }
+          .nav-mobile-toggle { display: inline-flex !important; }
+        }
+
+        /* ── Hero ── */
+        @media (max-width: 900px) {
+          .hero-inner { padding: 96px 20px 64px !important; }
+          .hero-copy { max-width: 100% !important; }
+          .hero-vignette {
+            background: linear-gradient(180deg, rgba(10,31,68,0.20) 0%, rgba(10,31,68,0.55) 45%, rgba(10,31,68,0.88) 100%) !important;
+          }
+        }
+        @media (max-width: 640px) {
+          .hero-inner { padding: 88px 18px 56px !important; min-height: 100vh !important; align-items: flex-end !important; }
+          .hero-h1 { font-size: clamp(30px, 9.5vw, 44px) !important; letter-spacing: -0.7px !important; }
+          .hero-eyebrow { font-size: 10px !important; }
+          .hero-subcopy { font-size: 15px !important; margin-bottom: 28px !important; }
+          .hero-cta-row { flex-direction: column !important; align-items: stretch !important; width: 100% !important; margin-bottom: 36px !important; }
+          .hero-cta-row a, .hero-cta-row button { justify-content: center; width: 100%; padding: 14px 20px !important; }
+          .hero-stats { gap: 20px !important; }
+          .hero-stat-value { font-size: 22px !important; }
+        }
+
+        /* ── Sections ── */
+        @media (max-width: 900px) {
+          .features-grid { grid-template-columns: 1fr 1fr !important; }
+          .steps-grid    { grid-template-columns: 1fr !important; }
+          .trucks-grid   { grid-template-columns: 1fr 1fr !important; }
+        }
+        @media (max-width: 640px) {
+          .section-pad   { padding: 56px 18px !important; }
+          .features-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+          .steps-grid    { grid-template-columns: 1fr !important; gap: 12px !important; }
+          .trucks-grid   { grid-template-columns: 1fr !important; gap: 10px !important; }
+          .footer-row    { flex-direction: column !important; align-items: flex-start !important; gap: 24px !important; }
+          .footer-cols   { flex-direction: column !important; gap: 24px !important; }
+          .cta-buttons   { flex-direction: column !important; align-items: stretch !important; width: 100%; }
+          .cta-buttons > button { width: 100%; }
         }
       `}</style>
 
@@ -119,21 +152,63 @@ export default function LandingPage() {
           position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000,
           background: "rgba(10,31,68,0.88)", backdropFilter: "blur(14px)",
           borderBottom: "1px solid rgba(255,255,255,0.06)",
-          height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "0 clamp(20px, 4vw, 40px)", boxSizing: "border-box",
+          height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "0 clamp(16px, 4vw, 40px)", boxSizing: "border-box",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <img src="/logo.svg" alt="Sahid Freight" style={{ height: "36px", width: "36px", objectFit: "contain" }} />
-          <span style={{ fontSize: "18px", fontWeight: 800, color: "#fff", letterSpacing: "-0.4px" }}>Sahid Freight</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0 }}>
+          <img src="/logo.svg" alt="Sahid Freight" style={{ height: "32px", width: "32px", objectFit: "contain", flexShrink: 0 }} />
+          <span style={{ fontSize: "17px", fontWeight: 800, color: "#fff", letterSpacing: "-0.4px", whiteSpace: "nowrap" }}>Sahid Freight</span>
         </div>
-        <div className="nav-ctas" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <a href="#how" className="nav-link" style={{ color: "rgba(255,255,255,0.65)", textDecoration: "none", fontSize: "13px", fontWeight: 500, padding: "8px 12px" }}>How it works</a>
-          <a href="#features" className="nav-link" style={{ color: "rgba(255,255,255,0.65)", textDecoration: "none", fontSize: "13px", fontWeight: 500, padding: "8px 12px" }}>Features</a>
+
+        {/* Desktop nav */}
+        <div className="nav-desktop" style={{ alignItems: "center", gap: "10px" }}>
+          <a href="#how" style={{ color: "rgba(255,255,255,0.65)", textDecoration: "none", fontSize: "13px", fontWeight: 500, padding: "8px 12px" }}>How it works</a>
+          <a href="#features" style={{ color: "rgba(255,255,255,0.65)", textDecoration: "none", fontSize: "13px", fontWeight: 500, padding: "8px 12px" }}>Features</a>
           <button onClick={() => router.push("/auth/login")} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.28)", borderRadius: "10px", padding: "8px 18px", color: "#fff", fontSize: "13px", fontWeight: 600, cursor: "pointer" }}>Login</button>
           <button onClick={() => router.push("/auth/register")} style={{ background: BLUE, border: "none", borderRadius: "10px", padding: "9px 20px", color: "#fff", fontSize: "13px", fontWeight: 700, cursor: "pointer" }}>Get started</button>
         </div>
+
+        {/* Mobile hamburger */}
+        <button
+          className="nav-mobile-toggle"
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          onClick={() => setMenuOpen((v) => !v)}
+          style={{
+            display: "none", alignItems: "center", justifyContent: "center",
+            background: "transparent", border: "1px solid rgba(255,255,255,0.18)",
+            borderRadius: "10px", width: "40px", height: "40px", color: "#fff",
+            cursor: "pointer", padding: 0,
+          }}
+        >
+          {menuOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
       </nav>
+
+      {/* Mobile slide-down menu */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            key="mobile-menu"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            style={{
+              position: "fixed", top: "60px", left: 0, right: 0, zIndex: 999,
+              background: "rgba(10,31,68,0.98)", backdropFilter: "blur(20px)",
+              borderBottom: "1px solid rgba(255,255,255,0.08)",
+              padding: "16px 18px 20px",
+              display: "flex", flexDirection: "column", gap: "6px",
+            }}
+          >
+            <a href="#how" onClick={() => setMenuOpen(false)} style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none", fontSize: "15px", fontWeight: 500, padding: "14px 6px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>How it works</a>
+            <a href="#features" onClick={() => setMenuOpen(false)} style={{ color: "rgba(255,255,255,0.75)", textDecoration: "none", fontSize: "15px", fontWeight: 500, padding: "14px 6px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>Features</a>
+            <button onClick={() => { setMenuOpen(false); router.push("/auth/login"); }} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.24)", borderRadius: "10px", padding: "13px", color: "#fff", fontSize: "15px", fontWeight: 600, cursor: "pointer", marginTop: "8px" }}>Login</button>
+            <button onClick={() => { setMenuOpen(false); router.push("/auth/register"); }} style={{ background: BLUE, border: "none", borderRadius: "10px", padding: "14px", color: "#fff", fontSize: "15px", fontWeight: 700, cursor: "pointer" }}>Get started</button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ══════════════════ HERO ══════════════════ */}
       <section
@@ -147,8 +222,11 @@ export default function LandingPage() {
           {prefersReducedMotion ? <HeroFallback /> : <HeroScene />}
         </div>
 
-        {/* Vignette so headline stays legible over the globe */}
+        {/* Vignette so headline stays legible over the globe.
+            On phones the vignette flips vertical (top→bottom) so the text
+            sits at the bottom with a legible dark backdrop. */}
         <div
+          className="hero-vignette"
           aria-hidden
           style={{
             position: "absolute", inset: 0, zIndex: 1, pointerEvents: "none",
@@ -180,7 +258,7 @@ export default function LandingPage() {
               }}
             >
               <span style={{ width: "7px", height: "7px", background: TEAL, borderRadius: "50%", boxShadow: `0 0 8px ${TEAL}` }} />
-              <span style={{ color: TEAL, fontSize: "12px", fontWeight: 700, letterSpacing: "0.5px" }}>LIVE ACROSS THE HORN OF AFRICA</span>
+              <span className="hero-eyebrow" style={{ color: TEAL, fontSize: "12px", fontWeight: 700, letterSpacing: "0.5px" }}>LIVE ACROSS THE HORN OF AFRICA</span>
             </motion.div>
 
             <motion.h1
@@ -200,6 +278,7 @@ export default function LandingPage() {
             </motion.h1>
 
             <motion.p
+              className="hero-subcopy"
               variants={fadeUp} initial="hidden" animate="visible" transition={{ delay: 0.15 }}
               style={{
                 margin: "0 0 40px",
@@ -213,6 +292,7 @@ export default function LandingPage() {
             </motion.p>
 
             <motion.div
+              className="hero-cta-row"
               variants={fadeUp} initial="hidden" animate="visible" transition={{ delay: 0.28 }}
               style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginBottom: "56px" }}
             >
@@ -248,6 +328,7 @@ export default function LandingPage() {
 
             {/* Compact live-stats footer */}
             <motion.div
+              className="hero-stats"
               variants={fadeUp} initial="hidden" animate="visible" transition={{ delay: 0.42 }}
               style={{ display: "flex", gap: "clamp(24px, 4vw, 48px)", flexWrap: "wrap" }}
             >
@@ -260,7 +341,7 @@ export default function LandingPage() {
       </section>
 
       {/* ══════════════════ HOW IT WORKS ══════════════════ */}
-      <section id="how" style={{ padding: "clamp(72px, 10vh, 120px) 24px", background: BG }}>
+      <section id="how" className="section-pad" style={{ padding: "clamp(72px, 10vh, 120px) 24px", background: BG }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
           <Reveal>
             <SectionEyebrow>HOW IT WORKS</SectionEyebrow>
@@ -285,7 +366,7 @@ export default function LandingPage() {
       </section>
 
       {/* ══════════════════ FEATURES ══════════════════ */}
-      <section id="features" style={{ padding: "clamp(72px, 10vh, 120px) 24px", background: SRF }}>
+      <section id="features" className="section-pad" style={{ padding: "clamp(72px, 10vh, 120px) 24px", background: SRF }}>
         <div style={{ maxWidth: "1180px", margin: "0 auto" }}>
           <Reveal>
             <SectionEyebrow>WHAT YOU GET</SectionEyebrow>
@@ -310,7 +391,7 @@ export default function LandingPage() {
       </section>
 
       {/* ══════════════════ TRUCK TYPES ══════════════════ */}
-      <section style={{ padding: "clamp(72px, 10vh, 120px) 24px", background: BG }}>
+      <section className="section-pad" style={{ padding: "clamp(72px, 10vh, 120px) 24px", background: BG }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
           <Reveal>
             <SectionEyebrow>FLEET</SectionEyebrow>
@@ -334,7 +415,7 @@ export default function LandingPage() {
       </section>
 
       {/* ══════════════════ CTA ══════════════════ */}
-      <section style={{ padding: "clamp(72px, 10vh, 120px) 24px", background: NAVY_HEX, position: "relative", overflow: "hidden" }}>
+      <section className="section-pad" style={{ padding: "clamp(72px, 10vh, 120px) 24px", background: NAVY_HEX, position: "relative", overflow: "hidden" }}>
         <div
           aria-hidden
           style={{
@@ -350,7 +431,7 @@ export default function LandingPage() {
             <p style={{ margin: "0 0 36px", fontSize: "17px", color: "rgba(255,255,255,0.62)", lineHeight: 1.6 }}>
               Free to sign up. Broker matches you with a verified truck.
             </p>
-            <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
+            <div className="cta-buttons" style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
               <button
                 onClick={() => router.push("/auth/register")}
                 style={{
@@ -390,7 +471,7 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <div style={{ display: "flex", gap: "56px", flexWrap: "wrap" }}>
+            <div className="footer-cols" style={{ display: "flex", gap: "56px", flexWrap: "wrap" }}>
               <FooterCol title="Platform" items={[
                 { label: "How it works", href: "#how" },
                 { label: "Features",     href: "#features" },
@@ -426,7 +507,7 @@ export default function LandingPage() {
 function StatBadge({ label, value }: { label: string; value: number }) {
   return (
     <div>
-      <div style={{ fontSize: "clamp(22px, 3vw, 30px)", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
+      <div className="hero-stat-value" style={{ fontSize: "clamp(22px, 3vw, 30px)", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1.1 }}>
         <CountUp to={value} />
       </div>
       <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.42)", fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase", marginTop: "4px" }}>

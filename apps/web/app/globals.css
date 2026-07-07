@@ -84,20 +84,66 @@
   --shimmer-to:   #1E293B;
 }
 
+html, body {
+  /* Prevent any page from leaking a horizontal scrollbar on mobile */
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
 body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font);
+  font-size: 16px;                 /* base — iOS won't zoom inputs at 16px+ */
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;  /* iOS Safari — stop auto text inflation */
+  text-rendering: optimizeLegibility;
   transition: background 0.2s, color 0.2s;
 }
 
+/* ── Fluid type scale — headings shrink gracefully on small screens ── */
+h1 { font-size: clamp(28px, 6vw, 56px); line-height: 1.08; letter-spacing: -0.02em; }
+h2 { font-size: clamp(22px, 4vw, 40px); line-height: 1.12; letter-spacing: -0.01em; }
+h3 { font-size: clamp(18px, 2.4vw, 22px); line-height: 1.2; }
+
+/* iOS Safari input zoom guard — text inputs must be ≥16px */
+input, select, textarea {
+  font-family: inherit;
+}
+@media (max-width: 640px) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea { font-size: 16px !important; }
+}
+
+/* Any interactive control should be at least a proper touch target on
+   phones — 44×44 is Apple's minimum, aligns with Android's 48dp. */
+@media (hover: none) and (pointer: coarse) {
+  button, [role="button"], a[href], input[type="submit"] {
+    min-height: 44px;
+  }
+}
+
 /* ── Auth pages ─────────────────────────────────── */
-@media (max-width: 768px) {
-  .auth-left { display: none !important; }
-  .auth-right { padding: 32px 20px !important; width: 100% !important; align-items: flex-start !important; padding-top: 60px !important; }
-  .auth-card { width: 100% !important; max-width: 100% !important; }
-  .auth-card > div { padding: 32px 24px !important; border-radius: 16px !important; }
+@media (max-width: 900px) {
+  /* Left brand panel: hide it below tablet — form card centers with full width */
+  .auth-left, .verify-left { display: none !important; }
+  .auth-right, .verify-right {
+    padding: 32px 20px !important;
+    width: 100% !important;
+    align-items: flex-start !important;
+    padding-top: 48px !important;
+  }
+  .auth-card { width: 100% !important; max-width: 440px !important; margin: 0 auto !important; }
+  .auth-card > div, .verify-card {
+    padding: 28px 22px !important;
+    border-radius: 16px !important;
+  }
+}
+@media (max-width: 380px) {
+  .auth-right, .verify-right { padding: 24px 14px !important; padding-top: 40px !important; }
+  .auth-card > div, .verify-card { padding: 22px 18px !important; }
 }
 
 /* ── Landing page ───────────────────────────────── */
@@ -116,11 +162,9 @@ body {
   section { padding: 64px 20px !important; }
 }
 
-/* ── Verify / OTP ───────────────────────────────── */
-@media (max-width: 768px) {
-  .verify-left { display: none !important; }
-  .verify-right { padding: 32px 20px !important; width: 100% !important; }
-  .verify-card { padding: 32px 24px !important; border-radius: 16px !important; }
+/* ── Verify / OTP — extra tightening for the OTP boxes on tiny screens ── */
+@media (max-width: 380px) {
+  .otp-input { width: 40px !important; height: 48px !important; font-size: 20px !important; }
 }
 
 /* ── Dashboard misc ─────────────────────────────── */

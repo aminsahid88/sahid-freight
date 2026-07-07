@@ -91,32 +91,52 @@ export default function BrokerDashboardPage() {
   const onRefresh = () => { setRefreshing(true); fetchAll(); };
 
   return (
-    <div style={{ maxWidth: "1180px", margin: "0 auto" }}>
+    <div style={{ maxWidth: "1180px", margin: "0 auto" }} className="broker-dash-root">
+      <style>{`
+        @media (max-width: 640px) {
+          .broker-dash-hero { padding: 20px 18px !important; border-radius: 14px !important; margin-bottom: 18px !important; }
+          .broker-dash-hero-title { font-size: clamp(22px, 7vw, 28px) !important; line-height: 1.15 !important; }
+          .broker-dash-hero-summary { font-size: 13px !important; }
+          .broker-dash-refresh { min-height: 44px; padding: 10px 16px !important; }
+          .broker-dash-stats { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; margin-bottom: 20px !important; }
+          .broker-dash-stat-card { padding: 14px !important; }
+          .broker-dash-stat-value { font-size: 26px !important; }
+          .broker-dash-twocol { grid-template-columns: 1fr !important; gap: 14px !important; }
+          .broker-dash-load-card, .broker-dash-transit-card { padding: 14px !important; }
+          .broker-dash-load-footer { flex-direction: column !important; align-items: stretch !important; gap: 10px !important; }
+          .broker-dash-find-btn, .broker-dash-track-btn { width: 100% !important; min-height: 44px; }
+        }
+        @media (max-width: 380px) {
+          .broker-dash-stats { grid-template-columns: 1fr !important; }
+          .broker-dash-hero { padding: 18px 14px !important; }
+        }
+      `}</style>
       {/* ── HERO (the one navy element) ─────────────────────────────── */}
-      <section style={styles.hero}>
+      <section style={styles.hero} className="broker-dash-hero">
         <div style={styles.heroEyebrow}>{todayHeaderDate().toUpperCase()}</div>
         <div style={styles.heroRow}>
-          <h1 style={styles.heroTitle}>{greeting()}, {firstName}.</h1>
+          <h1 style={styles.heroTitle} className="broker-dash-hero-title">{greeting()}, {firstName}.</h1>
           <button
             onClick={onRefresh}
             disabled={refreshing}
             style={{ ...styles.refreshBtn, opacity: refreshing ? 0.6 : 1 }}
+            className="broker-dash-refresh"
           >
             {refreshing ? "Refreshing…" : "Refresh"}
           </button>
         </div>
-        <div style={styles.heroSummary}>{summary}</div>
+        <div style={styles.heroSummary} className="broker-dash-hero-summary">{summary}</div>
       </section>
 
       {/* ── STATS ROW ───────────────────────────────────────────────── */}
-      <section style={styles.statRow}>
+      <section style={styles.statRow} className="broker-dash-stats">
         <Stat label="OPEN LOADS"        value={loading ? null : String(openLoads.length)} hint="waiting for a truck" tone="navy" />
         <Stat label="TRUCKS AVAILABLE"  value={loading ? null : String(trucksAvailable)}  hint="across the network"  tone="navy" />
         <Stat label="ON THE ROAD"       value={loading ? null : String(inTransit.length)} hint="active dispatches"   tone={inTransit.length > 0 ? "teal" : "navy"} />
       </section>
 
       {/* ── TWO-COLUMN LAYOUT (auto-stacks on narrow) ───────────────── */}
-      <section style={styles.twoCol}>
+      <section style={styles.twoCol} className="broker-dash-twocol">
 
         {/* LEFT — Needs a truck */}
         <div style={styles.colSection}>
@@ -131,7 +151,7 @@ export default function BrokerDashboardPage() {
             />
           ) : (
             openLoads.map((load) => (
-              <article key={load.id} style={styles.loadCard}>
+              <article key={load.id} style={styles.loadCard} className="broker-dash-load-card">
                 <div style={styles.loadHeader}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={styles.loadTitle}>{load.title}</div>
@@ -150,11 +170,12 @@ export default function BrokerDashboardPage() {
                     <MetaPill label={new Date(load.scheduledDate).toLocaleDateString("en-US", { month: "short", day: "numeric" })} />
                   )}
                 </div>
-                <div style={styles.loadFooter}>
+                <div style={styles.loadFooter} className="broker-dash-load-footer">
                   <div style={styles.loadPrice}>{formatPrice(load.offeredPrice, load.currency || "ETB")}</div>
                   <button
                     onClick={() => router.push(`/dashboard/broker/find-truck/${load.id}`)}
                     style={styles.findBtn}
+                    className="broker-dash-find-btn"
                     onMouseEnter={(e) => (e.currentTarget.style.filter = "brightness(0.94)")}
                     onMouseLeave={(e) => (e.currentTarget.style.filter = "none")}
                   >
@@ -181,7 +202,7 @@ export default function BrokerDashboardPage() {
             inTransit.map((b) => {
               const driver = b.driver?.fullName || b.truck?.driver?.fullName || "Unassigned";
               return (
-                <article key={b.id} style={styles.transitCard}>
+                <article key={b.id} style={styles.transitCard} className="broker-dash-transit-card">
                   <div style={styles.loadHeader}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={styles.loadTitle}>{b.load?.title || "Load"}</div>
@@ -204,6 +225,7 @@ export default function BrokerDashboardPage() {
                   <button
                     onClick={() => router.push(`/dashboard/tracking/${b.id}`)}
                     style={styles.trackBtn}
+                    className="broker-dash-track-btn"
                     onMouseEnter={(e) => (e.currentTarget.style.background = "#F1F5F9")}
                     onMouseLeave={(e) => (e.currentTarget.style.background = "#F8FAFC")}
                   >
@@ -224,11 +246,11 @@ export default function BrokerDashboardPage() {
 function Stat({ label, value, hint, tone }: { label: string; value: string | null; hint: string; tone: "navy" | "teal" }) {
   const color = tone === "teal" ? TEAL_FG : P;
   return (
-    <div style={styles.statCard}>
+    <div style={styles.statCard} className="broker-dash-stat-card">
       <div style={styles.statLabel}>{label}</div>
       {value === null
         ? <div style={{ width: "60px", height: "32px", background: SKEL, borderRadius: "6px", marginBottom: "4px" }} />
-        : <div style={{ ...styles.statValue, color }}>{value}</div>}
+        : <div style={{ ...styles.statValue, color }} className="broker-dash-stat-value">{value}</div>}
       <div style={styles.statHint}>{hint}</div>
     </div>
   );

@@ -195,7 +195,32 @@ export default function BookingsPage() {
 
   return (
     <div>
-        <div style={{ marginBottom: "28px" }}>
+        <style>{`
+          @media (max-width: 640px) {
+            .sender-bookings-header { margin-bottom: 20px !important; }
+            .sender-bookings-header h1 { font-size: 20px !important; }
+            .sender-booking-card { padding: 16px !important; border-radius: 14px !important; }
+            .sender-booking-top { flex-direction: column !important; align-items: stretch !important; gap: 10px !important; margin-bottom: 12px !important; }
+            .sender-booking-status-row { flex-wrap: wrap !important; }
+            .sender-booking-footer { gap: 10px !important; padding-top: 12px !important; }
+            .sender-booking-footer > div,
+            .sender-booking-footer > button,
+            .sender-booking-footer > a,
+            .sender-booking-footer > span { margin-left: 0 !important; }
+            .sender-booking-footer button, .sender-booking-footer a { min-height: 44px !important; box-sizing: border-box; }
+            .sender-booking-actions { flex: 1 1 100% !important; margin-left: 0 !important; }
+            .sender-booking-actions button { flex: 1 1 auto !important; min-height: 44px !important; }
+            .sender-pay-btn { flex: 1 1 100% !important; justify-content: center !important; }
+            .sender-book-empty { padding: 48px 20px !important; }
+            .sender-book-modal-overlay { padding: 0 !important; align-items: flex-end !important; }
+            .sender-book-modal { max-width: 100% !important; width: 100% !important; margin: 0 !important; border-radius: 20px 20px 0 0 !important; max-height: 92vh !important; overflow-y: auto !important; padding: 22px !important; }
+            .sender-book-modal-btn { min-height: 44px !important; }
+          }
+          @media (max-width: 380px) {
+            .sender-bookings-header h1 { font-size: 18px !important; }
+          }
+        `}</style>
+        <div className="sender-bookings-header" style={{ marginBottom: "28px" }}>
           <h1 style={{ fontSize: "22px", fontWeight: "800", color: "var(--primary)", margin: "0 0 4px", letterSpacing: "-0.5px" }}>Bookings</h1>
           <p style={{ color: "var(--text-secondary)", fontSize: "13px", margin: "0 0 16px" }}>
             Loads you've booked or accepted.
@@ -222,7 +247,7 @@ export default function BookingsPage() {
             {/* Bookings list */}
             <div>
               {bookings.length === 0 ? (
-                <div style={{ background: "var(--surface)", borderRadius: "16px", padding: "64px 24px", textAlign: "center" as const, border: "1px solid rgba(26,39,68,0.06)" }}>
+                <div className="sender-book-empty" style={{ background: "var(--surface)", borderRadius: "16px", padding: "64px 24px", textAlign: "center" as const, border: "1px solid rgba(26,39,68,0.06)" }}>
                   <div style={{ display: "inline-flex", padding: "14px", borderRadius: "14px", background: "var(--bg)", marginBottom: "14px", color: "#94A3B8" }}>
                     <Package size={32} />
                   </div>
@@ -234,8 +259,8 @@ export default function BookingsPage() {
               ) : (
                 <div style={{ display: "flex", flexDirection: "column" as const, gap: "12px" }}>
                   {bookings.map((booking: any) => (
-                    <div key={booking.id} style={{ background: "var(--surface)", borderRadius: "16px", padding: "24px", border: "1px solid rgba(26,39,68,0.06)", boxShadow: "0 2px 8px rgba(26,39,68,0.04)" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>
+                    <div key={booking.id} className="sender-booking-card" style={{ background: "var(--surface)", borderRadius: "16px", padding: "24px", border: "1px solid rgba(26,39,68,0.06)", boxShadow: "0 2px 8px rgba(26,39,68,0.04)" }}>
+                      <div className="sender-booking-top" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>
                         <div>
                           {user?.role === "CARGO_SENDER" ? (
                             <>
@@ -257,12 +282,12 @@ export default function BookingsPage() {
                             </>
                           )}
                         </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <div className="sender-booking-status-row" style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                           <span style={{ fontSize: "12px", fontWeight: "600", padding: "5px 12px", borderRadius: "20px", background: statusColor[booking.status]?.bg, color: statusColor[booking.status]?.color, border: `1px solid ${statusColor[booking.status]?.border}`, whiteSpace: "nowrap" as const }}>
                             {booking.status === "COMPLETED" ? "Delivered" : booking.status.charAt(0) + booking.status.slice(1).toLowerCase()}
                           </span>
                           {user?.role === "TRUCK_OWNER" && booking.status === "ACCEPTED" && !booking.driverId && (
-                            <button onClick={e => { e.stopPropagation(); setAssignModal(booking.id); }} style={{ padding: "5px 12px", borderRadius: "8px", border: "1px solid var(--accent)", background: "#fff7ed", color: "var(--accent)", fontSize: "12px", fontWeight: "700", cursor: "pointer", whiteSpace: "nowrap" as const }}>
+                            <button onClick={e => { e.stopPropagation(); setAssignModal(booking.id); }} style={{ padding: "5px 12px", borderRadius: "8px", border: "1px solid var(--accent)", background: "#fff7ed", color: "var(--accent)", fontSize: "12px", fontWeight: "700", cursor: "pointer", whiteSpace: "nowrap" as const, minHeight: "36px" }}>
                               Assign driver
                             </button>
                           )}
@@ -274,7 +299,7 @@ export default function BookingsPage() {
                         </div>
                       </div>
 
-                      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "12px", paddingTop: "14px", borderTop: "1px solid var(--border)" }}>
+                      <div className="sender-booking-footer" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "12px", paddingTop: "14px", borderTop: "1px solid var(--border)" }}>
                         <div>
                           <div style={{ fontSize: "11px", color: "var(--text-secondary)", letterSpacing: "1px", textTransform: "uppercase" as const, marginBottom: "4px" }}>Price</div>
                           <div style={{ fontSize: "18px", fontWeight: "800", color: "var(--primary)" }}>
@@ -287,11 +312,11 @@ export default function BookingsPage() {
                         </div>
 
                         {user?.role === "CARGO_SENDER" && booking.status === "PENDING" && (
-                          <div style={{ display: "flex", gap: "10px", marginLeft: "auto" }}>
-                            <button onClick={() => handleReject(booking.id)} disabled={actionLoading === booking.id} style={{ padding: "9px 20px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-secondary)", fontSize: "14px", fontWeight: "600", cursor: "pointer", transition: "all 0.15s" }}>
+                          <div className="sender-booking-actions" style={{ display: "flex", gap: "10px", marginLeft: "auto" }}>
+                            <button onClick={() => handleReject(booking.id)} disabled={actionLoading === booking.id} style={{ padding: "9px 20px", borderRadius: "8px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-secondary)", fontSize: "14px", fontWeight: "600", cursor: "pointer", transition: "all 0.15s", minHeight: "44px" }}>
                               Decline
                             </button>
-                            <button onClick={() => handleAccept(booking.id)} disabled={actionLoading === booking.id} style={{ padding: "9px 20px", borderRadius: "8px", border: "none", background: "var(--primary)", color: "#FAFAF8", fontSize: "14px", fontWeight: "700", cursor: "pointer", transition: "all 0.15s" }}>
+                            <button onClick={() => handleAccept(booking.id)} disabled={actionLoading === booking.id} style={{ padding: "9px 20px", borderRadius: "8px", border: "none", background: "var(--primary)", color: "#FAFAF8", fontSize: "14px", fontWeight: "700", cursor: "pointer", transition: "all 0.15s", minHeight: "44px" }}>
                               {actionLoading === booking.id ? "Confirming…" : "Confirm booking"}
                             </button>
                           </div>
@@ -300,7 +325,7 @@ export default function BookingsPage() {
 
                         {(booking.status === "ACCEPTED" || booking.load?.status === "IN_TRANSIT") && (
                           <div style={{ marginLeft: "auto" }}>
-                            <a href={`/tracking/${booking.id}`} style={{ padding: "9px 20px", borderRadius: "8px", border: "none", background: "var(--accent)", color: "#fff", fontSize: "14px", fontWeight: "700", cursor: "pointer", textDecoration: "none" }}>
+                            <a href={`/tracking/${booking.id}`} style={{ padding: "9px 20px", borderRadius: "8px", border: "none", background: "var(--accent)", color: "#fff", fontSize: "14px", fontWeight: "700", cursor: "pointer", textDecoration: "none", display: "inline-flex", alignItems: "center", justifyContent: "center", minHeight: "44px" }}>
                               {user?.role === "TRUCK_OWNER" ? "Share location" : "Track load"}
                             </a>
                           </div>
@@ -337,8 +362,8 @@ export default function BookingsPage() {
                             );
                           }
                           return (
-                            <button onClick={() => { setPaymentModal(booking); setPaymentMsg(""); setWaafiPhone(""); }}
-                              style={{ marginLeft: "auto", padding: "9px 20px", borderRadius: "8px", border: "none", background: "var(--primary)", color: "#FAFAF8", fontSize: "13px", fontWeight: "700", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                            <button className="sender-pay-btn" onClick={() => { setPaymentModal(booking); setPaymentMsg(""); setWaafiPhone(""); }}
+                              style={{ marginLeft: "auto", padding: "9px 20px", borderRadius: "8px", border: "none", background: "var(--primary)", color: "#FAFAF8", fontSize: "13px", fontWeight: "700", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px", minHeight: "44px" }}>
                               <Wallet size={14} /> Pay
                             </button>
                           );
@@ -350,7 +375,7 @@ export default function BookingsPage() {
                               <Star size={12} fill="currentColor" /> Rated
                             </div>
                           ) : (
-                            <button onClick={() => { setRateModal(booking); setRateValue(0); setRateComment(""); }} style={{ marginLeft: "auto", padding: "9px 20px", borderRadius: "8px", border: "none", background: "var(--accent)", color: "#fff", fontSize: "13px", fontWeight: "700", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                            <button onClick={() => { setRateModal(booking); setRateValue(0); setRateComment(""); }} style={{ marginLeft: "auto", padding: "9px 20px", borderRadius: "8px", border: "none", background: "var(--accent)", color: "#fff", fontSize: "13px", fontWeight: "700", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: "6px", minHeight: "44px" }}>
                               <Star size={13} /> {user?.role === "CARGO_SENDER" ? "Rate truck owner" : "Rate cargo owner"}
                             </button>
                           );
@@ -366,8 +391,8 @@ export default function BookingsPage() {
 
       {/* Payment Modal */}
       {paymentModal && (
-        <div style={{ position: "fixed" as const, inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ background: "var(--surface)", borderRadius: "16px", width: "100%", maxWidth: "440px", padding: "28px" }}>
+        <div className="sender-book-modal-overlay" style={{ position: "fixed" as const, inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div className="sender-book-modal" style={{ background: "var(--surface)", borderRadius: "16px", width: "100%", maxWidth: "440px", padding: "28px" }}>
             <div style={{ fontSize: "16px", fontWeight: "800", color: "var(--primary)", marginBottom: "4px" }}>Pay for delivery</div>
             <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "20px" }}>
               {paymentModal.load?.title} · <strong>{formatPrice(paymentModal.agreedPrice, paymentModal.currency)}</strong>
@@ -380,12 +405,12 @@ export default function BookingsPage() {
               <button
                 onClick={() => handleInitiatePayment(paymentModal, "CHAPA")}
                 disabled={paymentLoading}
-                style={{ width: "100%", padding: "11px", borderRadius: "9px", border: "none", background: "#16a34a", color: "#fff", fontSize: "13px", fontWeight: "700", cursor: "pointer", opacity: paymentLoading ? 0.7 : 1 }}>
+                className="sender-book-modal-btn" style={{ width: "100%", padding: "11px", borderRadius: "9px", border: "none", background: "#16a34a", color: "#fff", fontSize: "13px", fontWeight: "700", cursor: "pointer", opacity: paymentLoading ? 0.7 : 1 }}>
                 {paymentLoading ? "Opening Chapa…" : "Pay with Chapa"}
               </button>
               {payments[paymentModal.id]?.provider === "CHAPA" && payments[paymentModal.id]?.status === "PROCESSING" && (
                 <button onClick={() => handleVerifyChapa(paymentModal.id)} disabled={paymentLoading}
-                  style={{ width: "100%", marginTop: "8px", padding: "9px", borderRadius: "9px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--primary)", fontSize: "12px", fontWeight: "600", cursor: "pointer" }}>
+                  className="sender-book-modal-btn" style={{ width: "100%", marginTop: "8px", padding: "9px", borderRadius: "9px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--primary)", fontSize: "12px", fontWeight: "600", cursor: "pointer" }}>
                   I've paid — verify now
                 </button>
               )}
@@ -404,7 +429,7 @@ export default function BookingsPage() {
               <button
                 onClick={() => handleInitiatePayment(paymentModal, "WAAFI", waafiPhone)}
                 disabled={paymentLoading || !waafiPhone.trim()}
-                style={{ width: "100%", padding: "11px", borderRadius: "9px", border: "none", background: "#3D7BFF", color: "#fff", fontSize: "13px", fontWeight: "700", cursor: "pointer", opacity: (!waafiPhone.trim() || paymentLoading) ? 0.6 : 1 }}>
+                className="sender-book-modal-btn" style={{ width: "100%", padding: "11px", borderRadius: "9px", border: "none", background: "#3D7BFF", color: "#fff", fontSize: "13px", fontWeight: "700", cursor: "pointer", opacity: (!waafiPhone.trim() || paymentLoading) ? 0.6 : 1 }}>
                 {paymentLoading ? "Sending request…" : "Send payment request"}
               </button>
             </div>
@@ -416,7 +441,7 @@ export default function BookingsPage() {
               <button
                 onClick={() => handleInitiatePayment(paymentModal, "CASH")}
                 disabled={paymentLoading}
-                style={{ width: "100%", padding: "11px", borderRadius: "9px", border: "1px solid var(--border)", background: "#f9fafb", color: "#374151", fontSize: "13px", fontWeight: "700", cursor: "pointer", opacity: paymentLoading ? 0.7 : 1 }}>
+                className="sender-book-modal-btn" style={{ width: "100%", padding: "11px", borderRadius: "9px", border: "1px solid var(--border)", background: "#f9fafb", color: "#374151", fontSize: "13px", fontWeight: "700", cursor: "pointer", opacity: paymentLoading ? 0.7 : 1 }}>
                 Confirm cash payment
               </button>
             </div>
@@ -428,7 +453,7 @@ export default function BookingsPage() {
             )}
 
             <button onClick={() => { setPaymentModal(null); setPaymentMsg(""); setWaafiPhone(""); }}
-              style={{ width: "100%", padding: "11px", borderRadius: "9px", border: "1px solid var(--border)", background: "var(--surface)", color: "#6b7280", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>
+              className="sender-book-modal-btn" style={{ width: "100%", padding: "11px", borderRadius: "9px", border: "1px solid var(--border)", background: "var(--surface)", color: "#6b7280", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>
               Close
             </button>
           </div>
@@ -437,8 +462,8 @@ export default function BookingsPage() {
 
       {/* Rate Modal */}
       {rateModal && (
-        <div style={{ position: "fixed" as const, inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ background: "var(--surface)", borderRadius: "16px", width: "100%", maxWidth: "400px", padding: "28px" }}>
+        <div className="sender-book-modal-overlay" style={{ position: "fixed" as const, inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div className="sender-book-modal" style={{ background: "var(--surface)", borderRadius: "16px", width: "100%", maxWidth: "400px", padding: "28px" }}>
             <div style={{ fontSize: "16px", fontWeight: "800", color: "var(--primary)", marginBottom: "4px" }}>Rate this booking</div>
             <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "20px" }}>
               {user?.role === "CARGO_SENDER" ? `Rating: ${rateModal.owner?.fullName}` : `Rating: ${rateModal.sender?.fullName || "Cargo owner"}`}
@@ -455,8 +480,8 @@ export default function BookingsPage() {
             <textarea value={rateComment} onChange={e => setRateComment(e.target.value)} placeholder="Leave a comment (optional)…"
               style={{ width: "100%", padding: "10px 14px", borderRadius: "9px", border: "1px solid var(--border)", fontSize: "13px", color: "var(--primary)", minHeight: "80px", resize: "vertical", outline: "none", marginBottom: "16px", boxSizing: "border-box" as const }} />
             <div style={{ display: "flex", gap: "10px" }}>
-              <button onClick={() => { setRateModal(null); setRateValue(0); setRateComment(""); }} style={{ flex: 1, padding: "11px", borderRadius: "9px", border: "1px solid var(--border)", background: "var(--surface)", color: "#6b7280", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
-              <button onClick={handleRate} disabled={rateValue === 0 || rateLoading} style={{ flex: 2, padding: "11px", borderRadius: "9px", border: "none", background: "var(--primary)", color: "#FAFAF8", fontSize: "13px", fontWeight: "700", cursor: rateValue === 0 ? "not-allowed" : "pointer", opacity: rateValue === 0 ? 0.6 : 1 }}>
+              <button className="sender-book-modal-btn" onClick={() => { setRateModal(null); setRateValue(0); setRateComment(""); }} style={{ flex: 1, padding: "11px", borderRadius: "9px", border: "1px solid var(--border)", background: "var(--surface)", color: "#6b7280", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
+              <button className="sender-book-modal-btn" onClick={handleRate} disabled={rateValue === 0 || rateLoading} style={{ flex: 2, padding: "11px", borderRadius: "9px", border: "none", background: "var(--primary)", color: "#FAFAF8", fontSize: "13px", fontWeight: "700", cursor: rateValue === 0 ? "not-allowed" : "pointer", opacity: rateValue === 0 ? 0.6 : 1 }}>
                 {rateLoading ? "Saving your rating…" : `Save rating${rateValue > 0 ? ` (${rateValue}/5)` : ""}`}
               </button>
             </div>
@@ -466,8 +491,8 @@ export default function BookingsPage() {
 
       {/* Assign Driver Modal */}
       {assignModal && (
-        <div style={{ position: "fixed" as const, inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ background: "var(--surface)", borderRadius: "16px", width: "100%", maxWidth: "400px", padding: "28px" }}>
+        <div className="sender-book-modal-overlay" style={{ position: "fixed" as const, inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div className="sender-book-modal" style={{ background: "var(--surface)", borderRadius: "16px", width: "100%", maxWidth: "400px", padding: "28px" }}>
             <div style={{ fontSize: "16px", fontWeight: "800", color: "var(--primary)", marginBottom: "16px" }}>Assign driver</div>
             <select value={selectedDriver} onChange={e => setSelectedDriver(e.target.value)}
               style={{ width: "100%", padding: "10px 14px", borderRadius: "9px", border: "1px solid var(--border)", fontSize: "13px", color: "var(--primary)", marginBottom: "16px", outline: "none" }}>
@@ -476,8 +501,8 @@ export default function BookingsPage() {
             </select>
             {drivers.length === 0 && <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "16px" }}>No drivers yet. Add drivers from the My drivers page.</div>}
             <div style={{ display: "flex", gap: "10px" }}>
-              <button onClick={() => { setAssignModal(null); setSelectedDriver(""); }} style={{ flex: 1, padding: "11px", borderRadius: "9px", border: "1px solid var(--border)", background: "var(--surface)", color: "#6b7280", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
-              <button onClick={handleAssignDriver} disabled={!selectedDriver} style={{ flex: 2, padding: "11px", borderRadius: "9px", border: "none", background: "var(--primary)", color: "#FAFAF8", fontSize: "13px", fontWeight: "700", cursor: !selectedDriver ? "not-allowed" : "pointer", opacity: !selectedDriver ? 0.6 : 1 }}>
+              <button className="sender-book-modal-btn" onClick={() => { setAssignModal(null); setSelectedDriver(""); }} style={{ flex: 1, padding: "11px", borderRadius: "9px", border: "1px solid var(--border)", background: "var(--surface)", color: "#6b7280", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
+              <button className="sender-book-modal-btn" onClick={handleAssignDriver} disabled={!selectedDriver} style={{ flex: 2, padding: "11px", borderRadius: "9px", border: "none", background: "var(--primary)", color: "#FAFAF8", fontSize: "13px", fontWeight: "700", cursor: !selectedDriver ? "not-allowed" : "pointer", opacity: !selectedDriver ? 0.6 : 1 }}>
                 Assign driver
               </button>
             </div>

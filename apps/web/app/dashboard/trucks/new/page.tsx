@@ -101,24 +101,39 @@ export default function NewTruckPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)", fontFamily: "'Inter, system-ui, sans-serif" }}>
+      <style>{`
+        @media (max-width: 640px) {
+          .new-truck-nav { padding: 0 16px !important; }
+          .new-truck-back { padding: 8px 12px !important; font-size: 12px !important; }
+          .new-truck-back-label { display: none; }
+          .new-truck-container { padding: 20px 16px !important; }
+          .new-truck-h1 { font-size: 22px !important; letter-spacing: -0.5px !important; }
+          .new-truck-card { padding: 20px !important; border-radius: 16px !important; }
+          .new-truck-grid-2 { grid-template-columns: 1fr !important; gap: 12px !important; }
+          .new-truck-types-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
+          .new-truck-doc-note { margin-left: 0 !important; }
+          .new-truck-actions { flex-direction: column-reverse !important; gap: 10px !important; }
+          .new-truck-actions > button { width: 100%; flex: 1 !important; min-height: 48px; }
+        }
+      `}</style>
 
       {/* Nav */}
-      <div style={{ background: "var(--primary)", padding: "0 32px", height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky" as const, top: 0, zIndex: 100 }}>
+      <div className="new-truck-nav" style={{ background: "var(--primary)", padding: "0 32px", height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky" as const, top: 0, zIndex: 100 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <img src="/logo.svg" alt="Sahid Freight" style={{ height: "40px", objectFit: "contain" }} />
         </div>
-        <button onClick={() => router.push("/dashboard")} style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "rgba(240,235,224,0.08)", border: "none", borderRadius: "8px", padding: "8px 16px", color: "rgba(240,235,224,0.6)", fontSize: "14px", cursor: "pointer" }}>
-          <ArrowLeft size={14} /> Back to dashboard
+        <button onClick={() => router.push("/dashboard")} className="new-truck-back" style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "rgba(240,235,224,0.08)", border: "none", borderRadius: "8px", padding: "8px 16px", color: "rgba(240,235,224,0.6)", fontSize: "14px", cursor: "pointer" }}>
+          <ArrowLeft size={14} /> <span className="new-truck-back-label">Back to dashboard</span>
         </button>
       </div>
 
-      <div style={{ maxWidth: "800px", margin: "0 auto", padding: "40px 32px" }}>
+      <div className="new-truck-container" style={{ maxWidth: "800px", margin: "0 auto", padding: "40px 32px" }}>
         <div style={{ marginBottom: "32px" }}>
-          <h1 style={{ fontSize: "28px", fontWeight: "800", color: "var(--primary)", margin: "0 0 4px", letterSpacing: "-1px" }}>Add a truck</h1>
+          <h1 className="new-truck-h1" style={{ fontSize: "28px", fontWeight: "800", color: "var(--primary)", margin: "0 0 4px", letterSpacing: "-1px" }}>Add a truck</h1>
           <p style={{ color: "var(--text-secondary)", fontSize: "15px", margin: 0 }}>Register a truck so brokers can dispatch loads to it.</p>
         </div>
 
-        <div style={{ background: "var(--surface)", borderRadius: "20px", padding: "40px", boxShadow: "0 2px 4px rgba(10,31,68,0.04), 0 16px 48px rgba(10,31,68,0.08)", border: "1px solid rgba(10,31,68,0.06)" }}>
+        <div className="new-truck-card" style={{ background: "var(--surface)", borderRadius: "20px", padding: "40px", boxShadow: "0 2px 4px rgba(10,31,68,0.04), 0 16px 48px rgba(10,31,68,0.08)", border: "1px solid rgba(10,31,68,0.06)" }}>
 
           {error && (
             <div style={{ background: "#fff5f5", border: "1px solid #fecaca", borderRadius: "10px", padding: "12px 16px", color: "#dc2626", fontSize: "14px", marginBottom: "28px" }}>
@@ -134,7 +149,7 @@ export default function NewTruckPage() {
                 <div style={{ width: "28px", height: "28px", background: "var(--primary)", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", color: "#FAFAF8", fontWeight: "700" }}>1</div>
                 <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--primary)", margin: 0 }}>Truck details</h3>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+              <div className="new-truck-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                 <div>
                   <label style={labelStyle}>Plate number</label>
                   <input type="text" value={form.plateNumber} onChange={(e) => update("plateNumber", e.target.value)} placeholder="e.g. AA-12345" required onFocus={() => setFocused("plate")} onBlur={() => setFocused(null)} style={{ ...inputStyle("plate"), fontFamily: "monospace", textTransform: "uppercase" as const }} />
@@ -156,7 +171,7 @@ export default function NewTruckPage() {
                 <div style={{ width: "28px", height: "28px", background: "var(--primary)", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", color: "#FAFAF8", fontWeight: "700" }}>2</div>
                 <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--primary)", margin: 0 }}>Truck type</h3>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+              <div className="new-truck-types-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
                 {truckTypes.map((t) => (
                   <div key={t.value} onClick={() => update("truckType", t.value)} style={{ padding: "16px", borderRadius: "10px", border: `2px solid ${form.truckType === t.value ? "var(--primary)" : "var(--border)"}`, background: form.truckType === t.value ? "var(--bg)" : "var(--surface)", cursor: "pointer", transition: "all 0.15s" }}>
                     <div style={{ fontSize: "14px", fontWeight: "700", color: form.truckType === t.value ? "var(--primary)" : "#374151", marginBottom: "4px" }}>{t.label}</div>
@@ -172,7 +187,7 @@ export default function NewTruckPage() {
                 <div style={{ width: "28px", height: "28px", background: "var(--primary)", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", color: "#FAFAF8", fontWeight: "700" }}>3</div>
                 <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--primary)", margin: 0 }}>Current location</h3>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+              <div className="new-truck-grid-2" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                 <div>
                   <label style={labelStyle}>City</label>
                   <input type="text" value={form.currentCity} onChange={(e) => update("currentCity", e.target.value)} placeholder="e.g. Addis Ababa" required onFocus={() => setFocused("city")} onBlur={() => setFocused(null)} style={inputStyle("city")} />
@@ -193,7 +208,7 @@ export default function NewTruckPage() {
                 <div style={{ width: "28px", height: "28px", background: "var(--primary)", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", color: "#FAFAF8", fontWeight: "700" }}>4</div>
                 <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--primary)", margin: 0 }}>Truck documents</h3>
               </div>
-              <p style={{ fontSize: "13px", color: "var(--text-secondary)", margin: "0 0 16px 38px" }}>Upload registration, insurance, and a plate photo for verification.</p>
+              <p className="new-truck-doc-note" style={{ fontSize: "13px", color: "var(--text-secondary)", margin: "0 0 16px 38px" }}>Upload registration, insurance, and a plate photo for verification.</p>
               <div style={{ display: "flex", flexDirection: "column" as const, gap: "12px" }}>
                 {TRUCK_DOCS.map(doc => (
                   <div key={doc.key} style={{ background: truckFiles[doc.key] ? "#f0fdf4" : "var(--bg)", borderRadius: "12px", padding: "16px", border: `1.5px solid ${truckFiles[doc.key] ? "#bbf7d0" : "var(--border)"}`, transition: "all 0.2s" }}>
@@ -227,7 +242,7 @@ export default function NewTruckPage() {
               </div>
             </div>
 
-            <div style={{ display: "flex", gap: "12px" }}>
+            <div className="new-truck-actions" style={{ display: "flex", gap: "12px" }}>
               <button type="button" onClick={() => router.push("/dashboard")} style={{ flex: 1, background: "var(--bg)", border: "none", borderRadius: "10px", padding: "15px", color: "var(--primary)", fontSize: "15px", fontWeight: "700", cursor: "pointer" }}>
                 Cancel
               </button>

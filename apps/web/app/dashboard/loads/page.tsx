@@ -155,15 +155,36 @@ export default function LoadsPage() {
 
   return (
     <div>
+      <style>{`
+        @media (max-width: 640px) {
+          .sender-loads-toast { top: auto !important; bottom: 80px !important; left: 16px !important; right: 16px !important; text-align: center; }
+          .sender-loads-header { flex-wrap: wrap !important; gap: 12px !important; margin-bottom: 20px !important; }
+          .sender-loads-header h1 { font-size: 20px !important; }
+          .sender-loads-post-btn { width: 100% !important; justify-content: center !important; }
+          .sender-load-card { padding: 14px 16px !important; }
+          .sender-load-card-inner { flex-direction: column !important; align-items: stretch !important; }
+          .sender-load-actions { justify-content: flex-start !important; flex-wrap: wrap !important; }
+          .sender-load-actions button { flex: 1 1 auto !important; min-height: 44px !important; }
+          .sender-modal-overlay { padding: 0 !important; align-items: flex-end !important; }
+          .sender-modal { max-width: 100% !important; width: 100% !important; margin: 0 !important; border-radius: 20px 20px 0 0 !important; max-height: 92vh !important; }
+          .sender-modal-body { padding: 18px !important; }
+          .sender-edit-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+          .sender-modal-btn { min-height: 44px !important; }
+          .sender-empty { padding: 48px 20px !important; }
+        }
+        @media (max-width: 380px) {
+          .sender-loads-header h1 { font-size: 18px !important; }
+        }
+      `}</style>
       {/* Toast */}
       {toast && (
-        <div style={{ position: "fixed", top: "24px", right: "24px", background: P, color: "#fff", padding: "12px 20px", borderRadius: "10px", fontSize: "13px", fontWeight: "600", zIndex: 9999, boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}>
+        <div className="sender-loads-toast" style={{ position: "fixed", top: "24px", right: "24px", background: P, color: "#fff", padding: "12px 20px", borderRadius: "10px", fontSize: "13px", fontWeight: "600", zIndex: 9999, boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}>
           {toast}
         </div>
       )}
 
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}>
+      <div className="sender-loads-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}>
         <div>
           <h1 style={{ margin: 0, fontSize: "22px", fontWeight: "800", color: P, letterSpacing: "-0.5px" }}>
             {user?.role === "CARGO_SENDER" ? "My loads" : "Available loads"}
@@ -175,7 +196,7 @@ export default function LoadsPage() {
           </div>
         </div>
         {user?.role === "CARGO_SENDER" && (
-          <button onClick={() => { if (user?.status !== "ACTIVE") { openGate(); return; } router.push("/dashboard/loads/new"); }}
+          <button className="sender-loads-post-btn" onClick={() => { if (user?.status !== "ACTIVE") { openGate(); return; } router.push("/dashboard/loads/new"); }}
             style={{ display: "flex", alignItems: "center", gap: "7px", background: P, color: "#fff", padding: "11px 20px", borderRadius: "10px", fontSize: "13px", fontWeight: "700", border: "none", cursor: "pointer", minHeight: "44px", transition: "opacity 0.15s" }}
             onMouseOver={e => (e.currentTarget.style.opacity = "0.9")}
             onMouseOut={e => (e.currentTarget.style.opacity = "1")}>
@@ -186,7 +207,7 @@ export default function LoadsPage() {
 
       {/* Loads list */}
       {loads.length === 0 ? (
-        <div style={{ background: "var(--surface)", borderRadius: "16px", padding: "72px 24px", textAlign: "center", border: "1px solid var(--border)" }}>
+        <div className="sender-empty" style={{ background: "var(--surface)", borderRadius: "16px", padding: "72px 24px", textAlign: "center", border: "1px solid var(--border)" }}>
           <div style={{ display: "inline-flex", padding: "16px", borderRadius: "16px", background: "var(--bg)", marginBottom: "16px", color: "#94A3B8" }}>
             <Package size={36} />
           </div>
@@ -208,11 +229,11 @@ export default function LoadsPage() {
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
           {loads.map((load: any) => (
-            <div key={load.id} onClick={() => router.push(`/dashboard/loads/${load.id}`)}
+            <div key={load.id} onClick={() => router.push(`/dashboard/loads/${load.id}`)} className="sender-load-card"
               style={{ background: "var(--surface)", borderRadius: "14px", border: "1px solid var(--border)", padding: "18px 20px", cursor: "pointer" }}
               onMouseOver={e => (e.currentTarget.style.background = "var(--bg)")}
               onMouseOut={e => (e.currentTarget.style.background = "var(--surface)")}>
-              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px" }}>
+              <div className="sender-load-card-inner" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px" }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px", flexWrap: "wrap" }}>
                     <div style={{ fontSize: "15px", fontWeight: "700", color: P }}>
@@ -237,7 +258,7 @@ export default function LoadsPage() {
                     <span>{formatDate(load.scheduledDate, { month: "short", day: "numeric" })}</span>
                   </div>
                 </div>
-                <div style={{ display: "flex", gap: "8px", alignItems: "center", flexShrink: 0 }}>
+                <div className="sender-load-actions" style={{ display: "flex", gap: "8px", alignItems: "center", flexShrink: 0 }}>
                   {canEdit(load) && (
                     <button onClick={e => { e.stopPropagation(); openEdit(load); }} style={{ display: "flex", alignItems: "center", gap: "4px", background: "#E8F0FF", border: "none", borderRadius: "7px", padding: "6px 12px", fontSize: "12px", fontWeight: "600", color: "#3D7BFF", cursor: "pointer", minHeight: "32px" }}>
                       <IconEdit />Edit
@@ -268,16 +289,16 @@ export default function LoadsPage() {
 
       {/* ── BID MODAL ── */}
       {bidLoad && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ background: "var(--surface)", borderRadius: "20px", width: "100%", maxWidth: "440px", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
+        <div className="sender-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div className="sender-modal" style={{ background: "var(--surface)", borderRadius: "20px", width: "100%", maxWidth: "440px", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
             <div style={{ padding: "20px 24px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div>
                 <div style={{ fontSize: "16px", fontWeight: "800", color: P }}>Send an offer</div>
                 <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginTop: "2px" }}>{bidLoad.title}</div>
               </div>
-              <button onClick={() => setBidLoad(null)} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "8px", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "var(--text-secondary)" }}><IconX /></button>
+              <button onClick={() => setBidLoad(null)} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "8px", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "var(--text-secondary)", flexShrink: 0 }}><IconX /></button>
             </div>
-            <div style={{ padding: "24px" }}>
+            <div className="sender-modal-body" style={{ padding: "24px" }}>
               <div style={{ background: "var(--bg)", borderRadius: "12px", padding: "14px", marginBottom: "20px" }}>
                 <div style={{ fontSize: "13px", color: "var(--text-secondary)", display: "inline-flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
                   {bidLoad.pickupCity} <ArrowRight size={12} color={A} /> {bidLoad.deliveryCity} · {bidLoad.weightTons}t
@@ -312,8 +333,8 @@ export default function LoadsPage() {
               </div>
 
               <div style={{ display: "flex", gap: "10px" }}>
-                <button onClick={() => setBidLoad(null)} style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-secondary)", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
-                <button onClick={submitBid} disabled={bidLoading || !bidTruck || !bidPrice}
+                <button className="sender-modal-btn" onClick={() => setBidLoad(null)} style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-secondary)", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
+                <button className="sender-modal-btn" onClick={submitBid} disabled={bidLoading || !bidTruck || !bidPrice}
                   style={{ flex: 2, padding: "12px", borderRadius: "10px", border: "none", background: P, color: "#fff", fontSize: "13px", fontWeight: "700", cursor: (bidLoading || !bidTruck || !bidPrice) ? "not-allowed" : "pointer", opacity: (bidLoading || !bidTruck || !bidPrice) ? 0.6 : 1 }}>
                   {bidLoading ? "Sending offer…" : "Send offer"}
                 </button>
@@ -325,15 +346,15 @@ export default function LoadsPage() {
 
       {/* ── EDIT MODAL ── */}
       {editLoad && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ background: "var(--surface)", borderRadius: "20px", width: "100%", maxWidth: "580px", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
+        <div className="sender-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div className="sender-modal" style={{ background: "var(--surface)", borderRadius: "20px", width: "100%", maxWidth: "580px", maxHeight: "90vh", overflowY: "auto", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
             <div style={{ padding: "20px 24px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div style={{ fontSize: "16px", fontWeight: "800", color: P }}>Edit load</div>
-              <button onClick={() => setEditLoad(null)} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "8px", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "var(--text-secondary)" }}><IconX /></button>
+              <button onClick={() => setEditLoad(null)} style={{ background: "var(--bg)", border: "1px solid var(--border)", borderRadius: "8px", width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "var(--text-secondary)", flexShrink: 0 }}><IconX /></button>
             </div>
-            <div style={{ padding: "24px" }}>
+            <div className="sender-modal-body" style={{ padding: "24px" }}>
               {editError && <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: "8px", padding: "10px 14px", marginBottom: "16px", fontSize: "13px", color: "#DC2626" }}>{editError}</div>}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+              <div className="sender-edit-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
                 <div style={{ gridColumn: "1/-1" }}>
                   <label style={lbl}>Title</label>
                   <input style={inp} value={editForm.title} onChange={e => setEditForm((p: any) => ({ ...p, title: e.target.value }))} />
@@ -382,8 +403,8 @@ export default function LoadsPage() {
                 </div>
               </div>
               <div style={{ display: "flex", gap: "10px", marginTop: "24px" }}>
-                <button onClick={() => setEditLoad(null)} style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-secondary)", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
-                <button onClick={submitEdit} disabled={editLoading} style={{ flex: 2, padding: "12px", borderRadius: "10px", border: "none", background: P, color: "#fff", fontSize: "13px", fontWeight: "700", cursor: editLoading ? "not-allowed" : "pointer", opacity: editLoading ? 0.7 : 1 }}>
+                <button className="sender-modal-btn" onClick={() => setEditLoad(null)} style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-secondary)", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
+                <button className="sender-modal-btn" onClick={submitEdit} disabled={editLoading} style={{ flex: 2, padding: "12px", borderRadius: "10px", border: "none", background: P, color: "#fff", fontSize: "13px", fontWeight: "700", cursor: editLoading ? "not-allowed" : "pointer", opacity: editLoading ? 0.7 : 1 }}>
                   {editLoading ? "Saving changes…" : "Save changes"}
                 </button>
               </div>
@@ -394,14 +415,14 @@ export default function LoadsPage() {
 
       {/* ── DELETE CONFIRM ── */}
       {deleteId && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ background: "var(--surface)", borderRadius: "20px", width: "100%", maxWidth: "400px", padding: "28px", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
+        <div className="sender-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div className="sender-modal" style={{ background: "var(--surface)", borderRadius: "20px", width: "100%", maxWidth: "400px", padding: "28px", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
             <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: "#FEF2F2", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 0 16px", color: "#DC2626" }}><IconTrash /></div>
             <div style={{ fontSize: "16px", fontWeight: "800", color: P, marginBottom: "8px" }}>Delete this load?</div>
             <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "24px", lineHeight: "1.6" }}>This can't be undone. The broker won't be able to dispatch a truck to it after this.</div>
             <div style={{ display: "flex", gap: "10px" }}>
-              <button onClick={() => setDeleteId(null)} style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-secondary)", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>Keep load</button>
-              <button onClick={confirmDelete} disabled={deleteLoading} style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "none", background: "#DC2626", color: "#fff", fontSize: "13px", fontWeight: "700", cursor: deleteLoading ? "not-allowed" : "pointer", opacity: deleteLoading ? 0.7 : 1 }}>
+              <button className="sender-modal-btn" onClick={() => setDeleteId(null)} style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text-secondary)", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>Keep load</button>
+              <button className="sender-modal-btn" onClick={confirmDelete} disabled={deleteLoading} style={{ flex: 1, padding: "12px", borderRadius: "10px", border: "none", background: "#DC2626", color: "#fff", fontSize: "13px", fontWeight: "700", cursor: deleteLoading ? "not-allowed" : "pointer", opacity: deleteLoading ? 0.7 : 1 }}>
                 {deleteLoading ? "Deleting…" : "Delete load"}
               </button>
             </div>

@@ -90,9 +90,31 @@ export default function ProfilePage() {
 
   return (
     <div style={{ maxWidth: "540px" }}>
+      <style>{`
+        @media (max-width: 640px) {
+          .profile-toast { top: auto !important; right: 16px !important; left: 16px !important; bottom: 84px !important; }
+          .profile-hero { padding: 24px 16px 20px !important; }
+          .profile-card { border-radius: 14px !important; }
+          .profile-card-header { padding: 14px 16px !important; }
+          .profile-field-row { padding: 12px 16px !important; }
+          .profile-country-row { padding: 12px 16px !important; }
+          .profile-account-lang { padding: 14px 16px !important; }
+          .profile-lang-btns { flex-wrap: wrap; gap: 6px !important; }
+          .profile-lang-btns > button { min-height: 44px; flex: 1 0 30%; }
+          .profile-pw-toggle { padding: 14px 16px !important; min-height: 44px; }
+          .profile-pw-body { padding: 0 16px 16px !important; }
+          .profile-verify-body { padding: 16px !important; }
+          .profile-verify-cta { flex-direction: column !important; align-items: stretch !important; gap: 12px; }
+          .profile-verify-cta-btn { width: 100%; min-height: 44px; }
+          .profile-signout-body { padding: 16px !important; }
+          .profile-signout-btn { width: 100%; justify-content: center; min-height: 44px; }
+          .profile-signout-confirm > button { flex: 1; min-width: 120px; min-height: 44px; }
+          .profile-edit-actions > button { min-height: 40px; }
+        }
+      `}</style>
       {/* Toast */}
       {toast && (
-        <div style={{ position: "fixed", top: "24px", right: "24px", background: P, color: "#FAFAF8", padding: "12px 20px", borderRadius: "10px", fontSize: "13px", fontWeight: "600", zIndex: 9999, boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}>
+        <div className="profile-toast" style={{ position: "fixed", top: "24px", right: "24px", background: P, color: "#FAFAF8", padding: "12px 20px", borderRadius: "10px", fontSize: "13px", fontWeight: "600", zIndex: 9999, boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}>
           {toast}
         </div>
       )}
@@ -104,7 +126,7 @@ export default function ProfilePage() {
       </div>
 
       {/* ── Hero: Avatar + Name + Badges ── */}
-      <div style={{ background: "var(--surface)", borderRadius: "16px", border: "1px solid var(--border)", padding: "32px 24px 24px", marginBottom: "12px", textAlign: "center" }}>
+      <div className="profile-hero profile-card" style={{ background: "var(--surface)", borderRadius: "16px", border: "1px solid var(--border)", padding: "32px 24px 24px", marginBottom: "12px", textAlign: "center" }}>
         {/* Avatar */}
         <div style={{ width: "88px", height: "88px", borderRadius: "50%", background: P, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "34px", fontWeight: "800", color: "#FAFAF8", margin: "0 auto 16px", border: "4px solid var(--border)" }}>
           {user?.fullName?.charAt(0)?.toUpperCase()}
@@ -130,8 +152,8 @@ export default function ProfilePage() {
       </div>
 
       {/* ── Card 1: Personal Info ── */}
-      <div style={{ background: "var(--surface)", borderRadius: "16px", border: "1px solid var(--border)", marginBottom: "12px", overflow: "hidden" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
+      <div className="profile-card" style={{ background: "var(--surface)", borderRadius: "16px", border: "1px solid var(--border)", marginBottom: "12px", overflow: "hidden" }}>
+        <div className="profile-card-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
           <span style={{ fontSize: "13px", fontWeight: "700", color: P }}>Personal information</span>
           {!editing ? (
             <button onClick={() => setEditing(true)} style={{ display: "flex", alignItems: "center", gap: "5px", background: "none", border: "none", color: A, fontSize: "12px", fontWeight: "700", cursor: "pointer", padding: "4px 8px" }}>
@@ -139,7 +161,7 @@ export default function ProfilePage() {
               Edit
             </button>
           ) : (
-            <div style={{ display: "flex", gap: "8px" }}>
+            <div className="profile-edit-actions" style={{ display: "flex", gap: "8px" }}>
               <button onClick={() => { setEditing(false); setSaveErr(""); setFullName(user?.fullName || ""); setCity((user as any)?.city || ""); setCountry((user as any)?.country || ""); }}
                 style={{ background: "none", border: "1px solid var(--border)", borderRadius: "7px", padding: "4px 12px", fontSize: "12px", color: "var(--text-secondary)", cursor: "pointer", fontWeight: "600" }}>Cancel</button>
               <button onClick={saveProfile} disabled={saving}
@@ -156,7 +178,7 @@ export default function ProfilePage() {
           { label: "Phone",        value: user?.phone || "", set: () => {}, editable: false, type: "text" },
           { label: "City",         value: city,      set: setCity,      editable: true,  type: "text"   },
         ].map(({ label, value, set, editable, type }) => (
-          <div key={label} style={{ display: "flex", alignItems: "center", padding: "14px 20px", borderBottom: "1px solid var(--bg)" }}>
+          <div key={label} className="profile-field-row" style={{ display: "flex", alignItems: "center", padding: "14px 20px", borderBottom: "1px solid var(--bg)" }}>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "2px" }}>{label}</div>
               {editing && editable ? (
@@ -170,7 +192,7 @@ export default function ProfilePage() {
         ))}
 
         {/* Country select */}
-        <div style={{ padding: "14px 20px" }}>
+        <div className="profile-country-row" style={{ padding: "14px 20px" }}>
           <div style={{ fontSize: "11px", color: "var(--text-muted)", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: editing ? "6px" : "2px" }}>Country</div>
           {editing ? (
             <select value={country} onChange={e => setCountry(e.target.value)} style={{ ...inp, padding: "6px 10px", fontSize: "13px" }}>
@@ -190,15 +212,15 @@ export default function ProfilePage() {
       </div>
 
       {/* ── Card 2: Account Settings ── */}
-      <div style={{ background: "var(--surface)", borderRadius: "16px", border: "1px solid var(--border)", marginBottom: "12px", overflow: "hidden" }}>
-        <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", fontSize: "13px", fontWeight: "700", color: P }}>Account settings</div>
+      <div className="profile-card" style={{ background: "var(--surface)", borderRadius: "16px", border: "1px solid var(--border)", marginBottom: "12px", overflow: "hidden" }}>
+        <div className="profile-card-header" style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", fontSize: "13px", fontWeight: "700", color: P }}>Account settings</div>
 
         {/* Language */}
-        <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
+        <div className="profile-account-lang" style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "var(--text-secondary)", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "10px" }}>
             <Languages size={13} /> Language
           </div>
-          <div style={{ display: "flex", gap: "8px" }}>
+          <div className="profile-lang-btns" style={{ display: "flex", gap: "8px" }}>
             {langs.map(lang => (
               <button key={lang.code} onClick={() => setLanguage(lang.code as any)}
                 style={{ flex: 1, padding: "10px 6px", borderRadius: "10px", border: `2px solid ${language === lang.code ? P : "var(--border)"}`, background: language === lang.code ? P : "var(--bg)", color: language === lang.code ? "#FAFAF8" : P, fontSize: "13px", fontWeight: "700", cursor: "pointer", transition: "all 0.15s", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -210,6 +232,7 @@ export default function ProfilePage() {
 
         {/* Change password toggle */}
         <button onClick={() => { setShowPw(!showPw); setPwErr(""); }}
+          className="profile-pw-toggle"
           style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", background: "none", border: "none", cursor: "pointer", borderBottom: showPw ? "1px solid var(--border)" : "none", transition: "background 0.15s" }}
           onMouseOver={e => { e.currentTarget.style.background = "var(--bg)"; }}
           onMouseOut={e => { e.currentTarget.style.background = "transparent"; }}>
@@ -220,7 +243,7 @@ export default function ProfilePage() {
           <ChevronRight size={14} color="var(--text-secondary)" style={{ transform: showPw ? "rotate(90deg)" : "none", transition: "transform 0.2s" }} />
         </button>
         {showPw && (
-          <div style={{ padding: "0 20px 20px" }}>
+          <div className="profile-pw-body" style={{ padding: "0 20px 20px" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               {[
                 { label: "Current password", val: currentPw, set: setCurrentPw },
@@ -243,9 +266,9 @@ export default function ProfilePage() {
       </div>
 
       {/* ── Card 3: Verification ── */}
-      <div style={{ background: "var(--surface)", borderRadius: "16px", border: "1px solid var(--border)", marginBottom: "12px", overflow: "hidden" }}>
-        <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", fontSize: "13px", fontWeight: "700", color: P }}>Verification</div>
-        <div style={{ padding: "20px" }}>
+      <div className="profile-card" style={{ background: "var(--surface)", borderRadius: "16px", border: "1px solid var(--border)", marginBottom: "12px", overflow: "hidden" }}>
+        <div className="profile-card-header" style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", fontSize: "13px", fontWeight: "700", color: P }}>Verification</div>
+        <div className="profile-verify-body" style={{ padding: "20px" }}>
           {user?.isVerified ? (
             <div style={{ display: "flex", alignItems: "center", gap: "14px", padding: "16px", background: "#F0FDF4", borderRadius: "12px", border: "1px solid #BBF7D0" }}>
               <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(22,163,74,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -267,7 +290,7 @@ export default function ProfilePage() {
               </div>
             </div>
           ) : (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "14px", padding: "16px", background: "#FFF7ED", borderRadius: "12px", border: "1px solid #FED7AA" }}>
+            <div className="profile-verify-cta" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "14px", padding: "16px", background: "#FFF7ED", borderRadius: "12px", border: "1px solid #FED7AA" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
                 <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "rgba(245,158,11,0.12)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                   <ShieldCheck size={20} color={A} />
@@ -278,6 +301,7 @@ export default function ProfilePage() {
                 </div>
               </div>
               <button onClick={() => router.push("/dashboard/verify")}
+                className="profile-verify-cta-btn"
                 style={{ background: A, border: "none", borderRadius: "8px", padding: "8px 14px", fontSize: "12px", fontWeight: "700", color: "#fff", cursor: "pointer", whiteSpace: "nowrap" }}>
                 Upload documents
               </button>
@@ -287,19 +311,20 @@ export default function ProfilePage() {
       </div>
 
       {/* ── Card 4: Sign out ── */}
-      <div style={{ background: "var(--surface)", borderRadius: "16px", border: "1px solid #FECACA", marginBottom: "32px", overflow: "hidden" }}>
-        <div style={{ padding: "16px 20px", borderBottom: "1px solid #FEF2F2", fontSize: "13px", fontWeight: "700", color: "#DC2626" }}>Sign out</div>
-        <div style={{ padding: "20px" }}>
+      <div className="profile-card" style={{ background: "var(--surface)", borderRadius: "16px", border: "1px solid #FECACA", marginBottom: "32px", overflow: "hidden" }}>
+        <div className="profile-card-header" style={{ padding: "16px 20px", borderBottom: "1px solid #FEF2F2", fontSize: "13px", fontWeight: "700", color: "#DC2626" }}>Sign out</div>
+        <div className="profile-signout-body" style={{ padding: "20px" }}>
           <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "14px" }}>
             You will be signed out of Sahid Freight on this device.
           </div>
           {!signOutConfirm ? (
             <button onClick={() => setSignOutConfirm(true)}
+              className="profile-signout-btn"
               style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: "9px", padding: "11px 20px", color: "#DC2626", fontSize: "13px", fontWeight: "700", cursor: "pointer" }}>
               <LogOut size={14} /> Sign out
             </button>
           ) : (
-            <div style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+            <div className="profile-signout-confirm" style={{ display: "flex", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
               <span style={{ fontSize: "13px", color: "#6B7280" }}>Sign out of Sahid on this device?</span>
               <button onClick={() => { logout(); router.push("/"); }}
                 style={{ background: "#DC2626", border: "none", borderRadius: "9px", padding: "11px 20px", color: "#fff", fontSize: "13px", fontWeight: "700", cursor: "pointer" }}>

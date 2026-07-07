@@ -115,12 +115,23 @@ export default function BrokerEarningsPage() {
         @media (max-width: 480px) {
           .earn-money-row { flex-direction: column !important; gap: 4px !important; }
         }
+        @media (max-width: 640px) {
+          .earn-header { flex-direction: column !important; align-items: stretch !important; margin-bottom: 20px !important; }
+          .earn-refresh { min-height: 44px; align-self: flex-start; }
+          .earn-title { font-size: 22px !important; }
+          .earn-booking-card { padding: 16px !important; border-radius: 14px !important; }
+          .earn-action-btn { min-height: 44px !important; }
+          .earn-backdrop { padding: 0 !important; align-items: flex-end !important; }
+          .earn-modal { max-width: 100% !important; width: 100% !important; border-radius: 20px 20px 0 0 !important; padding: 22px 20px 28px !important; max-height: 92vh; overflow-y: auto; }
+          .earn-modal-actions { flex-direction: column-reverse !important; }
+          .earn-modal-actions > button { min-height: 44px !important; }
+        }
       `}</style>
 
       {/* ── Page header ─────────────────────────────────────────── */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", flexWrap: "wrap", gap: "12px" }}>
+      <div className="earn-header" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "28px", flexWrap: "wrap", gap: "12px" }}>
         <div>
-          <h1 style={{ fontSize: "26px", fontWeight: 800, color: NAVY, margin: "0 0 4px", letterSpacing: "-0.5px" }}>
+          <h1 className="earn-title" style={{ fontSize: "26px", fontWeight: 800, color: NAVY, margin: "0 0 4px", letterSpacing: "-0.5px" }}>
             Earnings
           </h1>
           <p style={{ fontSize: "14px", color: MUTED, margin: 0 }}>
@@ -130,6 +141,7 @@ export default function BrokerEarningsPage() {
         <button
           onClick={onRefresh}
           disabled={refreshing}
+          className="earn-refresh"
           style={{ background: "#FFFFFF", border: `1px solid ${BD}`, borderRadius: "10px", padding: "9px 16px", fontSize: "13px", fontWeight: 600, color: MUTED, cursor: refreshing ? "default" : "pointer", opacity: refreshing ? 0.6 : 1, fontFamily: "inherit" }}
         >
           {refreshing ? "Refreshing…" : "Refresh"}
@@ -227,7 +239,7 @@ function BookingCard({
   const currency = booking.currency || "ETB";
 
   return (
-    <div style={{ background: "#FFFFFF", border: `1px solid ${BD}`, borderRadius: "16px", padding: "20px", marginBottom: "12px", boxShadow: CARD_SHADOW }}>
+    <div className="earn-booking-card" style={{ background: "#FFFFFF", border: `1px solid ${BD}`, borderRadius: "16px", padding: "20px", marginBottom: "12px", boxShadow: CARD_SHADOW }}>
       {/* Header row */}
       <div style={{ display: "flex", alignItems: "flex-start", gap: "12px", marginBottom: "14px" }}>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -262,12 +274,12 @@ function BookingCard({
 
       {/* Action */}
       {s === "NEEDS_COLLECTION" && (
-        <button onClick={onCollect} style={btnStyle("blue")}>
+        <button onClick={onCollect} style={btnStyle("blue")} className="earn-action-btn">
           Record payment received
         </button>
       )}
       {s === "NEEDS_PAYOUT" && (
-        <button onClick={onPayout} style={btnStyle("blue")}>
+        <button onClick={onPayout} style={btnStyle("blue")} className="earn-action-btn">
           Mark owner paid
         </button>
       )}
@@ -368,9 +380,10 @@ function ModalOverlay({ onClose, children }: { onClose: () => void; children: Re
     <div
       ref={backdropRef}
       onClick={handleBackdrop}
+      className="earn-backdrop"
       style={{ position: "fixed", inset: 0, background: "rgba(10,31,68,0.45)", zIndex: 9000, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}
     >
-      <div style={{ background: "#FFFFFF", borderRadius: "20px", padding: "28px", width: "100%", maxWidth: "440px", boxShadow: "0 24px 64px rgba(10,31,68,0.18)" }}>
+      <div className="earn-modal" style={{ background: "#FFFFFF", borderRadius: "20px", padding: "28px", width: "100%", maxWidth: "440px", boxShadow: "0 24px 64px rgba(10,31,68,0.18)" }}>
         {children}
       </div>
     </div>
@@ -485,7 +498,7 @@ function CollectModal({
       />
       <p style={{ ...fieldHint, marginBottom: "24px" }}>You can leave this blank now and set it when you pay the owner.</p>
 
-      <div style={{ display: "flex", gap: "10px" }}>
+      <div className="earn-modal-actions" style={{ display: "flex", gap: "10px" }}>
         <button onClick={onClose} disabled={loading} style={{ flex: 1, background: "#F8FAFC", border: `1px solid ${BD}`, borderRadius: "10px", padding: "13px", fontSize: "14px", fontWeight: 600, color: NAVY, cursor: "pointer", fontFamily: "inherit" }}>
           Cancel
         </button>
@@ -558,7 +571,7 @@ function PayoutModal({
           : `Enter what you're paying ${ownerName}.`}
       </p>
 
-      <div style={{ display: "flex", gap: "10px" }}>
+      <div className="earn-modal-actions" style={{ display: "flex", gap: "10px" }}>
         <button onClick={onClose} disabled={loading} style={{ flex: 1, background: "#F8FAFC", border: `1px solid ${BD}`, borderRadius: "10px", padding: "13px", fontSize: "14px", fontWeight: 600, color: NAVY, cursor: "pointer", fontFamily: "inherit" }}>
           Cancel
         </button>

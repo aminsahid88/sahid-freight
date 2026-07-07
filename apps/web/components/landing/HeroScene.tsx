@@ -49,24 +49,30 @@ function buildArcCurve(from: THREE.Vector3, to: THREE.Vector3, lift = 0.35) {
 }
 
 /* ── Globe: wireframe sphere w/ soft fill ─────────────────────────── */
-function Globe() {
+function Globe({ compact }: { compact: boolean }) {
   const groupRef = useRef<THREE.Group>(null);
 
   useFrame((_, delta) => {
     if (groupRef.current) groupRef.current.rotation.y += delta * 0.06;
   });
 
+  // Fewer polygons on phones — the wireframe is still readable and the
+  // GPU work drops meaningfully.
+  const solidSeg = compact ? 32 : 64;
+  const wireSeg  = compact ? 22 : 42;
+  const wireSlic = compact ? 16 : 30;
+
   return (
     <group ref={groupRef}>
       {/* Solid dark sphere (slightly smaller so the wireframe reads on top) */}
       <mesh>
-        <sphereGeometry args={[RADIUS * 0.995, 64, 64]} />
+        <sphereGeometry args={[RADIUS * 0.995, solidSeg, solidSeg]} />
         <meshBasicMaterial color={NAVY} transparent opacity={0.92} />
       </mesh>
 
       {/* Wireframe overlay */}
       <mesh>
-        <sphereGeometry args={[RADIUS, 42, 30]} />
+        <sphereGeometry args={[RADIUS, wireSeg, wireSlic]} />
         <meshBasicMaterial color={BLUE} wireframe transparent opacity={0.22} />
       </mesh>
 
@@ -81,7 +87,7 @@ function Globe() {
         const from = latLngToVec3(CITIES[a].lat, CITIES[a].lng, RADIUS * 1.01);
         const to   = latLngToVec3(CITIES[b].lat, CITIES[b].lng, RADIUS * 1.01);
         const curve = buildArcCurve(from, to);
-        return <RouteArc key={i} curve={curve} phase={i * 0.15} />;
+        return <RouteArc key={i} curve={curve} phase={i * 0.15} compact={compact} />;
       })}
     </group>
   );
@@ -114,8 +120,8 @@ function CityMarker({ position }: { position: THREE.Vector3 }) {
 }
 
 /* ── Route: full arc as a subtle line + moving "packet" bead ─────── */
-function RouteArc({ curve, phase }: { curve: THREE.QuadraticBezierCurve3; phase: number }) {
-  const points = useMemo(() => curve.getPoints(64), [curve]);
+function RouteArc({ curve, phase, compact }: { curve: THREE.QuadraticBezierCurve3; phase: number; compact: boolean }) {
+  const points = useMemo(() => curve.getPoints(compact ? 32 : 64), [curve, compact]);
   const geo = useMemo(() => new THREE.BufferGeometry().setFromPoints(points), [points]);
   const packetRef = useRef<THREE.Mesh>(null);
 
@@ -201,6 +207,7 @@ export default function HeroScene() {
   const pointerRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const wrapRef    = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(true);
+  const [compact, setCompact] = useState(false);
 
   // Pause frameloop when the hero scrolls offscreen.
   useEffect(() => {
@@ -214,8 +221,25 @@ export default function HeroScene() {
     return () => io.disconnect();
   }, []);
 
-  // Track mouse for parallax (normalized -1..1)
+  // Detect small / touch viewports and go compact:
+  //   – fewer geometry segments, fewer stars, smaller camera FOV
+  //   – no mousemove parallax (touch devices don't have hover).
   useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const mql = window.matchMedia("(max-width: 640px), (hover: none) and (pointer: coarse)");
+    const update = () => setCompact(mql.matches);
+    update();
+    if (mql.addEventListener) mql.addEventListener("change", update);
+    else mql.addListener(update);
+    return () => {
+      if (mql.removeEventListener) mql.removeEventListener("change", update);
+      else mql.removeListener(update);
+    };
+  }, []);
+
+  // Track mouse for parallax (normalized -1..1). Skipped on touch.
+  useEffect(() => {
+    if (compact) return;
     const onMove = (e: MouseEvent) => {
       const w = window.innerWidth;
       const h = window.innerHeight;
@@ -226,22 +250,22 @@ export default function HeroScene() {
     };
     window.addEventListener("mousemove", onMove, { passive: true });
     return () => window.removeEventListener("mousemove", onMove);
-  }, []);
+  }, [compact]);
 
   return (
     <div ref={wrapRef} style={{ position: "absolute", inset: 0 }}>
       <Canvas
-        camera={{ position: [0, 0.2, 3.1], fov: 42 }}
-        dpr={[1, 2]}
+        camera={{ position: [0, 0.2, 3.1], fov: compact ? 48 : 42 }}
+        dpr={compact ? [1, 1.5] : [1, 2]}
         frameloop={visible ? "always" : "never"}
-        gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+        gl={{ antialias: !compact, alpha: true, powerPreference: "high-performance" }}
         style={{ background: "transparent" }}
       >
         <ambientLight intensity={0.6} />
         <directionalLight position={[3, 2, 4]} intensity={0.6} />
-        <Stars radius={40} depth={20} count={1200} factor={2.6} saturation={0} fade speed={0.4} />
+        <Stars radius={40} depth={20} count={compact ? 400 : 1200} factor={2.6} saturation={0} fade speed={0.4} />
         <Atmosphere />
-        <Globe />
+        <Globe compact={compact} />
         <CameraRig pointer={pointerRef} />
       </Canvas>
     </div>

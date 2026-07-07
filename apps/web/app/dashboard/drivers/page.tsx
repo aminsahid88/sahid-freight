@@ -82,19 +82,32 @@ export default function DriversPage() {
 
   return (
     <div>
+      <style>{`
+        @media (max-width: 640px) {
+          .drivers-toast { top: auto !important; right: 16px !important; left: 16px !important; bottom: 84px !important; }
+          .drivers-header { flex-direction: column !important; align-items: stretch !important; gap: 12px; margin-bottom: 20px !important; }
+          .drivers-add-btn { justify-content: center !important; width: 100%; min-height: 44px; }
+          .drivers-list-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+          .drivers-card { padding: 16px !important; }
+          .drivers-details-grid { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
+          .drivers-modal-overlay { padding: 0 !important; align-items: flex-end !important; }
+          .drivers-modal-sheet { max-width: 100% !important; width: 100% !important; margin: 0 !important; border-radius: 20px 20px 0 0 !important; padding: 24px 20px 28px !important; max-height: 92vh; overflow-y: auto; }
+          .drivers-modal-actions > button { min-height: 44px; }
+        }
+      `}</style>
       {toast && (
-        <div style={{ position: "fixed", top: "24px", right: "24px", background: "var(--primary)", color: "#FAFAF8", padding: "12px 20px", borderRadius: "10px", fontSize: "13px", fontWeight: "600", zIndex: 9999 }}>
+        <div className="drivers-toast" style={{ position: "fixed", top: "24px", right: "24px", background: "var(--primary)", color: "#FAFAF8", padding: "12px 20px", borderRadius: "10px", fontSize: "13px", fontWeight: "600", zIndex: 9999 }}>
           {toast}
         </div>
       )}
 
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}>
+      <div className="drivers-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}>
         <div>
           <h1 style={{ margin: 0, fontSize: "22px", fontWeight: "800", color: "var(--primary)", letterSpacing: "-0.5px" }}>Drivers</h1>
           <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginTop: "3px" }}>People who drive your trucks.</div>
         </div>
-        <button onClick={() => setShowAdd(true)}
+        <button onClick={() => setShowAdd(true)} className="drivers-add-btn"
           style={{ display: "flex", alignItems: "center", gap: "7px", background: "var(--primary)", color: "#FAFAF8", padding: "10px 18px", borderRadius: "9px", fontSize: "13px", fontWeight: "700", border: "none", cursor: "pointer" }}>
           <UserPlus size={15} /> Add driver
         </button>
@@ -114,9 +127,9 @@ export default function DriversPage() {
           </button>
         </div>
       ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "14px" }}>
+        <div className="drivers-list-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "14px" }}>
           {drivers.map((driver: any) => (
-            <div key={driver.id} style={{ background: "var(--surface)", borderRadius: "14px", padding: "20px", border: "1px solid var(--border)" }}>
+            <div key={driver.id} className="drivers-card" style={{ background: "var(--surface)", borderRadius: "14px", padding: "20px", border: "1px solid var(--border)" }}>
               {/* Top row: avatar + name + delete */}
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "14px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -139,7 +152,7 @@ export default function DriversPage() {
               </div>
 
               {/* Details */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "12px" }}>
+              <div className="drivers-details-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "12px" }}>
                 <div style={{ background: "var(--bg)", borderRadius: "8px", padding: "9px 11px" }}>
                   <div style={{ fontSize: "10px", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "3px" }}>License</div>
                   <div style={{ fontSize: "12px", fontWeight: "600", color: "var(--primary)", display: "flex", alignItems: "center", gap: "4px" }}>
@@ -180,8 +193,8 @@ export default function DriversPage() {
 
       {/* Add Driver Modal */}
       {showAdd && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-          <div style={{ background: "var(--surface)", borderRadius: "16px", width: "100%", maxWidth: "440px", padding: "28px", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
+        <div className="drivers-modal-overlay" style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+          <div className="drivers-modal-sheet" style={{ background: "var(--surface)", borderRadius: "16px", width: "100%", maxWidth: "440px", padding: "28px", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
             <div style={{ fontSize: "17px", fontWeight: "800", color: "var(--primary)", marginBottom: "4px" }}>Add a driver</div>
             <div style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "20px" }}>Creates a driver account they can sign in with.</div>
 
@@ -219,7 +232,7 @@ export default function DriversPage() {
               </div>
             </div>
 
-            <div style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
+            <div className="drivers-modal-actions" style={{ display: "flex", gap: "10px", marginTop: "20px" }}>
               <button onClick={() => { setShowAdd(false); setError(""); setForm({ fullName: "", phone: "", licenseNumber: "", password: "", country: "ETHIOPIA", city: "" }); }}
                 style={{ flex: 1, padding: "11px", borderRadius: "9px", border: "1px solid var(--border)", background: "var(--surface)", color: "#6b7280", fontSize: "13px", fontWeight: "600", cursor: "pointer" }}>
                 Cancel

@@ -72,12 +72,27 @@ export default function TrucksPage() {
 
   return (
     <div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}>
+        <style>{`
+          @media (max-width: 640px) {
+            .trucks-header { flex-direction: column !important; align-items: stretch !important; gap: 12px; margin-bottom: 20px !important; }
+            .trucks-h1 { font-size: 22px !important; letter-spacing: -0.5px !important; }
+            .trucks-add-btn { justify-content: center; width: 100%; padding: 14px 20px !important; }
+            .trucks-list-grid { grid-template-columns: 1fr !important; gap: 12px !important; }
+            .trucks-card { padding: 16px !important; border-radius: 14px !important; }
+            .trucks-card-top { flex-wrap: wrap; gap: 10px; }
+            .trucks-stats-grid { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
+            .trucks-driver-row { flex-direction: column !important; align-items: stretch !important; gap: 10px; }
+            .trucks-change-driver-btn { width: 100%; min-height: 44px; }
+            .trucks-footer-row { flex-direction: column !important; align-items: stretch !important; gap: 10px; }
+            .trucks-find-loads-btn { width: 100%; justify-content: center; min-height: 44px; }
+          }
+        `}</style>
+        <div className="trucks-header" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}>
           <div>
-            <h1 style={{ fontSize: "28px", fontWeight: "800", color: "var(--primary)", margin: "0 0 4px", letterSpacing: "-1px" }}>My trucks</h1>
+            <h1 className="trucks-h1" style={{ fontSize: "28px", fontWeight: "800", color: "var(--primary)", margin: "0 0 4px", letterSpacing: "-1px" }}>My trucks</h1>
             <p style={{ color: "var(--text-secondary)", fontSize: "15px", margin: 0 }}>Every truck registered to your account.</p>
           </div>
-          <a href="/dashboard/trucks/new" style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "var(--primary)", color: "#FAFAF8", padding: "12px 20px", borderRadius: "10px", fontSize: "14px", fontWeight: "700", textDecoration: "none" }}>
+          <a href="/dashboard/trucks/new" className="trucks-add-btn" style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "var(--primary)", color: "#FAFAF8", padding: "12px 20px", borderRadius: "10px", fontSize: "14px", fontWeight: "700", textDecoration: "none" }}>
             <Plus size={16} /> Add truck
           </a>
         </div>
@@ -106,11 +121,11 @@ export default function TrucksPage() {
             </a>
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px" }}>
+          <div className="trucks-list-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px" }}>
             {trucks.map((truck: any) => (
-              <div key={truck.id} style={{ background: "var(--surface)", borderRadius: "16px", padding: "24px", border: "1px solid rgba(10,31,68,0.06)", boxShadow: "0 2px 8px rgba(10,31,68,0.04)" }}>
+              <div key={truck.id} className="trucks-card" style={{ background: "var(--surface)", borderRadius: "16px", padding: "24px", border: "1px solid rgba(10,31,68,0.06)", boxShadow: "0 2px 8px rgba(10,31,68,0.04)" }}>
 
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
+                <div className="trucks-card-top" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
                     <div style={{ width: "48px", height: "48px", background: "var(--bg)", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px" }}>
                       <Truck size={20} />
@@ -133,7 +148,7 @@ export default function TrucksPage() {
                   </div>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "16px" }}>
+                <div className="trucks-stats-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "16px" }}>
                   {[
                     ["Capacity", `${truck.capacityTons} tons`],
                     ["Location", truck.currentCity],
@@ -149,7 +164,7 @@ export default function TrucksPage() {
 
                 {/* Driver assignment */}
                 <div style={{ marginBottom: "14px", background: "var(--bg)", borderRadius: "10px", padding: "12px 14px" }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div className="trucks-driver-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div>
                       <div style={{ fontSize: "11px", color: "var(--text-secondary)", letterSpacing: "1px", textTransform: "uppercase" as const, marginBottom: "3px" }}>Permanent driver</div>
                       <div style={{ fontSize: "14px", fontWeight: "600", color: "var(--primary)" }}>
@@ -159,6 +174,7 @@ export default function TrucksPage() {
                     </div>
                     <button
                       onClick={() => setAssigningTruck(assigningTruck === truck.id ? null : truck.id)}
+                      className="trucks-change-driver-btn"
                       style={{ background: "none", border: "1px solid var(--border)", borderRadius: "8px", padding: "6px 12px", color: "var(--primary)", fontSize: "12px", fontWeight: "600", cursor: "pointer", transition: "background 0.15s" }}
                       onMouseOver={e => { e.currentTarget.style.background = "var(--surface)"; }}
                       onMouseOut={e => { e.currentTarget.style.background = "transparent"; }}
@@ -202,12 +218,13 @@ export default function TrucksPage() {
                   )}
                 </div>
 
-                <div style={{ paddingTop: "14px", borderTop: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div className="trucks-footer-row" style={{ paddingTop: "14px", borderTop: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>
                     Added {formatDate(truck.createdAt)}
                   </span>
                   <button
                     onClick={() => router.push(`/dashboard/loads`)}
+                    className="trucks-find-loads-btn"
                     style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "none", border: "1px solid var(--border)", borderRadius: "8px", padding: "7px 14px", color: "var(--primary)", fontSize: "13px", fontWeight: "600", cursor: "pointer", transition: "background 0.15s" }}
                     onMouseOver={e => { e.currentTarget.style.background = "var(--bg)"; }}
                     onMouseOut={e => { e.currentTarget.style.background = "transparent"; }}

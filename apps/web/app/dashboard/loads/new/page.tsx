@@ -67,7 +67,7 @@ export default function NewLoadPage() {
   const countries = [{ value: "ETHIOPIA", label: "Ethiopia" }, { value: "SOMALIA", label: "Somalia" }, { value: "DJIBOUTI", label: "Djibouti" }];
 
   if (user && user.role !== "CARGO_SENDER") return (
-    <div style={{ minHeight: "60vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "16px", padding: "40px 24px", textAlign: "center" as const }}>
+    <div className="new-load-gate" style={{ minHeight: "60vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "16px", padding: "40px 24px", textAlign: "center" as const }}>
       <div style={{ width: "64px", height: "64px", background: "#fef2f2", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", color: "#dc2626" }}>
         <AlertTriangle size={28} />
       </div>
@@ -85,7 +85,7 @@ export default function NewLoadPage() {
   );
 
   if (!user?.isVerified) return (
-    <div style={{ minHeight: "60vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "16px", padding: "40px 24px", textAlign: "center" as const }}>
+    <div className="new-load-gate" style={{ minHeight: "60vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "16px", padding: "40px 24px", textAlign: "center" as const }}>
       <div style={{ width: "64px", height: "64px", background: "#fff7ed", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--accent)" }}>
         <ShieldCheck size={28} />
       </div>
@@ -106,25 +106,44 @@ export default function NewLoadPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)", fontFamily: "'Inter, system-ui, sans-serif" }}>
-      <style>{`@media(max-width:640px){.price-grid{grid-template-columns:1fr!important;}}`}</style>
+      <style>{`
+        @media (max-width: 640px) {
+          .price-grid { grid-template-columns: 1fr !important; }
+          .new-load-nav { padding: 0 16px !important; height: 56px !important; }
+          .new-load-nav img { height: 32px !important; }
+          .new-load-nav-back { padding: 8px 12px !important; font-size: 13px !important; min-height: 40px !important; }
+          .new-load-container { padding: 20px 16px !important; }
+          .new-load-title { font-size: 22px !important; }
+          .new-load-card { padding: 20px !important; border-radius: 16px !important; }
+          .new-load-info-grid { grid-template-columns: 1fr !important; gap: 14px !important; }
+          .new-load-route-grid { grid-template-columns: 1fr !important; gap: 14px !important; }
+          .new-load-actions { flex-direction: column-reverse !important; gap: 10px !important; }
+          .new-load-actions button { width: 100% !important; min-height: 44px !important; }
+          .new-load-gate { padding: 32px 20px !important; }
+          .new-load-gate h2 { font-size: 18px !important; }
+        }
+        @media (max-width: 380px) {
+          .new-load-title { font-size: 20px !important; }
+        }
+      `}</style>
 
       {/* Nav */}
-      <div style={{ background: "var(--primary)", padding: "0 32px", height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky" as const, top: 0, zIndex: 100 }}>
+      <div className="new-load-nav" style={{ background: "var(--primary)", padding: "0 32px", height: "64px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky" as const, top: 0, zIndex: 100 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <img src="/logo.svg" alt="Sahid Freight" style={{ height: "40px", objectFit: "contain" }} />
         </div>
-        <button onClick={() => router.push("/dashboard")} style={{ background: "rgba(240,235,224,0.08)", border: "none", borderRadius: "8px", padding: "8px 16px", color: "rgba(240,235,224,0.6)", fontSize: "14px", cursor: "pointer" }}>
+        <button className="new-load-nav-back" onClick={() => router.push("/dashboard")} style={{ background: "rgba(240,235,224,0.08)", border: "none", borderRadius: "8px", padding: "8px 16px", color: "rgba(240,235,224,0.6)", fontSize: "14px", cursor: "pointer" }}>
           ← Back to dashboard
         </button>
       </div>
 
-      <div style={{ maxWidth: "800px", margin: "0 auto", padding: "40px 32px" }}>
+      <div className="new-load-container" style={{ maxWidth: "800px", margin: "0 auto", padding: "40px 32px" }}>
         <div style={{ marginBottom: "32px" }}>
-          <h1 style={{ fontSize: "28px", fontWeight: "800", color: "var(--primary)", margin: "0 0 4px", letterSpacing: "-1px" }}>Post a new load</h1>
+          <h1 className="new-load-title" style={{ fontSize: "28px", fontWeight: "800", color: "var(--primary)", margin: "0 0 4px", letterSpacing: "-1px" }}>Post a new load</h1>
           <p style={{ color: "var(--text-secondary)", fontSize: "15px", margin: 0 }}>Fill in the details — a broker will dispatch a verified truck.</p>
         </div>
 
-        <div style={{ background: "var(--surface)", borderRadius: "20px", padding: "40px", boxShadow: "0 2px 4px rgba(26,39,68,0.04), 0 16px 48px rgba(26,39,68,0.08)", border: "1px solid rgba(26,39,68,0.06)" }}>
+        <div className="new-load-card" style={{ background: "var(--surface)", borderRadius: "20px", padding: "40px", boxShadow: "0 2px 4px rgba(26,39,68,0.04), 0 16px 48px rgba(26,39,68,0.08)", border: "1px solid rgba(26,39,68,0.06)" }}>
 
           {error && (
             <div style={{ background: "#fff5f5", border: "1px solid #fecaca", borderRadius: "10px", padding: "14px 16px", marginBottom: "28px", display: "flex", gap: "12px", alignItems: "flex-start" }}>
@@ -147,7 +166,7 @@ export default function NewLoadPage() {
                 <div style={{ width: "28px", height: "28px", background: "var(--primary)", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", color: "#FAFAF8", fontWeight: "700" }}>1</div>
                 <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--primary)", margin: 0 }}>Load information</h3>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+              <div className="new-load-info-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                 <div style={{ gridColumn: "1 / -1" }}>
                   <label style={labelStyle}>Load title</label>
                   <input type="text" value={form.title} onChange={(e) => update("title", e.target.value)} placeholder="e.g. Cement bags to Dire Dawa" required onFocus={() => setFocused("title")} onBlur={() => setFocused(null)} style={inputStyle("title")} />
@@ -176,7 +195,7 @@ export default function NewLoadPage() {
                 <div style={{ width: "28px", height: "28px", background: "var(--primary)", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", color: "#FAFAF8", fontWeight: "700" }}>2</div>
                 <h3 style={{ fontSize: "16px", fontWeight: "700", color: "var(--primary)", margin: 0 }}>Route</h3>
               </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+              <div className="new-load-route-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                 <div>
                   <label style={labelStyle}>Pickup city</label>
                   <input type="text" value={form.pickupCity} onChange={(e) => update("pickupCity", e.target.value)} placeholder="e.g. Addis Ababa" required onFocus={() => setFocused("pickupCity")} onBlur={() => setFocused(null)} style={inputStyle("pickupCity")} />
@@ -238,11 +257,11 @@ export default function NewLoadPage() {
               </div>
             </div>
 
-            <div style={{ display: "flex", gap: "12px" }}>
-              <button type="button" onClick={() => router.push("/dashboard")} style={{ flex: 1, background: "var(--bg)", border: "none", borderRadius: "10px", padding: "15px", color: "var(--primary)", fontSize: "15px", fontWeight: "700", cursor: "pointer" }}>
+            <div className="new-load-actions" style={{ display: "flex", gap: "12px" }}>
+              <button type="button" onClick={() => router.push("/dashboard")} style={{ flex: 1, background: "var(--bg)", border: "none", borderRadius: "10px", padding: "15px", color: "var(--primary)", fontSize: "15px", fontWeight: "700", cursor: "pointer", minHeight: "44px" }}>
                 Cancel
               </button>
-              <button type="submit" disabled={loading} style={{ flex: 2, background: loading ? "var(--border)" : "var(--primary)", border: "none", borderRadius: "10px", padding: "15px", color: loading ? "#aaa" : "#FAFAF8", fontSize: "15px", fontWeight: "700", cursor: loading ? "not-allowed" : "pointer", transition: "all 0.2s" }}>
+              <button type="submit" disabled={loading} style={{ flex: 2, background: loading ? "var(--border)" : "var(--primary)", border: "none", borderRadius: "10px", padding: "15px", color: loading ? "#aaa" : "#FAFAF8", fontSize: "15px", fontWeight: "700", cursor: loading ? "not-allowed" : "pointer", transition: "all 0.2s", minHeight: "44px" }}>
                 {loading ? "Posting your load…" : "Post load"}
               </button>
             </div>

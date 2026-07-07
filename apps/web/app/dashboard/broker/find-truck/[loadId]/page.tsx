@@ -131,6 +131,34 @@ export default function FindTruckPage() {
 
   return (
     <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+      <style>{`
+        @media (max-width: 640px) {
+          .find-truck-h1 { font-size: 22px !important; }
+          .find-truck-context { padding: 16px 16px !important; border-radius: 12px !important; }
+          .find-truck-context-title { font-size: 16px !important; }
+          .find-truck-context-meta { font-size: 12px !important; gap: 6px !important; }
+          .find-truck-chips {
+            flex-wrap: nowrap !important;
+            overflow-x: auto !important;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 4px;
+            margin-left: -16px;
+            margin-right: -16px;
+            padding-left: 16px;
+            padding-right: 16px;
+          }
+          .find-truck-chips::-webkit-scrollbar { display: none; }
+          .find-truck-chip { flex-shrink: 0; scroll-snap-align: start; min-height: 40px; }
+          .find-truck-card { padding: 16px !important; }
+          .find-truck-row-value { max-width: 60% !important; font-size: 12px !important; }
+          .find-truck-dispatch-btn { min-height: 44px !important; }
+          .find-truck-modal-backdrop { padding: 0 !important; align-items: flex-end !important; }
+          .find-truck-modal-card { max-width: 100% !important; width: 100% !important; border-radius: 20px 20px 0 0 !important; padding: 22px 20px 26px !important; max-height: 92vh; overflow-y: auto; }
+          .find-truck-modal-actions { flex-direction: column-reverse !important; }
+          .find-truck-modal-actions > button { min-height: 44px !important; }
+        }
+      `}</style>
       {/* Back link */}
       <button onClick={() => router.push("/dashboard/broker")} style={styles.backBtn}>
         <ChevronLeft size={16} strokeWidth={2.4} /> Back to dashboard
@@ -138,7 +166,7 @@ export default function FindTruckPage() {
 
       {/* Page header */}
       <div style={{ marginBottom: "16px" }}>
-        <h1 style={{ fontSize: "26px", fontWeight: 800, color: "var(--primary)", margin: "0 0 4px", letterSpacing: "-0.5px" }}>
+        <h1 className="find-truck-h1" style={{ fontSize: "26px", fontWeight: 800, color: "var(--primary)", margin: "0 0 4px", letterSpacing: "-0.5px" }}>
           Find a truck
         </h1>
         <p style={{ fontSize: "14px", color: MUTED, margin: 0 }}>
@@ -148,10 +176,10 @@ export default function FindTruckPage() {
 
       {/* Load context strip */}
       {load ? (
-        <section style={styles.loadContext}>
+        <section style={styles.loadContext} className="find-truck-context">
           <div style={styles.loadContextLabel}>DISPATCHING</div>
-          <div style={styles.loadContextTitle}>{load.title}</div>
-          <div style={styles.loadContextMeta}>
+          <div style={styles.loadContextTitle} className="find-truck-context-title">{load.title}</div>
+          <div style={styles.loadContextMeta} className="find-truck-context-meta">
             <span>{load.weightTons}t</span>
             <Dot />
             <span>{load.pickupCity} → {load.deliveryCity}</span>
@@ -173,7 +201,7 @@ export default function FindTruckPage() {
       )}
 
       {/* Filter chips */}
-      <div style={styles.chipsRow}>
+      <div style={styles.chipsRow} className="find-truck-chips">
         <Chip label="Available now" active={filterAvailable} onClick={() => setFilterAvailable((v) => !v)} />
         <Chip
           label={load?.pickupCity ? `Near ${load.pickupCity}` : "Near pickup"}
@@ -253,6 +281,7 @@ function Chip({ label, active, onClick }: { label: string; active: boolean; onCl
   return (
     <button
       onClick={onClick}
+      className="find-truck-chip"
       style={{
         ...styles.chip,
         background: active ? NAVY : "#FFFFFF",
@@ -276,6 +305,7 @@ function TruckCard({
 
   return (
     <article
+      className="find-truck-card"
       style={{
         ...styles.truckCard,
         background: eligible ? "#FFFFFF" : DISABLED,
@@ -309,7 +339,7 @@ function TruckCard({
           {truck._near && (
             <span style={{ ...styles.pill, background: AMBER_BG, color: AMBER_FG, borderColor: AMBER_BD, fontSize: "9px", padding: "2px 8px" }}>NEAR</span>
           )}
-          <span style={{ ...styles.truckRowValue, color: eligible ? P : SUBTLE }}>
+          <span className="find-truck-row-value" style={{ ...styles.truckRowValue, color: eligible ? P : SUBTLE }}>
             {truck.currentCity}{truck.currentCountry ? `, ${truck.currentCountry}` : ""}
           </span>
         </span>
@@ -317,7 +347,7 @@ function TruckCard({
 
       <div style={styles.truckRow}>
         <span style={styles.truckRowLabel}>Driver</span>
-        <span style={{ ...styles.truckRowValue, color: eligible ? P : SUBTLE }}>
+        <span className="find-truck-row-value" style={{ ...styles.truckRowValue, color: eligible ? P : SUBTLE }}>
           {truck.driver?.fullName
             ? `${truck.driver.fullName}${truck.driver.licenseNumber ? ` · #${truck.driver.licenseNumber}` : ""}`
             : "No driver attached"}
@@ -343,6 +373,7 @@ function TruckCard({
           <button
             onClick={onDispatch}
             disabled={anyDispatching}
+            className="find-truck-dispatch-btn"
             style={{
               ...(isBestMatch ? styles.dispatchPrimary : styles.dispatchSecondary),
               ...(anyDispatching && { opacity: 0.5, cursor: "not-allowed" }),
@@ -365,8 +396,8 @@ function ConfirmModal({
   load, truck, loading, onConfirm, onCancel,
 }: { load: Load; truck: Truck; loading: boolean; onConfirm: () => void; onCancel: () => void }) {
   return (
-    <div style={styles.modalBackdrop} onClick={() => !loading && onCancel()}>
-      <div style={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+    <div style={styles.modalBackdrop} className="find-truck-modal-backdrop" onClick={() => !loading && onCancel()}>
+      <div style={styles.modalCard} className="find-truck-modal-card" onClick={(e) => e.stopPropagation()}>
         <div style={styles.modalTitle}>Dispatch this truck?</div>
         <p style={{ fontSize: "13px", color: MUTED, margin: "-8px 0 12px", lineHeight: 1.5 }}>
           The cargo owner and truck owner will be notified, and the load will be marked as booked.
@@ -394,7 +425,7 @@ function ConfirmModal({
         <div style={styles.modalNote}>
           The cargo owner and truck owner will be notified, and the load will move to <strong>in transit</strong> immediately.
         </div>
-        <div style={styles.modalActions}>
+        <div style={styles.modalActions} className="find-truck-modal-actions">
           <button onClick={onCancel} disabled={loading} style={styles.modalCancel}>Cancel</button>
           <button
             onClick={onConfirm}
