@@ -65,6 +65,13 @@ export const envSchema = z.object({
   MAX_UPLOAD_MB: z.coerce.number().int().positive().max(100).default(25),
   MAX_FILES_PER_BATCH: z.coerce.number().int().positive().max(100).default(20),
   WORKER_POLL_MS: z.coerce.number().int().min(100).default(2000),
+
+  // ── Legacy marketplace (archived behind a flag; see docs/12-decisions-log.md) ──
+  /** "true" keeps the Sahid Freight loads/bookings/payments routes mounted. Defaults on until Amin approves switching it off. */
+  LEGACY_MARKETPLACE: z
+    .string()
+    .default("true")
+    .transform((v) => v.trim().toLowerCase() !== "false"),
 });
 
 export type Env = z.infer<typeof envSchema>;

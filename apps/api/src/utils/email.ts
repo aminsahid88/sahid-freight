@@ -4,11 +4,19 @@ import path from "path";
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Built lazily: constructing Resend without a key throws, which used to crash the
+// whole API at import time in environments without email (local dev, tests).
+let resend: Resend | null = null;
+function client(): Resend {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) throw new Error("RESEND_API_KEY is not set; email sending is disabled in this environment");
+  if (!resend) resend = new Resend(key);
+  return resend;
+}
 
 export const sendOTPEmail = async (email: string, otp: string): Promise<void> => {
   try {
-    const result = await resend.emails.send({
+    const result = await client().emails.send({
       from: "Sahid Freight <noreply@sahidfreight.com>",
       to: email,
       subject: "Your Sahid Freight Verification Code",

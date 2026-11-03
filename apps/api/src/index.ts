@@ -112,19 +112,27 @@ app.get("/stats/public", async (_req, res) => {
     res.json({ totalLoads: 0, totalTrucks: 0, countries: 3 });
   }
 });
+// Shared with the back-office platform: identity, notifications, platform admin.
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
-app.use("/loads", loadRoutes);
-app.use("/bookings", bookingRoutes);
-app.use("/trucks", truckRoutes);
-app.use("/tracking", trackingRoutes);
 app.use("/notifications", notificationRoutes);
-app.use("/uploads", uploadRoutes);
 app.use("/admin", adminRoutes);
-app.use("/drivers", driverRoutes);
-app.use("/bids", bidRoutes);
-app.use("/messages", messageRoutes);
-app.use("/payments", paymentRoutes);
+
+// ── Legacy marketplace (Sahid Freight) — archived behind LEGACY_MARKETPLACE ──
+// Loads/bookings may be reused for the Phase 3 revenue & invoicing module.
+if (env.LEGACY_MARKETPLACE) {
+  app.use("/loads", loadRoutes);
+  app.use("/bookings", bookingRoutes);
+  app.use("/trucks", truckRoutes);
+  app.use("/tracking", trackingRoutes);
+  app.use("/uploads", uploadRoutes);
+  app.use("/drivers", driverRoutes);
+  app.use("/bids", bidRoutes);
+  app.use("/messages", messageRoutes);
+  app.use("/payments", paymentRoutes);
+} else {
+  console.log("LEGACY_MARKETPLACE=false: marketplace routes not mounted");
+}
 
 // ── Back-office platform (companies, vehicles, drivers, documents, audit) ──
 const { storage } = mountBackoffice(app, { prisma, env });
