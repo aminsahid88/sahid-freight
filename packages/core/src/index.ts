@@ -4,3 +4,4 @@ export * from "./files";
 export * from "./audit";
 export * from "./ifta";
 export * from "./csv";
+export * from "./rules";
