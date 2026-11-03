@@ -105,6 +105,7 @@ enum Country {
   ETHIOPIA
   SOMALIA
   DJIBOUTI
+  USA
 }
 
 enum Language {
@@ -177,28 +178,28 @@ enum OtpPurpose {
 // ─────────────────────────────────────────
 
 model User {
-  id                String      @id @default(uuid())
+  id                String     @id @default(uuid())
   fullName          String
-  email             String?     @unique
-  phone             String      @unique
+  email             String?    @unique
+  phone             String     @unique
   passwordHash      String?
-  firebaseUid       String?     @unique
-  phoneVerified     Boolean     @default(false)
-  googleId          String?     @unique
-  appleId           String?     @unique
+  firebaseUid       String?    @unique
+  phoneVerified     Boolean    @default(false)
+  googleId          String?    @unique
+  appleId           String?    @unique
   pushToken         String?
   role              UserRole
-  status            UserStatus  @default(PENDING_VERIFICATION)
-  country           Country     @default(ETHIOPIA)
-  city              String      @default("")
-  preferredLanguage Language    @default(EN)
+  status            UserStatus @default(PENDING_VERIFICATION)
+  country           Country    @default(ETHIOPIA)
+  city              String     @default("")
+  preferredLanguage Language   @default(EN)
   profilePhoto      String?
   licenseNumber     String?
-  isVerified        Boolean     @default(false)
+  isVerified        Boolean    @default(false)
   averageRating     Float?
-  totalRatings      Int         @default(0)
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
+  totalRatings      Int        @default(0)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
 
   trucks            Truck[]
   drivenTrucks      Truck[]            @relation("TruckDriver")
@@ -216,12 +217,21 @@ model User {
   proofsSubmitted   ProofOfDelivery[]
   bidsPlaced        Bid[]              @relation("BidsAsOwner")
   notifications     Notification[]
-  messagesSent     Message[] @relation("MessagesSent")
-  messagesReceived Message[] @relation("MessagesReceived")
+  messagesSent      Message[]          @relation("MessagesSent")
+  messagesReceived  Message[]          @relation("MessagesReceived")
   payments          Payment[]
   refreshTokens     RefreshToken[]
   senderProfile     SenderProfile?
   truckOwnerProfile TruckOwnerProfile?
+
+  // ── Back-office (additive, 2026-11) ──
+  memberships       Membership[]
+  uploadedDocuments Document[]        @relation("DocumentUploader")
+  auditLogs         AuditLog[]
+  driverProfiles    Driver[]
+  fieldEdits        FieldEdit[]
+  approvals         Approval[]
+  deletionRequests  DeletionRequest[]
 }
 
 // ─────────────────────────────────────────
@@ -243,13 +253,13 @@ model RefreshToken {
 
 model Otp {
   id         String     @id @default(uuid())
-  identifier String                              // the email (or phone later) the code was sent to
+  identifier String // the email (or phone later) the code was sent to
   channel    OtpChannel @default(EMAIL)
-  codeHash   String                              // bcrypt(code) — never store plaintext
+  codeHash   String // bcrypt(code) — never store plaintext
   purpose    OtpPurpose
-  expiresAt  DateTime                            // now + 10 min
-  attempts   Int        @default(0)              // failed verifies; lock at 5
-  consumedAt DateTime?                           // single-use; non-null once verified
+  expiresAt  DateTime // now + 10 min
+  attempts   Int        @default(0) // failed verifies; lock at 5
+  consumedAt DateTime? // single-use; non-null once verified
   createdAt  DateTime   @default(now())
 
   @@index([identifier, purpose])
@@ -278,9 +288,9 @@ model Truck {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  bookings       Booking[]
-  locations      TruckLocation[]
-  bids           Bid[]
+  bookings  Booking[]
+  locations TruckLocation[]
+  bids      Bid[]
 }
 
 // ─────────────────────────────────────────
@@ -288,34 +298,34 @@ model Truck {
 // ─────────────────────────────────────────
 
 model Load {
-  id              String     @id @default(uuid())
-  senderId        String
-  sender          User       @relation(fields: [senderId], references: [id])
-  title           String
-  description     String?
-  weightTons      Float
-  truckTypeNeeded TruckType
-  pickupCity      String
-  pickupCountry   Country
-  pickupLat       Float?
-  pickupLng       Float?
-  deliveryCity    String
-  deliveryCountry Country
-  deliveryLat     Float?
-  deliveryLng     Float?
-  offeredPrice    Float
-  currency        String     @default("USD")
-  status          LoadStatus @default(OPEN)
-  scheduledDate   DateTime
+  id                 String     @id @default(uuid())
+  senderId           String
+  sender             User       @relation(fields: [senderId], references: [id])
+  title              String
+  description        String?
+  weightTons         Float
+  truckTypeNeeded    TruckType
+  pickupCity         String
+  pickupCountry      Country
+  pickupLat          Float?
+  pickupLng          Float?
+  deliveryCity       String
+  deliveryCountry    Country
+  deliveryLat        Float?
+  deliveryLng        Float?
+  offeredPrice       Float
+  currency           String     @default("USD")
+  status             LoadStatus @default(OPEN)
+  scheduledDate      DateTime
   // When a broker posts a load on behalf of an offline cargo owner who doesn't
   // have an account, these capture the real contact. NULL on sender-posted loads.
   externalOwnerName  String?
   externalOwnerPhone String?
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
 
-  bookings        Booking[]
-  bids            Bid[]
+  bookings Booking[]
+  bids     Bid[]
 }
 
 // ─────────────────────────────────────────
@@ -343,39 +353,39 @@ model Bid {
 // ─────────────────────────────────────────
 
 model Booking {
-  id          String        @id @default(uuid())
-  loadId      String
-  load        Load          @relation(fields: [loadId], references: [id])
-  truckId     String
-  truck       Truck         @relation(fields: [truckId], references: [id])
-  senderId    String
-  sender      User          @relation("SenderBookings", fields: [senderId], references: [id])
-  ownerId     String
-  owner       User          @relation("OwnerBookings", fields: [ownerId], references: [id])
-  driverId    String?
-  driver      User?         @relation("DriverBookings", fields: [driverId], references: [id])
-  brokerId    String?
-  broker      User?         @relation("BrokerBookings", fields: [brokerId], references: [id])
-  status      BookingStatus @default(PENDING)
-  agreedPrice Float
-  currency    String        @default("USD")
+  id                String        @id @default(uuid())
+  loadId            String
+  load              Load          @relation(fields: [loadId], references: [id])
+  truckId           String
+  truck             Truck         @relation(fields: [truckId], references: [id])
+  senderId          String
+  sender            User          @relation("SenderBookings", fields: [senderId], references: [id])
+  ownerId           String
+  owner             User          @relation("OwnerBookings", fields: [ownerId], references: [id])
+  driverId          String?
+  driver            User?         @relation("DriverBookings", fields: [driverId], references: [id])
+  brokerId          String?
+  broker            User?         @relation("BrokerBookings", fields: [brokerId], references: [id])
+  status            BookingStatus @default(PENDING)
+  agreedPrice       Float
+  currency          String        @default("USD")
   // Broker record-only ledger (Option B). All nullable; broker writes them
   // after collecting cash from the cargo owner / paying the truck owner offline.
   // Does NOT replace the Payment model (which is sender→gateway processing).
-  brokerCutAmount     Float?
-  ownerPayoutAmount   Float?
-  brokerCollectedAt   DateTime?
-  ownerPaidOutAt      DateTime?
-  pickedUpAt      DateTime?
-  deliveredAt     DateTime?
-  senderRating    Int?
-  ownerRating     Int?
-  senderComment   String?
-  ownerComment    String?
-  senderRatedAt   DateTime?
-  ownerRatedAt    DateTime?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  brokerCutAmount   Float?
+  ownerPayoutAmount Float?
+  brokerCollectedAt DateTime?
+  ownerPaidOutAt    DateTime?
+  pickedUpAt        DateTime?
+  deliveredAt       DateTime?
+  senderRating      Int?
+  ownerRating       Int?
+  senderComment     String?
+  ownerComment      String?
+  senderRatedAt     DateTime?
+  ownerRatedAt      DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
   payment         Payment?
   proofOfDelivery ProofOfDelivery?
@@ -401,22 +411,22 @@ model TruckLocation {
 // ─────────────────────────────────────────
 
 model Payment {
-  id              String          @id @default(uuid())
-  bookingId       String          @unique
-  booking         Booking         @relation(fields: [bookingId], references: [id])
-  payerId         String
-  payer           User            @relation(fields: [payerId], references: [id])
-  amount          Float
-  currency        String          @default("USD")
-  method          PaymentMethod?
-  provider        PaymentProvider @default(CASH)
-  status          PaymentStatus   @default(PENDING)
-  transactionRef  String?
-  providerRef     String?
-  providerStatus  String?
-  paidAt          DateTime?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  id             String          @id @default(uuid())
+  bookingId      String          @unique
+  booking        Booking         @relation(fields: [bookingId], references: [id])
+  payerId        String
+  payer          User            @relation(fields: [payerId], references: [id])
+  amount         Float
+  currency       String          @default("USD")
+  method         PaymentMethod?
+  provider       PaymentProvider @default(CASH)
+  status         PaymentStatus   @default(PENDING)
+  transactionRef String?
+  providerRef    String?
+  providerStatus String?
+  paidAt         DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
 }
 
 // ─────────────────────────────────────────
@@ -424,15 +434,15 @@ model Payment {
 // ─────────────────────────────────────────
 
 model ProofOfDelivery {
-  id            String                @id @default(uuid())
-  bookingId     String                @unique
-  booking       Booking               @relation(fields: [bookingId], references: [id])
+  id            String   @id @default(uuid())
+  bookingId     String   @unique
+  booking       Booking  @relation(fields: [bookingId], references: [id])
   notes         String?
   submittedById String
-  submittedBy   User                  @relation(fields: [submittedById], references: [id])
-  submittedAt   DateTime              @default(now())
+  submittedBy   User     @relation(fields: [submittedById], references: [id])
+  submittedAt   DateTime @default(now())
 
-  photos        ProofOfDeliveryPhoto[]
+  photos ProofOfDeliveryPhoto[]
 }
 
 model ProofOfDeliveryPhoto {
@@ -501,7 +511,7 @@ model SenderProfile {
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 
-  documents          VerificationDocument[]
+  documents VerificationDocument[]
 }
 
 // ─────────────────────────────────────────
@@ -519,7 +529,7 @@ model TruckOwnerProfile {
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
 
-  documents          VerificationDocument[]
+  documents VerificationDocument[]
 }
 
 // ─────────────────────────────────────────
@@ -527,17 +537,17 @@ model TruckOwnerProfile {
 // ─────────────────────────────────────────
 
 model VerificationDocument {
-  id                  String             @id @default(uuid())
-  documentType        DocumentType
-  fileUrl             String
-  fileName            String
-  fileSize            Int
-  mimeType            String
-  status              VerificationStatus @default(PENDING)
-  rejectionReason     String?
-  reviewedBy          String?
-  reviewedAt          DateTime?
-  uploadedAt          DateTime           @default(now())
+  id              String             @id @default(uuid())
+  documentType    DocumentType
+  fileUrl         String
+  fileName        String
+  fileSize        Int
+  mimeType        String
+  status          VerificationStatus @default(PENDING)
+  rejectionReason String?
+  reviewedBy      String?
+  reviewedAt      DateTime?
+  uploadedAt      DateTime           @default(now())
 
   senderProfileId     String?
   senderProfile       SenderProfile?     @relation(fields: [senderProfileId], references: [id])
@@ -550,14 +560,658 @@ model VerificationDocument {
 // ─────────────────────────────────────────
 
 model Message {
-  id          String   @id @default(uuid())
-  senderId    String
-  receiverId  String
-  bookingId   String?
-  content     String
-  read        Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  sender      User     @relation("MessagesSent", fields: [senderId], references: [id])
-  receiver    User     @relation("MessagesReceived", fields: [receiverId], references: [id])
-  booking     Booking? @relation(fields: [bookingId], references: [id])
+  id         String   @id @default(uuid())
+  senderId   String
+  receiverId String
+  bookingId  String?
+  content    String
+  read       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  sender     User     @relation("MessagesSent", fields: [senderId], references: [id])
+  receiver   User     @relation("MessagesReceived", fields: [receiverId], references: [id])
+  booking    Booking? @relation(fields: [bookingId], references: [id])
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// BACK-OFFICE PLATFORM (additive, 2026-11). Source: docs/kit-schema.prisma.
+// Every tenant-owned table carries companyId. Money Decimal(12,2); gallons and
+// miles Decimal(12,3). Kit `User` merged into the existing User; kit `Role` is
+// CompanyRole; kit `Language` reuses the existing enum (EN/SO).
+// ═════════════════════════════════════════════════════════════════════════════
+
+enum CompanyRole {
+  OWNER
+  STAFF
+  DRIVER
+  REVIEWER
+  PARTNER
+  ADMIN
+}
+
+enum Channel {
+  WEB
+  PWA
+  MOBILE
+  EMAIL
+  SMS
+  WHATSAPP
+  FUEL_CARD_IMPORT
+  ELD_IMPORT
+}
+
+enum PeriodType {
+  MONTH
+  QUARTER
+  YEAR
+}
+
+enum PeriodStatus {
+  OPEN
+  IN_REVIEW
+  APPROVED
+  LOCKED
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  DONE
+  FAILED
+}
+
+enum DocumentStatus {
+  RECEIVED
+  PROCESSING
+  PROCESSED
+  FAILED
+  UNREADABLE
+}
+
+enum TxStatus {
+  VERIFIED
+  NEEDS_ATTENTION
+  UNABLE_TO_VERIFY
+}
+
+enum TxType {
+  FUEL
+  EXPENSE
+  REFUND
+  CREDIT
+  OTHER
+  UNKNOWN
+}
+
+enum LineCategory {
+  MOTOR_FUEL
+  REEFER_FUEL
+  DEF
+  NON_FUEL
+  TAX
+  FEE
+  DISCOUNT
+  CREDIT
+}
+
+enum Corroboration {
+  SINGLE_SOURCE
+  TWO_PASS
+  RECEIPT_AND_CARD
+  HUMAN_CONFIRMED
+}
+
+enum Severity {
+  ERROR
+  WARNING
+  INFO
+}
+
+enum IssueStatus {
+  OPEN
+  RESOLVED
+  ACCEPTED
+}
+
+enum Legibility {
+  CLEAR
+  PARTIAL
+  UNREADABLE
+}
+
+enum ReportType {
+  PERIOD_PDF
+  TRANSACTIONS_CSV
+  SUPPORT_ZIP
+  IFTA_WORKSHEET
+}
+
+enum ReportStatus {
+  PRELIMINARY
+  REVIEWED
+}
+
+enum DeletionRequestStatus {
+  QUEUED
+  APPROVED
+  EXECUTED
+  REJECTED
+}
+
+model Organization {
+  id        String    @id @default(uuid())
+  name      String
+  isPartner Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  companies Company[]
+}
+
+model Company {
+  id                   String       @id @default(uuid())
+  organizationId       String
+  organization         Organization @relation(fields: [organizationId], references: [id])
+  legalName            String
+  dba                  String?
+  usdot                String?
+  mcNumber             String?
+  iftaBaseJurisdiction String?
+  iftaAccountEnc       String? // field-level encrypted, never logged
+  language             Language     @default(EN)
+  timezone             String       @default("America/Chicago")
+  inboundEmailSlug     String       @unique
+  isDemo               Boolean      @default(false)
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  memberships      Membership[]
+  vehicles         Vehicle[]
+  drivers          Driver[]
+  periods          ReportingPeriod[]
+  documents        Document[]
+  batches          Batch[]
+  transactions     Transaction[]
+  issues           Issue[]
+  reports          Report[]
+  fuelCardImports  FuelCardImport[]
+  mileageImports   MileageImport[]
+  auditLogs        AuditLog[]
+  settings         Setting[]
+  fieldEdits       FieldEdit[]
+  approvals        Approval[]
+  deletionRequests DeletionRequest[]
+  jobs             Job[]
+}
+
+model Membership {
+  id        String      @id @default(uuid())
+  userId    String
+  companyId String
+  role      CompanyRole
+  createdAt DateTime    @default(now())
+  user      User        @relation(fields: [userId], references: [id])
+  company   Company     @relation(fields: [companyId], references: [id])
+
+  @@unique([userId, companyId, role])
+  @@index([companyId])
+  @@index([userId])
+}
+
+model Vehicle {
+  id              String    @id @default(uuid())
+  companyId       String
+  company         Company   @relation(fields: [companyId], references: [id])
+  unitNumber      String
+  vin             String?
+  plate           String?
+  axles           Int?
+  iftaQualified   Boolean   @default(true)
+  tankCapacityGal Decimal?  @db.Decimal(12, 3)
+  eldProvider     String?
+  activeFrom      DateTime?
+  activeTo        DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  drivers      Driver[]
+  transactions Transaction[]
+  mileage      MileageRecord[]
+
+  @@unique([companyId, unitNumber])
+}
+
+model Driver {
+  id               String   @id @default(uuid())
+  companyId        String
+  company          Company  @relation(fields: [companyId], references: [id])
+  name             String
+  phone            String?
+  userId           String? // optional login identity for the capture app
+  user             User?    @relation(fields: [userId], references: [id])
+  defaultVehicleId String?
+  defaultVehicle   Vehicle? @relation(fields: [defaultVehicleId], references: [id])
+  language         Language @default(EN)
+  active           Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([companyId, phone])
+}
+
+model ReportingPeriod {
+  id        String       @id @default(uuid())
+  companyId String
+  company   Company      @relation(fields: [companyId], references: [id])
+  type      PeriodType
+  startDate DateTime     @db.Date
+  endDate   DateTime     @db.Date
+  status    PeriodStatus @default(OPEN)
+  createdAt DateTime     @default(now())
+
+  transactions Transaction[]
+  reports      Report[]
+
+  @@unique([companyId, type, startDate])
+}
+
+model IntakeMessage {
+  id          String     @id @default(uuid())
+  companyId   String? // null until attributed
+  channel     Channel
+  sender      String
+  rawEnvelope Json
+  attribution String // matched | unassigned | rejected
+  receivedAt  DateTime   @default(now())
+  documents   Document[]
+
+  @@index([companyId, receivedAt])
+}
+
+model Batch {
+  id        String     @id @default(uuid())
+  companyId String
+  company   Company    @relation(fields: [companyId], references: [id])
+  createdBy String
+  channel   Channel
+  status    JobStatus  @default(QUEUED)
+  fileCount Int        @default(0)
+  createdAt DateTime   @default(now())
+  documents Document[]
+
+  @@index([companyId, createdAt])
+}
+
+model Document {
+  id                 String           @id @default(uuid())
+  companyId          String
+  company            Company          @relation(fields: [companyId], references: [id])
+  batchId            String?
+  batch              Batch?           @relation(fields: [batchId], references: [id])
+  intakeMessageId    String?
+  intakeMessage      IntakeMessage?   @relation(fields: [intakeMessageId], references: [id])
+  channel            Channel
+  uploadedById       String?
+  uploadedBy         User?            @relation("DocumentUploader", fields: [uploadedById], references: [id])
+  storageKey         String // immutable original
+  filename           String
+  mimeType           String
+  sizeBytes          Int
+  sha256             String
+  status             DocumentStatus   @default(RECEIVED)
+  isExactDuplicateOf String? // first document in the company with the same sha256
+  qualityScore       Decimal?         @db.Decimal(4, 3)
+  receivedAt         DateTime         @default(now())
+  retentionUntil     DateTime
+  deletedAt          DateTime? // soft delete only; hard delete is blocked inside retention
+  regions            DocumentRegion[]
+  issues             Issue[]
+
+  @@index([companyId, sha256])
+  @@index([companyId, receivedAt])
+  @@index([companyId, status])
+}
+
+model DocumentRegion {
+  id          String          @id @default(uuid())
+  documentId  String
+  document    Document        @relation(fields: [documentId], references: [id])
+  page        Int
+  bbox        Json?
+  runs        ExtractionRun[]
+  transaction Transaction?
+
+  @@index([documentId])
+}
+
+model ExtractionRun {
+  id            String           @id @default(uuid())
+  regionId      String
+  region        DocumentRegion   @relation(fields: [regionId], references: [id])
+  pass          String // "A" | "B"
+  modelId       String
+  promptVersion String
+  rawResponse   Json
+  inputTokens   Int?
+  outputTokens  Int?
+  costUsd       Decimal?         @db.Decimal(10, 5)
+  latencyMs     Int?
+  status        JobStatus
+  createdAt     DateTime         @default(now())
+  fields        ExtractedField[]
+
+  @@unique([regionId, pass, modelId, promptVersion])
+}
+
+model ExtractedField {
+  id         String        @id @default(uuid())
+  runId      String
+  run        ExtractionRun @relation(fields: [runId], references: [id])
+  name       String
+  rawText    String?
+  value      String? // normalized, stored as string; typed in the domain layer
+  confidence Decimal?      @db.Decimal(4, 3)
+  legibility Legibility
+  bbox       Json?
+
+  @@index([runId])
+}
+
+model Transaction {
+  id                 String            @id @default(uuid())
+  companyId          String
+  company            Company           @relation(fields: [companyId], references: [id])
+  periodId           String?
+  period             ReportingPeriod?  @relation(fields: [periodId], references: [id])
+  regionId           String?           @unique
+  region             DocumentRegion?   @relation(fields: [regionId], references: [id])
+  vehicleId          String?
+  vehicle            Vehicle?          @relation(fields: [vehicleId], references: [id])
+  driverId           String?
+  type               TxType            @default(UNKNOWN)
+  date               DateTime?         @db.Date
+  time               String?
+  vendor             String?
+  sellerAddress      String?
+  state              String?
+  stateSource        String? // printed | lookup | user
+  unitNumberRaw      String?
+  odometer           Decimal?          @db.Decimal(12, 1)
+  paymentMethod      String?
+  cardLast4          String?
+  receiptTotal       Decimal?          @db.Decimal(12, 2)
+  currency           String?           @default("USD")
+  iftaTaxableGallons Decimal?          @db.Decimal(12, 3) // computed by code: motor fuel only
+  status             TxStatus          @default(NEEDS_ATTENTION)
+  corroboration      Corroboration     @default(SINGLE_SOURCE)
+  provenance         Json // field -> {passA, passB, final, finalSource, bbox}
+  verifiedAt         DateTime?
+  verifiedBy         String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  lines              TransactionLine[]
+  issues             Issue[]
+  matches            Match[]
+
+  @@index([companyId, date])
+  @@index([companyId, state])
+  @@index([companyId, status])
+}
+
+model TransactionLine {
+  id             String       @id @default(uuid())
+  transactionId  String
+  transaction    Transaction  @relation(fields: [transactionId], references: [id])
+  descriptionRaw String
+  category       LineCategory
+  fuelType       String?
+  quantity       Decimal?     @db.Decimal(12, 3)
+  unit           String?
+  unitPrice      Decimal?     @db.Decimal(12, 4)
+  amount         Decimal?     @db.Decimal(12, 2)
+
+  @@index([transactionId])
+}
+
+model FuelCardImport {
+  id             String                @id @default(uuid())
+  companyId      String
+  company        Company               @relation(fields: [companyId], references: [id])
+  provider       String // comdata | wex_efs | atob | tcs | generic
+  mappingVersion String
+  documentId     String?
+  importedAt     DateTime              @default(now())
+  rows           FuelCardTransaction[]
+
+  @@index([companyId, importedAt])
+}
+
+model FuelCardTransaction {
+  id         String         @id @default(uuid())
+  importId   String
+  import     FuelCardImport @relation(fields: [importId], references: [id])
+  companyId  String
+  date       DateTime       @db.Date
+  location   String?
+  state      String?
+  unitNumber String?
+  cardLast4  String?
+  fuelType   String?
+  gallons    Decimal?       @db.Decimal(12, 3)
+  amount     Decimal?       @db.Decimal(12, 2)
+  raw        Json
+  matches    Match[]
+
+  @@index([companyId, date])
+}
+
+model MileageImport {
+  id         String          @id @default(uuid())
+  companyId  String
+  company    Company         @relation(fields: [companyId], references: [id])
+  provider   String
+  documentId String?
+  importedAt DateTime        @default(now())
+  records    MileageRecord[]
+
+  @@index([companyId, importedAt])
+}
+
+model MileageRecord {
+  id           String        @id @default(uuid())
+  importId     String
+  import       MileageImport @relation(fields: [importId], references: [id])
+  companyId    String
+  vehicleId    String
+  vehicle      Vehicle       @relation(fields: [vehicleId], references: [id])
+  jurisdiction String
+  periodStart  DateTime      @db.Date
+  periodEnd    DateTime      @db.Date
+  totalMiles   Decimal       @db.Decimal(12, 3)
+  taxableMiles Decimal       @db.Decimal(12, 3)
+
+  @@index([companyId, vehicleId, periodStart])
+}
+
+model Match {
+  id                String              @id @default(uuid())
+  transactionId     String
+  transaction       Transaction         @relation(fields: [transactionId], references: [id])
+  cardTransactionId String
+  cardTransaction   FuelCardTransaction @relation(fields: [cardTransactionId], references: [id])
+  score             Decimal             @db.Decimal(4, 3)
+  fieldsUsed        Json
+  ruleVersion       String
+  createdAt         DateTime            @default(now())
+
+  @@unique([transactionId, cardTransactionId])
+}
+
+model Issue {
+  id             String       @id @default(uuid())
+  companyId      String
+  company        Company      @relation(fields: [companyId], references: [id])
+  transactionId  String?
+  transaction    Transaction? @relation(fields: [transactionId], references: [id])
+  documentId     String?
+  document       Document?    @relation(fields: [documentId], references: [id])
+  code           String // e.g. F001, D001
+  ruleVersion    String
+  severity       Severity
+  message        String
+  fields         String[]
+  evidence       Json
+  status         IssueStatus  @default(OPEN)
+  resolvedBy     String?
+  resolutionNote String?
+  resolvedAt     DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([companyId, status])
+  @@index([documentId])
+  @@index([transactionId])
+}
+
+model FieldEdit {
+  id        String   @id @default(uuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id])
+  entity    String // Transaction | TransactionLine | ...
+  entityId  String
+  field     String
+  oldValue  String?
+  newValue  String?
+  reason    String
+  evidence  Json?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([companyId, entity, entityId])
+}
+
+model Approval {
+  id        String   @id @default(uuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id])
+  target    String // correction | period | report
+  targetId  String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([companyId, target, targetId])
+}
+
+model DeletionRequest {
+  id             String                @id @default(uuid())
+  companyId      String
+  company        Company               @relation(fields: [companyId], references: [id])
+  entity         String // Document | ...
+  entityId       String
+  reason         String
+  retentionUntil DateTime
+  status         DeletionRequestStatus @default(QUEUED)
+  requestedById  String
+  requestedBy    User                  @relation(fields: [requestedById], references: [id])
+  decidedBy      String?
+  decidedAt      DateTime?
+  createdAt      DateTime              @default(now())
+
+  @@index([companyId, status])
+}
+
+model Jurisdiction {
+  code       String  @id // e.g. OH, ON
+  name       String
+  country    String // US | CA
+  iftaMember Boolean @default(true)
+}
+
+model IftaRate {
+  id           String   @id @default(uuid())
+  quarter      String // e.g. 2026Q4
+  jurisdiction String
+  fuelType     String
+  rate         Decimal  @db.Decimal(10, 5)
+  surcharge    Decimal? @db.Decimal(10, 5)
+  sourceUrl    String
+  importedAt   DateTime @default(now())
+
+  @@unique([quarter, jurisdiction, fuelType])
+}
+
+model StationDirectory {
+  id      String  @id @default(uuid())
+  brand   String
+  storeNo String?
+  address String
+  city    String
+  state   String
+
+  @@index([brand, storeNo])
+}
+
+model Report {
+  id           String          @id @default(uuid())
+  companyId    String
+  company      Company         @relation(fields: [companyId], references: [id])
+  periodId     String
+  period       ReportingPeriod @relation(fields: [periodId], references: [id])
+  type         ReportType
+  status       ReportStatus
+  snapshotHash String
+  fileKey      String
+  generatedBy  String
+  createdAt    DateTime        @default(now())
+
+  @@index([companyId, periodId])
+}
+
+/// Append-only. A database trigger (migration add_backoffice_core) rejects
+/// UPDATE and DELETE on this table; the tenant client blocks them too.
+model AuditLog {
+  id        String   @id @default(uuid())
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id])
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  action    String // see AUDIT_ACTIONS in @tbo/core
+  target    String?
+  meta      Json?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@index([companyId, createdAt])
+  @@index([userId, createdAt])
+}
+
+/// Postgres-backed job queue (see docs/12-decisions-log.md). One row per
+/// idempotency key `<documentId>:<step>:<version>`; re-enqueueing is a no-op.
+model Job {
+  id             String    @id @default(uuid())
+  idempotencyKey String    @unique
+  step           String
+  companyId      String?
+  company        Company?  @relation(fields: [companyId], references: [id])
+  payload        Json
+  status         JobStatus @default(QUEUED)
+  attempts       Int       @default(0)
+  maxAttempts    Int       @default(3)
+  runAfter       DateTime  @default(now())
+  lockedAt       DateTime?
+  error          String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([status, runAfter])
+}
+
+model Setting {
+  id        String   @id @default(uuid())
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id])
+  key       String
+  value     Json
+  updatedAt DateTime @updatedAt
+
+  @@unique([companyId, key])
 }
