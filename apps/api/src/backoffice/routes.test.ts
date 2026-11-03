@@ -175,6 +175,8 @@ test("Phase 0 gate: upload → stored → visible with hash, status and audit en
   const signed = new URL(String(detail.json.signedUrl));
   const fetched = await fetch(`${base}${signed.pathname}${signed.search}`);
   assert.equal(fetched.status, 200);
+  assert.equal(fetched.headers.get("content-type"), "image/png");
+  assert.equal(fetched.headers.get("cross-origin-resource-policy"), "cross-origin", "web app on another origin must be able to embed previews");
   assert.deepEqual(Buffer.from(await fetched.arrayBuffer()), PNG);
   assert.ok(await prisma.auditLog.findFirst({ where: { companyId: a.company.id, action: "view_document", target: `Document:${png.id}` } }));
   // A tampered link is refused.

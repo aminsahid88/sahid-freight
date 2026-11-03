@@ -61,16 +61,18 @@ test("preprocess runs once, marks the document PROCESSED, and re-running is a no
 
 test("a failing job is retried with backoff and ends FAILED after maxAttempts", async () => {
   const subject = uid("bad");
-  await enqueue(prisma, { step: "explode", version: "v1", payload: { documentId: subject }, subject });
-  await prisma.job.update({ where: { idempotencyKey: `${subject}:explode:v1` }, data: { maxAttempts: 2 } });
+  // Unique step name so a leftover job from an interrupted run can never be claimed instead of ours.
+  const step = uid("explode");
+  await enqueue(prisma, { step, version: "v1", payload: { documentId: subject }, subject });
+  await prisma.job.update({ where: { idempotencyKey: `${subject}:${step}:v1` }, data: { maxAttempts: 2 } });
   const processors = {
-    explode: async () => {
+    [step]: async () => {
       throw new Error("boom");
     },
   };
   const r1 = await runOne(prisma, processors);
   assert.ok(r1.ran && r1.status === "QUEUED");
-  let job = await prisma.job.findUnique({ where: { idempotencyKey: `${subject}:explode:v1` } });
+  let job = await prisma.job.findUnique({ where: { idempotencyKey: `${subject}:${step}:v1` } });
   assert.match(job?.error ?? "", /boom/);
   assert.ok(job!.runAfter.getTime() > Date.now(), "backoff scheduled in the future");
 
@@ -80,5 +82,5 @@ test("a failing job is retried with backoff and ends FAILED after maxAttempts", 
   assert.ok(r2.ran && r2.status === "FAILED");
   job = await prisma.job.findUnique({ where: { id: job!.id } });
   assert.equal(job?.status, "FAILED");
-  assert.equal(await claimNext(prisma, ["explode"]), null);
+  assert.equal(await claimNext(prisma, [step]), null);
 });

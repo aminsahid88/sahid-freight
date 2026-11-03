@@ -6,6 +6,7 @@
  */
 import type { PrismaClient } from "@prisma/client";
 import express, { type Express, Router } from "express";
+import { sniffBinaryMime } from "@tbo/core";
 import { type Env } from "../config/env";
 import { createStorage, type Storage, verifyLocalSignature } from "../storage";
 import { companiesRouter } from "./companies.routes";
@@ -30,8 +31,12 @@ export function filesRouter(storage: Storage, env: Env): Router {
       const sig = String(req.query.sig ?? "");
       if (!key || !verifyLocalSignature(env.JWT_SECRET, key, exp, sig)) throw new HttpError(403, "Link expired or invalid", "forbidden");
       const body = await storage.get(key);
+      // The web app lives on another origin; helmet's default CORP would block <img>/<iframe> embeds.
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
       res.setHeader("Cache-Control", "private, no-store");
       res.setHeader("Content-Disposition", "inline");
+      res.setHeader("X-Content-Type-Options", "nosniff");
+      res.type(sniffBinaryMime(body) ?? "application/octet-stream");
       res.send(body);
     }),
   );
