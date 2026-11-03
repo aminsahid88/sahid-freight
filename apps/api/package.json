@@ -4,14 +4,18 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon --exec ts-node src/index.ts",
-    "build": "tsc",
+    "build": "esbuild src/index.ts src/worker.ts --bundle --platform=node --target=node20 --packages=external --alias:@tbo/core=../../packages/core/src/index.ts --alias:@tbo/i18n=../../packages/i18n/src/index.ts --outdir=dist --log-level=warning",
     "start": "node dist/index.js",
     "postinstall": "npx prisma generate --schema=./prisma/schema.prisma || true",
     "dev:local": "dotenv -e .env.local -- nodemon --exec ts-node src/index.ts",
     "db:migrate:local": "dotenv -e .env.local -- node prisma/guard-local.js && dotenv -e .env.local -- npx prisma migrate dev --schema=./prisma/schema.prisma",
-    "db:seed:local": "dotenv -e .env.local -- node prisma/guard-local.js && dotenv -e .env.local -- npx ts-node prisma/seed.local.ts",
+    "db:seed:local": "dotenv -e .env.local -- node prisma/guard-local.js && dotenv -e .env.local -- npx ts-node prisma/seed.local.ts && npm run db:seed:backoffice:local",
     "db:reset:local": "dotenv -e .env.local -- node prisma/guard-local.js && dotenv -e .env.local -- npx prisma migrate reset --schema=./prisma/schema.prisma",
-    "db:studio:local": "dotenv -e .env.local -- node prisma/guard-local.js && dotenv -e .env.local -- npx prisma studio --schema=./prisma/schema.prisma"
+    "db:studio:local": "dotenv -e .env.local -- node prisma/guard-local.js && dotenv -e .env.local -- npx prisma studio --schema=./prisma/schema.prisma",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "dotenv -e .env.test -- node prisma/guard-local.js && dotenv -e .env.test -- npx prisma migrate deploy --schema=./prisma/schema.prisma >/dev/null && dotenv -e .env.test -- node --import tsx --test --test-concurrency=1 $(find src -name '*.test.ts')",
+    "worker:local": "dotenv -e .env.local -- nodemon --exec ts-node src/worker.ts",
+    "db:seed:backoffice:local": "dotenv -e .env.local -- node prisma/guard-local.js && dotenv -e .env.local -- npx ts-node prisma/seed.backoffice.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1013.0",
