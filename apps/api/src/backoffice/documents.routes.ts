@@ -164,7 +164,21 @@ export function documentsRouter(prisma: PrismaClient, storage: Storage, env: Env
       const { db, company, userId } = ctx(req);
       const doc = await db.document.findUnique({
         where: { id: req.params.documentId as string },
-        include: { issues: { select: { id: true, code: true, severity: true, message: true, status: true, evidence: true } }, uploadedBy: { select: { id: true, fullName: true } }, batch: true },
+        include: {
+          issues: { select: { id: true, code: true, severity: true, message: true, status: true, evidence: true } },
+          uploadedBy: { select: { id: true, fullName: true } },
+          batch: true,
+          // Extraction trail: which passes ran, with which model, at what cost; the transaction each region became.
+          regions: {
+            orderBy: { page: "asc" },
+            select: {
+              id: true,
+              page: true,
+              runs: { select: { pass: true, modelId: true, promptVersion: true, status: true, costUsd: true, latencyMs: true, inputTokens: true, outputTokens: true, createdAt: true }, orderBy: { pass: "asc" } },
+              transaction: { select: { id: true, status: true, vendor: true, receiptTotal: true } },
+            },
+          },
+        },
       });
       if (!doc || (company.role === "DRIVER" && doc.uploadedById !== userId)) throw notFound("Document");
       const signedUrl = doc.deletedAt ? null : await storage.getSignedUrl(doc.storageKey, env.SIGNED_URL_TTL_SECONDS);

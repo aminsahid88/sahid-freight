@@ -251,6 +251,34 @@ function DocumentDrawer({ companyId, id, onClose }: { companyId: string; id: str
           <DefinitionRow label={t("inbox.channel")} value={d.channel} />
           <DefinitionRow label={t("inbox.uploadedBy")} value={d.uploadedBy?.fullName ?? "—"} />
           <DefinitionRow label={t("inbox.retention")} value={new Date(d.retentionUntil).toLocaleDateString(intl, { timeZone: "UTC" })} />
+
+          <div className="mt-4 mb-1 text-[13px] font-bold text-ink">{t("inbox.extraction")}</div>
+          <p className="mb-2 text-xs text-ink-3">{t("inbox.extractionHint")}</p>
+          {!d.regions || d.regions.every((r) => r.runs.length === 0) ? (
+            <p className="text-[13px] text-ink-3">{t("inbox.noRuns")}</p>
+          ) : (
+            d.regions.map((r) => (
+              <div key={r.id} className="mb-2 rounded-control border border-line p-3 text-xs">
+                <div className="mb-1 flex items-center justify-between">
+                  <span className="font-semibold text-ink">{t("inbox.detail")} · p.{r.page}</span>
+                  {r.transaction && (
+                    <a href={`/office/transactions?open=${r.transaction.id}`} className="font-semibold text-accent hover:underline">
+                      {t("inbox.becameTransaction")} → {t(`txStatus.${r.transaction.status}`)}
+                    </a>
+                  )}
+                </div>
+                {r.runs.map((run) => (
+                  <div key={`${run.pass}-${run.modelId}`} className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-line py-1 text-ink-2">
+                    <span className="font-semibold text-ink">{t("inbox.pass")} {run.pass}</span>
+                    <span>{run.modelId} · {run.promptVersion}</span>
+                    <span className="tnum">{run.costUsd ? `$${run.costUsd}` : "—"}</span>
+                    <span className="tnum">{run.latencyMs ? `${run.latencyMs} ms` : ""}</span>
+                    {run.status !== "DONE" && <span className="text-danger">{t("inbox.runFailed")}</span>}
+                  </div>
+                ))}
+              </div>
+            ))
+          )}
           {d.issues.length > 0 && (
             <div className="mt-4">
               <div className="mb-2 text-[13px] font-bold text-ink">{t("inbox.issues")}</div>

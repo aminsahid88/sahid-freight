@@ -56,6 +56,13 @@ export const envSchema = z.object({
   EXTRACTION_MODEL_B: z.string().default("claude-sonnet-5-5"),
   EXTRACTION_PROMPT_VERSION_A: z.string().default("a-v1"),
   EXTRACTION_PROMPT_VERSION_B: z.string().default("b-v1"),
+  /** Reasoning effort for extraction calls; literal transcription needs little. */
+  EXTRACTION_EFFORT: z.enum(["low", "medium", "high"]).default("low"),
+  /** Skip pass B entirely (cost control); the transaction is then SINGLE_SOURCE. */
+  EXTRACTION_SKIP_PASS_B: z
+    .string()
+    .default("false")
+    .transform((v) => v.trim().toLowerCase() === "true"),
   AI_MONTHLY_BUDGET_USD: z.coerce.number().nonnegative().default(50),
 
   // ── Business rules ──

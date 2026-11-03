@@ -136,7 +136,15 @@
     "loadMore": "Soo bandhig kuwo kale",
     "detail": "Dukumenti",
     "issues": "Arrimo furan",
-    "emptyTitle": "Sanduuqaagu waa madhan yahay"
+    "emptyTitle": "Sanduuqaagu waa madhan yahay",
+    "extraction": "Akhrinta",
+    "extractionHint": "Akhris kastaa waa wicitaan model oo gooni ah; kharashka waxaa loo xisaabiyaa dukumenti kasta.",
+    "pass": "Akhris",
+    "model": "Model",
+    "cost": "Kharash",
+    "noRuns": "Weli lama akhrin. Shaqaaluhu wuxuu dukumentiyada ku akhriyaa gadaal marka furaha AI la dejiyo.",
+    "becameTransaction": "Dhaqdhaqaaq",
+    "runFailed": "Fashilmay"
   },
   "docStatus": {
     "RECEIVED": "La helay",
@@ -356,5 +364,22 @@
     "REVIEWER": "Dib-u-eege",
     "PARTNER": "Wadaag",
     "ADMIN": "Maamule"
+  },
+  "provenance": {
+    "title": "Sida qiime kasta loo akhriyay",
+    "hint": "Laba akhris oo madax-bannaan oo rasiidka ah. Qiimuhu waa kama dambays kaliya marka labaduba isku raacaan ama qof xaqiijiyo.",
+    "field": "Goobta",
+    "passA": "Akhris 1",
+    "passB": "Akhris 2",
+    "final": "Kama dambays",
+    "source": "Isha",
+    "both": "Labaduba isku raacay",
+    "pass_a": "Akhris 1 kaliya",
+    "pass_b": "Akhris 2 kaliya",
+    "human": "Qof",
+    "card": "Kaadhka shidaalka",
+    "lookup": "Raadin",
+    "none": "Lama go'aamin",
+    "disagree": "Akhrisyadu way kala duwan yihiin"
   }
 }

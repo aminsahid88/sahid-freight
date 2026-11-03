@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon --exec ts-node src/index.ts",
-    "build": "esbuild src/index.ts src/worker.ts --bundle --platform=node --target=node20 --packages=external --alias:@tbo/core=../../packages/core/src/index.ts --alias:@tbo/i18n=../../packages/i18n/src/index.ts --outdir=dist --log-level=warning",
+    "build": "esbuild src/index.ts src/worker.ts --bundle --platform=node --target=node20 --packages=external --alias:@tbo/core=../../packages/core/src/index.ts --alias:@tbo/i18n=../../packages/i18n/src/index.ts --alias:@tbo/extraction=../../packages/extraction/src/index.ts --outdir=dist --log-level=warning",
     "start": "node dist/index.js",
     "postinstall": "npx prisma generate --schema=./prisma/schema.prisma || true",
     "dev:local": "dotenv -e .env.local -- tsx watch src/index.ts",

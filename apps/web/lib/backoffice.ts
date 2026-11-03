@@ -58,6 +58,7 @@ export interface DocumentRow {
   deletedAt: string | null;
   uploadedBy: { id: string; fullName: string } | null;
   issues: Pick<Issue, "code" | "severity" | "message">[];
+  regions?: DocumentRegion[];
 }
 
 export interface Vehicle {
@@ -121,8 +122,41 @@ export interface TransactionRow {
   openIssueCount?: number;
   document: { id: string; filename: string } | null;
   issues?: Issue[];
-  provenance?: Record<string, unknown>;
-  fieldEdits?: Array<{ id: string; field: string; oldValue: string | null; newValue: string | null; reason: string; createdAt: string; userId: string }>;
+  provenance?: {
+    fields?: Record<string, FieldProvenance>;
+    disagreements?: Array<{ field: string; passA: string | null; passB: string | null; material: boolean }>;
+    passA?: { model: string; promptVersion: string } | null;
+    passB?: { model: string; promptVersion: string } | null;
+  };
+  fieldEdits?: Array<{ id: string; field: string; oldValue: string | null; newValue: string | null; reason: string; createdAt: string; userId?: string; user?: { id: string; fullName: string } }>;
+}
+
+export interface FieldProvenance {
+  rawText: string | null;
+  passA: string | null;
+  passB: string | null;
+  final: string | null;
+  finalSource: "pass_a" | "pass_b" | "both" | "human" | "card" | "lookup" | null;
+  agree: boolean;
+}
+
+export interface ExtractionRun {
+  pass: "A" | "B";
+  modelId: string;
+  promptVersion: string;
+  status: "QUEUED" | "RUNNING" | "DONE" | "FAILED";
+  costUsd: string | null;
+  latencyMs: number | null;
+  inputTokens: number | null;
+  outputTokens: number | null;
+  createdAt: string;
+}
+
+export interface DocumentRegion {
+  id: string;
+  page: number;
+  runs: ExtractionRun[];
+  transaction: { id: string; status: TxStatus; vendor: string | null; receiptTotal: string | null } | null;
 }
 
 export interface PeriodSummary {

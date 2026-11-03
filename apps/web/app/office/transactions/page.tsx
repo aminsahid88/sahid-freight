@@ -269,6 +269,39 @@ function TransactionDrawer({ companyId, id, onClose, onChanged }: { companyId: s
             </table>
           )}
 
+          {tx.provenance?.fields && (
+            <>
+              <div className="mt-5 mb-1 text-[13px] font-bold text-ink">{t("provenance.title")}</div>
+              <p className="mb-2 text-xs text-ink-3">{t("provenance.hint")}</p>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead className="text-left uppercase tracking-wide text-ink-3">
+                    <tr>
+                      <th className="py-1 pr-2">{t("provenance.field")}</th>
+                      <th className="py-1 pr-2">{t("provenance.passA")}</th>
+                      <th className="py-1 pr-2">{t("provenance.passB")}</th>
+                      <th className="py-1 pr-2">{t("provenance.final")}</th>
+                      <th className="py-1">{t("provenance.source")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(tx.provenance.fields)
+                      .filter(([, p]) => p.passA !== null || p.passB !== null)
+                      .map(([field, p]) => (
+                        <tr key={field} className={`border-t border-line ${!p.agree && p.passB !== null ? "bg-[#FFFBEB] dark:bg-[rgba(251,191,36,0.08)]" : ""}`}>
+                          <td className="py-1.5 pr-2 font-medium text-ink">{t(`transactions.${field}`) === `transactions.${field}` ? field : t(`transactions.${field}`)}</td>
+                          <td className="py-1.5 pr-2 tnum text-ink-2">{p.passA ?? "—"}</td>
+                          <td className="py-1.5 pr-2 tnum text-ink-2">{p.passB ?? "—"}</td>
+                          <td className="py-1.5 pr-2 tnum font-semibold text-ink">{p.final ?? "—"}</td>
+                          <td className="py-1.5 text-ink-3">{p.finalSource ? t(`provenance.${p.finalSource}`) : t("provenance.disagree")}</td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+
           {tx.issues && tx.issues.length > 0 && (
             <>
               <div className="mt-5 mb-2 text-[13px] font-bold text-ink">{t("inbox.issues")}</div>

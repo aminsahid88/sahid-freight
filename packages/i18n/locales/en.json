@@ -136,7 +136,15 @@
     "loadMore": "Load more",
     "detail": "Document",
     "issues": "Open issues",
-    "emptyTitle": "Your inbox is empty"
+    "emptyTitle": "Your inbox is empty",
+    "extraction": "Reading",
+    "extractionHint": "Each pass is a separate model call; costs are tracked per document.",
+    "pass": "Pass",
+    "model": "Model",
+    "cost": "Cost",
+    "noRuns": "Not read yet. The worker reads documents in the background once an AI key is configured.",
+    "becameTransaction": "Transaction",
+    "runFailed": "Failed"
   },
   "docStatus": {
     "RECEIVED": "Received",
@@ -356,5 +364,22 @@
     "REVIEWER": "Reviewer",
     "PARTNER": "Partner",
     "ADMIN": "Admin"
+  },
+  "provenance": {
+    "title": "How each value was read",
+    "hint": "Two independent reads of the receipt. A value is final only when both agree or a person confirmed it.",
+    "field": "Field",
+    "passA": "Read 1",
+    "passB": "Read 2",
+    "final": "Final",
+    "source": "Source",
+    "both": "Both agree",
+    "pass_a": "Read 1 only",
+    "pass_b": "Read 2 only",
+    "human": "Person",
+    "card": "Fuel card",
+    "lookup": "Lookup",
+    "none": "Not decided",
+    "disagree": "Reads differ"
   }
 }
