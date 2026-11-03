@@ -12,6 +12,12 @@ import { createStorage, type Storage, verifyLocalSignature } from "../storage";
 import { companiesRouter } from "./companies.routes";
 import { documentsRouter } from "./documents.routes";
 import { errorHandler, HttpError, wrap } from "./errors";
+import { iftaRatesRouter } from "./ifta-rates.routes";
+import { issuesRouter } from "./issues.routes";
+import { membersRouter } from "./members.routes";
+import { periodsRouter } from "./periods.routes";
+import { reportsRouter } from "./reports.routes";
+import { transactionsRouter } from "./transactions.routes";
 
 export interface BackofficeDeps {
   prisma: PrismaClient;
@@ -47,7 +53,13 @@ export function mountBackoffice(app: Express, deps: BackofficeDeps): { storage: 
   const storage = deps.storage ?? createStorage(deps.env);
   const companies = companiesRouter(deps.prisma);
   companies.use("/:companyId/documents", documentsRouter(deps.prisma, storage, deps.env));
+  companies.use("/:companyId/transactions", transactionsRouter(deps.prisma));
+  companies.use("/:companyId/issues", issuesRouter(deps.prisma));
+  companies.use("/:companyId/periods", periodsRouter(deps.prisma, deps.env));
+  companies.use("/:companyId/reports", reportsRouter(deps.prisma, storage, deps.env));
+  companies.use("/:companyId/members", membersRouter(deps.prisma));
   app.use("/companies", companies);
+  app.use("/admin/ifta-rates", iftaRatesRouter(deps.prisma));
   app.use(filesRouter(storage, deps.env));
   return { storage };
 }
