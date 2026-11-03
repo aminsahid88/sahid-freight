@@ -23,6 +23,10 @@ import messageRoutes from "./routes/message.routes";
 import paymentRoutes from "./routes/payment.routes";
 import prisma from "./utils/prisma";
 import { setIO } from "./utils/socket";
+import { mountBackoffice } from "./backoffice/app";
+import { errorHandler } from "./backoffice/errors";
+import { getEnv } from "./config/env";
+import { preflightOrExit } from "./preflight";
 
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
@@ -50,9 +54,13 @@ export const io = new Server(httpServer, {
   },
 });
 
-const PORT = process.env.PORT || 8000;
-const JWT_SECRET = process.env.JWT_SECRET!;
+// Fails at boot with a readable list of problems instead of `undefined` deep in a request.
+const env = getEnv();
+const PORT = env.PORT;
+const JWT_SECRET = env.JWT_SECRET;
 
+// Railway sits behind one proxy hop; needed for correct req.ip and rate-limit keys.
+app.set("trust proxy", 1);
 app.use(helmet());
 app.use(cors({ origin: corsOriginCheck, credentials: true }));
 // Capture raw body for webhook signature verification (Chapa)
@@ -87,6 +95,7 @@ app.use("/auth/register", authLimiter);
 app.use("/auth/reset-password", authLimiter);
 app.use("/auth/forgot-password", authLimiter);
 app.use("/admin/auth/login", authLimiter);
+app.use("/auth/otp", authLimiter);
 
 // ── ROUTES ──────────────────────────────
 app.get("/health", (req, res) => res.json({ status: "ok" }));
@@ -117,9 +126,15 @@ app.use("/bids", bidRoutes);
 app.use("/messages", messageRoutes);
 app.use("/payments", paymentRoutes);
 
+// ── Back-office platform (companies, vehicles, drivers, documents, audit) ──
+const { storage } = mountBackoffice(app, { prisma, env });
+
 app.get("/", (req, res) => {
-  res.json({ status: "ok", message: "Sahid Freight API is running", version: "1.0.0" });
+  res.json({ status: "ok", message: "AI Trucking Back-Office API is running", version: "2.0.0-phase0" });
 });
+
+// Single JSON error handler: multer/validation/tenant errors never leak stack traces.
+app.use(errorHandler);
 
 setIO(io);
 
@@ -219,9 +234,11 @@ io.on("connection", (socket) => {
   });
 });
 
-httpServer.listen(Number(PORT), "0.0.0.0", () => {
-  console.log(`✅ Sahid Freight API running on port ${PORT}`);
-  keepAlive();
+preflightOrExit({ env, prisma, storage }).then(() => {
+  httpServer.listen(Number(PORT), "0.0.0.0", () => {
+    console.log(`API running on port ${PORT} (${env.NODE_ENV})`);
+    if (env.NODE_ENV === "production") keepAlive();
+  });
 });
 
 export default app;

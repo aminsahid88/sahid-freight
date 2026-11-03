@@ -5,6 +5,7 @@ import { randomInt } from "crypto";
 import dotenv from "dotenv";
 import path from "path";
 import prisma from "../utils/prisma";
+import { auditPlatform } from "../audit/log";
 import { sendOTPEmail } from "../utils/email";
 import { OAuth2Client } from "google-auth-library";
 import * as appleSignin from "apple-signin-auth";
@@ -147,14 +148,22 @@ export const login = async (req: Request, res: Response) => {
     if (!phone || !password) return res.status(400).json({ message: "Phone and password required" });
 
     const user = await prisma.user.findUnique({ where: { phone } });
-    if (!user) return res.status(401).json({ message: "Invalid phone or password" });
+    if (!user) {
+      await auditPlatform(prisma, { action: "login_failed", target: "unknown phone", ip: req.ip }).catch(() => undefined);
+      return res.status(401).json({ message: "Invalid phone or password" });
+    }
     if (!user.passwordHash) return res.status(401).json({ message: "This account uses social login. Please sign in with Google or Apple." });
 
     const valid = await bcrypt.compare(password, user.passwordHash);
-    if (!valid) return res.status(401).json({ message: "Invalid phone or password" });
+    if (!valid) {
+      await auditPlatform(prisma, { action: "login_failed", userId: user.id, ip: req.ip }).catch(() => undefined);
+      return res.status(401).json({ message: "Invalid phone or password" });
+    }
     if (user.status === "SUSPENDED") return res.status(403).json({ message: "Your account has been suspended" });
 
     const { accessToken, refreshToken } = await issueTokens(user.id, user.role);
+    // Append-only audit trail (CLAUDE.md: log logins). Never blocks the login itself.
+    await auditPlatform(prisma, { action: "login", userId: user.id, ip: req.ip }).catch((e) => console.error("audit login failed:", e));
 
     return res.status(200).json({
       message: "Login successful",
