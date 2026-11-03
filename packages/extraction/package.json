@@ -8,6 +8,7 @@
   "scripts": {
     "test": "node --import tsx --test $(find src -name '*.test.ts')",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "golden:generate": "tsx src/golden/generate.ts"
+    "golden:generate": "tsx src/golden/generate.ts",
+    "golden:evaluate": "dotenv -e ../../apps/api/.env.local -- tsx src/golden/evaluate-cli.ts"
   }
 }
