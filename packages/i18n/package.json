@@ -1,0 +1,12 @@
+{
+  "name": "@tbo/i18n",
+  "version": "0.1.0",
+  "private": true,
+  "description": "English and Somali UI strings for the back-office platform, with a tiny typed lookup.",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "test": "node --import tsx --test $(find src -name '*.test.ts')",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  }
+}

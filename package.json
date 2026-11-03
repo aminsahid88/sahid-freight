@@ -10,8 +10,13 @@
     "packages/*"
   ],
   "scripts": {
-    "dev:api": "npm run dev --workspace=apps/api",
-    "dev:web": "npm run dev --workspace=apps/web"
+    "dev:api": "npm run dev:local --workspace=apps/api",
+    "dev:web": "npm run dev --workspace=apps/web",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "db:migrate": "npm run db:migrate:local --workspace=apps/api",
+    "db:seed": "npm run db:seed:local --workspace=apps/api"
   },
   "dependencies": {
     "ajv": "^8.20.0"
