@@ -1,78 +1,96 @@
 import { create } from "zustand";
 
-interface User {
-  email?: string;
+export interface SessionUser {
   id: string;
   fullName: string;
-  phone: string;
+  email?: string | null;
+  phone?: string | null;
   role: string;
   status: string;
-  country: string;
-  city: string;
-  isVerified: boolean;
+  country?: string;
 }
 
 interface AuthStore {
-  user: User | null;
+  user: SessionUser | null;
   accessToken: string | null;
   refreshToken: string | null;
-  setAuth: (user: User, accessToken: string, refreshToken: string) => void;
+  setAuth: (user: SessionUser, accessToken: string, refreshToken: string) => void;
   logout: () => void;
 }
 
-export const useAuthStore = create<AuthStore>((set) => ({
-  user: typeof window !== "undefined"
-    ? JSON.parse(localStorage.getItem("user") || "null")
-    : null,
-  accessToken: typeof window !== "undefined"
-    ? localStorage.getItem("accessToken")
-    : null,
-  refreshToken: typeof window !== "undefined"
-    ? localStorage.getItem("refreshToken")
-    : null,
+function read(key: string): string | null {
+  try {
+    return typeof window !== "undefined" ? localStorage.getItem(key) : null;
+  } catch {
+    return null;
+  }
+}
 
+function readUser(): SessionUser | null {
+  const raw = read("user");
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as SessionUser;
+  } catch {
+    return null;
+  }
+}
+
+export const useAuthStore = create<AuthStore>((set) => ({
+  user: readUser(),
+  accessToken: read("accessToken"),
+  refreshToken: read("refreshToken"),
   setAuth: (user, accessToken, refreshToken) => {
-    localStorage.setItem("user", JSON.stringify(user));
-    localStorage.setItem("accessToken", accessToken);
-    localStorage.setItem("refreshToken", refreshToken);
+    try {
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("refreshToken", refreshToken);
+    } catch {
+      /* private mode */
+    }
     set({ user, accessToken, refreshToken });
   },
-
   logout: () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
+    try {
+      localStorage.removeItem("user");
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+    } catch {
+      /* private mode */
+    }
     set({ user: null, accessToken: null, refreshToken: null });
-    window.location.href = "/auth/login";
+    window.location.href = "/auth/sign-in";
   },
 }));
 
-interface GateStore {
-  showGate: boolean;
-  openGate: () => void;
-  closeGate: () => void;
-}
-export const useGateStore = create<GateStore>((set) => ({
-  showGate: false,
-  openGate: () => set({ showGate: true }),
-  closeGate: () => set({ showGate: false }),
-}));
+export type Language = "en" | "so";
+export type Theme = "light" | "dark";
 
 interface SettingsStore {
-  language: "en" | "am" | "so";
-  theme: "light" | "dark";
-  setLanguage: (lang: "en" | "am" | "so") => void;
-  setTheme: (theme: "light" | "dark") => void;
+  language: Language;
+  theme: Theme;
+  setLanguage: (lang: Language) => void;
+  setTheme: (theme: Theme) => void;
 }
+
 export const useSettingsStore = create<SettingsStore>((set) => ({
-  language: typeof window !== "undefined" ? (localStorage.getItem("language") as any) || "en" : "en",
-  theme: typeof window !== "undefined" ? (localStorage.getItem("theme") as any) || "light" : "light",
+  language: read("language") === "so" ? "so" : "en",
+  theme: read("theme") === "dark" ? "dark" : "light",
   setLanguage: (language) => {
-    localStorage.setItem("language", language);
+    try {
+      localStorage.setItem("language", language);
+    } catch {
+      /* ignore */
+    }
+    document.documentElement.setAttribute("lang", language);
     set({ language });
   },
   setTheme: (theme) => {
-    localStorage.setItem("theme", theme);
+    try {
+      localStorage.setItem("theme", theme);
+    } catch {
+      /* ignore */
+    }
     document.documentElement.setAttribute("data-theme", theme);
     set({ theme });
   },

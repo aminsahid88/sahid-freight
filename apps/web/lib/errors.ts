@@ -26,7 +26,7 @@ export function formatApiError(
   fallback: string = GENERIC_FALLBACK,
   ctx: Ctx = "generic",
 ): string {
-  const e = err as any;
+  const e = err as { code?: string; message?: string; response?: { status?: number; data?: { message?: string; error?: string } } };
   const status: number | undefined = e?.response?.status;
   const rawMsg: string | undefined =
     e?.response?.data?.message ||

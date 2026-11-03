@@ -1,43 +1,58 @@
 "use client";
 /**
- * Back-office shell: sidebar on desktop, bottom tabs on mobile. One primary
- * action per screen, Inter, Lucide icons, CSS-variable theme tokens.
+ * Back-office shell. Desktop: fixed sidebar with the eight sections from the
+ * brief. Phone: top bar with the company picker and a five-item bottom tab bar
+ * (the rest under "More"). One primary action per screen lives in the pages.
  */
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Building2, Home, Inbox, LogOut, Settings, Truck, ChevronDown, FileSearch, Fuel, FileBarChart, ClipboardCheck } from "lucide-react";
+import { Building2, ChevronDown, ClipboardCheck, FileBarChart, FileSearch, Fuel, Home, Inbox, LogOut, Menu, Settings, Truck, X } from "lucide-react";
 import { useAuthStore } from "@/lib/store";
 import { type SelectedCompany, useCompanyStore } from "@/lib/company";
 import { backoffice } from "@/lib/backoffice";
 import { useT } from "@/lib/useT";
 import { useIsClient, useIsMobile } from "@/lib/useViewport";
 import { formatApiError } from "@/lib/errors";
+import { Logo } from "@/components/ui/Logo";
+import { Banner } from "@/components/ui/Banner";
 
 interface NavItem {
   href: string;
-  label: string;
+  key: string;
   icon: React.ReactNode;
 }
 
-function CompanyPicker({ selected, list, loaded, onSelect }: { selected: SelectedCompany | null; list: SelectedCompany[]; loaded: boolean; onSelect: (id: string) => void }) {
+const NAV: NavItem[] = [
+  { href: "/office", key: "nav.home", icon: <Home size={18} /> },
+  { href: "/office/inbox", key: "nav.inbox", icon: <Inbox size={18} /> },
+  { href: "/office/transactions", key: "nav.transactions", icon: <FileSearch size={18} /> },
+  { href: "/office/review", key: "nav.review", icon: <ClipboardCheck size={18} /> },
+  { href: "/office/ifta", key: "nav.fuelIfta", icon: <Fuel size={18} /> },
+  { href: "/office/reports", key: "nav.reports", icon: <FileBarChart size={18} /> },
+  { href: "/office/vehicles", key: "nav.vehicles", icon: <Truck size={18} /> },
+  { href: "/office/settings", key: "nav.settings", icon: <Settings size={18} /> },
+];
+const MOBILE_PRIMARY = ["/office", "/office/inbox", "/office/review", "/office/ifta"];
+
+function CompanyPicker({ selected, list, loaded, onSelect, dark }: { selected: SelectedCompany | null; list: SelectedCompany[]; loaded: boolean; onSelect: (id: string) => void; dark?: boolean }) {
   const { t } = useT();
   const [open, setOpen] = useState(false);
+  const label = selected ? selected.company.dba || selected.company.legalName : loaded ? t("company.noCompany") : t("common.loading");
   return (
-    <div style={{ position: "relative" }}>
+    <div className="relative">
       <button
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => list.length > 1 && setOpen((v) => !v)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, border: "1px solid var(--sidebar-border)", background: "var(--sidebar-active-bg)", color: "var(--sidebar-text)", cursor: "pointer", textAlign: "left", fontFamily: "inherit" }}
+        className={`flex w-full items-center gap-2.5 rounded-control border px-3 py-2.5 text-left text-[13px] font-semibold ${dark ? "border-sidebar-line bg-sidebar-active text-sidebar-text" : "border-line bg-canvas text-ink"}`}
       >
-        <Building2 size={16} />
-        <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-          {selected ? selected.company.dba || selected.company.legalName : loaded ? t("company.noCompany") : t("common.loading")}
-        </span>
-        {list.length > 1 && <ChevronDown size={14} />}
+        <Building2 size={16} className="shrink-0" />
+        <span className="min-w-0 flex-1 truncate">{label}</span>
+        {list.length > 1 && <ChevronDown size={14} className="shrink-0" />}
       </button>
-      {open && list.length > 1 && (
-        <div role="listbox" style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, right: 0, background: "var(--bg)", border: "1px solid var(--border)", borderRadius: 10, boxShadow: "var(--dropdown-shadow)", zIndex: 300, overflow: "hidden" }}>
+      {open && (
+        <div role="listbox" className="absolute left-0 right-0 top-[calc(100%+6px)] z-[300] overflow-hidden rounded-control border border-line bg-canvas shadow-dropdown">
           {list.map((c) => (
             <button
               key={c.company.id}
@@ -47,10 +62,10 @@ function CompanyPicker({ selected, list, loaded, onSelect }: { selected: Selecte
                 onSelect(c.company.id);
                 setOpen(false);
               }}
-              style={{ width: "100%", textAlign: "left", padding: "10px 12px", border: "none", background: selected?.company.id === c.company.id ? "var(--accent-dim)" : "transparent", color: "var(--text)", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}
+              className={`block w-full px-3 py-2.5 text-left text-[13px] text-ink hover:bg-surface ${selected?.company.id === c.company.id ? "bg-accent-dim" : ""}`}
             >
               {c.company.dba || c.company.legalName}
-              {c.company.isDemo && <span style={{ marginLeft: 8, fontSize: 11, color: "var(--text-muted)" }}>{t("app.demo")}</span>}
+              {c.company.isDemo && <span className="ml-2 text-[11px] text-ink-3">{t("app.demo")}</span>}
             </button>
           ))}
         </div>
@@ -68,11 +83,12 @@ export default function OfficeLayout({ children }: { children: React.ReactNode }
   const isClient = useIsClient();
   const isMobile = useIsMobile();
   const [error, setError] = useState("");
+  const [moreOpen, setMoreOpen] = useState(false);
 
   useEffect(() => {
     if (!isClient) return;
     if (!user) {
-      router.replace("/auth/login?next=/office");
+      router.replace(`/auth/sign-in?next=${encodeURIComponent(pathname)}`);
       return;
     }
     backoffice
@@ -87,85 +103,94 @@ export default function OfficeLayout({ children }: { children: React.ReactNode }
 
   if (!isClient) return null;
 
-  const nav: NavItem[] = [
-    { href: "/office", label: t("nav.home"), icon: <Home size={18} /> },
-    { href: "/office/inbox", label: t("nav.inbox"), icon: <Inbox size={18} /> },
-    { href: "/office/vehicles", label: t("nav.vehicles"), icon: <Truck size={18} /> },
-    { href: "/office/settings", label: t("nav.settings"), icon: <Settings size={18} /> },
-  ];
-  const later: NavItem[] = [
-    { href: "#", label: t("nav.transactions"), icon: <FileSearch size={18} /> },
-    { href: "#", label: t("nav.review"), icon: <ClipboardCheck size={18} /> },
-    { href: "#", label: t("nav.fuelIfta"), icon: <Fuel size={18} /> },
-    { href: "#", label: t("nav.reports"), icon: <FileBarChart size={18} /> },
-  ];
   const isActive = (href: string) => (href === "/office" ? pathname === "/office" : pathname.startsWith(href));
-  const picker = <CompanyPicker selected={selected} list={list} loaded={loaded} onSelect={select} />;
-
   const content = (
     <>
-      {error && (
-        <div role="alert" style={{ marginBottom: 16, padding: "10px 14px", borderRadius: 10, background: "#FEF2F2", color: "#B91C1C", border: "1px solid #FECACA", fontSize: 13 }}>
-          {error}
-        </div>
-      )}
+      {error && <Banner tone="danger" className="mb-4">{error}</Banner>}
       {children}
     </>
   );
 
   if (isMobile) {
+    const primary = NAV.filter((n) => MOBILE_PRIMARY.includes(n.href));
+    const more = NAV.filter((n) => !MOBILE_PRIMARY.includes(n.href));
     return (
-      <div style={{ minHeight: "100vh", background: "var(--surface)", fontFamily: "var(--font)" }}>
-        <header style={{ position: "fixed", top: 0, left: 0, right: 0, height: 56, background: "var(--sidebar)", color: "var(--sidebar-text)", zIndex: 200, display: "flex", alignItems: "center", gap: 10, padding: "0 12px" }}>
-          <div style={{ flex: 1, minWidth: 0 }}>{picker}</div>
-          <button aria-label={t("nav.settings")} onClick={() => router.push("/office/settings")} style={{ width: 36, height: 36, borderRadius: 8, background: "var(--accent)", color: "#fff", border: "none", fontWeight: 700, cursor: "pointer" }}>
+      <div className="min-h-screen bg-surface">
+        <header className="fixed inset-x-0 top-0 z-[200] flex h-14 items-center gap-2 bg-sidebar px-3 text-sidebar-text">
+          <div className="min-w-0 flex-1">
+            <CompanyPicker selected={selected} list={list} loaded={loaded} onSelect={select} dark />
+          </div>
+          <button aria-label={t("nav.settings")} onClick={() => router.push("/office/settings")} className="flex h-9 w-9 items-center justify-center rounded-control bg-accent text-sm font-bold text-white">
             {user?.fullName?.charAt(0)}
           </button>
         </header>
-        <main style={{ padding: "72px 16px 88px" }}>{content}</main>
-        <nav style={{ position: "fixed", bottom: 0, left: 0, right: 0, height: 64, background: "var(--sidebar)", display: "flex", justifyContent: "space-around", alignItems: "center", borderTop: "1px solid var(--sidebar-border)", zIndex: 200, paddingBottom: "env(safe-area-inset-bottom)" }}>
-          {nav.map((item) => (
-            <button key={item.href} onClick={() => router.push(item.href)} aria-current={isActive(item.href) ? "page" : undefined} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, background: "none", border: "none", minWidth: 56, minHeight: 48, padding: 6, color: isActive(item.href) ? "#fff" : "var(--sidebar-muted)", cursor: "pointer", fontFamily: "inherit" }}>
+        <main className="px-4 pb-24 pt-[72px]">{content}</main>
+        <nav className="fixed inset-x-0 bottom-0 z-[200] flex h-16 items-center justify-around border-t border-sidebar-line bg-sidebar pb-[env(safe-area-inset-bottom)]" aria-label="Main">
+          {primary.map((item) => (
+            <Link key={item.href} href={item.href} aria-current={isActive(item.href) ? "page" : undefined} className={`flex min-h-12 min-w-14 flex-col items-center justify-center gap-0.5 ${isActive(item.href) ? "text-white" : "text-sidebar-muted"}`}>
               {item.icon}
-              <span style={{ fontSize: 10, fontWeight: isActive(item.href) ? 700 : 500 }}>{item.label}</span>
-            </button>
+              <span className={`text-[10px] ${isActive(item.href) ? "font-bold" : "font-medium"}`}>{t(item.key)}</span>
+            </Link>
           ))}
+          <button onClick={() => setMoreOpen(true)} className={`flex min-h-12 min-w-14 flex-col items-center justify-center gap-0.5 ${more.some((m) => isActive(m.href)) ? "text-white" : "text-sidebar-muted"}`} aria-haspopup="dialog">
+            <Menu size={18} />
+            <span className="text-[10px] font-medium">{t("nav.more")}</span>
+          </button>
         </nav>
+        {moreOpen && (
+          <div role="dialog" aria-modal className="fixed inset-0 z-[300] flex items-end bg-[rgba(15,23,42,0.5)]" onClick={() => setMoreOpen(false)}>
+            <div className="w-full rounded-t-2xl bg-canvas p-4 pb-[calc(16px+env(safe-area-inset-bottom))]" onClick={(e) => e.stopPropagation()}>
+              <div className="mb-2 flex items-center justify-between">
+                <div className="text-sm font-bold text-ink">{t("nav.more")}</div>
+                <button onClick={() => setMoreOpen(false)} aria-label="Close" className="flex h-9 w-9 items-center justify-center rounded-control border border-line text-ink-2">
+                  <X size={16} />
+                </button>
+              </div>
+              {more.map((item) => (
+                <Link key={item.href} href={item.href} onClick={() => setMoreOpen(false)} className="flex min-h-12 items-center gap-3 rounded-control px-3 text-[15px] font-medium text-ink hover:bg-surface">
+                  {item.icon}
+                  {t(item.key)}
+                </Link>
+              ))}
+              <button onClick={() => logout()} className="flex min-h-12 w-full items-center gap-3 rounded-control px-3 text-[15px] font-medium text-ink-2 hover:bg-surface">
+                <LogOut size={18} />
+                {t("nav.signOut")}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "var(--surface)", fontFamily: "var(--font)" }}>
-      <aside style={{ width: 240, minWidth: 240, background: "var(--sidebar)", color: "var(--sidebar-text)", display: "flex", flexDirection: "column", position: "sticky", top: 0, height: "100vh" }}>
-        <div style={{ padding: "20px 16px 14px", borderBottom: "1px solid var(--sidebar-border)" }}>
-          <div style={{ fontSize: 15, fontWeight: 800, letterSpacing: "-0.3px", marginBottom: 12 }}>{t("app.name")}</div>
-          {picker}
+    <div className="flex min-h-screen bg-surface">
+      <aside className="sticky top-0 flex h-screen w-60 min-w-60 flex-col bg-sidebar text-sidebar-text">
+        <div className="border-b border-sidebar-line px-4 pb-4 pt-5">
+          <Link href="/office" className="mb-4 block" aria-label="Sahid Freight">
+            <Logo light size={26} />
+          </Link>
+          <CompanyPicker selected={selected} list={list} loaded={loaded} onSelect={select} dark />
         </div>
-        <nav style={{ flex: 1, padding: "12px 10px", overflowY: "auto" }}>
-          {nav.map((item) => (
-            <button key={item.href} onClick={() => router.push(item.href)} aria-current={isActive(item.href) ? "page" : undefined} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 9, border: "none", background: isActive(item.href) ? "var(--sidebar-active-bg)" : "transparent", color: isActive(item.href) ? "#fff" : "var(--sidebar-muted)", fontSize: 13, fontWeight: isActive(item.href) ? 700 : 500, cursor: "pointer", textAlign: "left", marginBottom: 2, fontFamily: "inherit" }}>
+        <nav className="flex-1 overflow-y-auto px-2.5 py-3" aria-label="Main">
+          {NAV.map((item) => (
+            <Link key={item.href} href={item.href} aria-current={isActive(item.href) ? "page" : undefined} className={`mb-0.5 flex items-center gap-2.5 rounded-control px-3 py-2.5 text-[13px] ${isActive(item.href) ? "bg-sidebar-active font-bold text-white" : "font-medium text-sidebar-muted hover:bg-sidebar-active hover:text-white"}`}>
               {item.icon}
-              {item.label}
-            </button>
-          ))}
-          <div style={{ fontSize: 10, fontWeight: 700, color: "var(--sidebar-muted)", letterSpacing: "1.2px", padding: "16px 12px 6px", textTransform: "uppercase" }}>{t("nav.comingSoon")}</div>
-          {later.map((item) => (
-            <div key={item.label} aria-disabled style={{ display: "flex", alignItems: "center", gap: 10, padding: "9px 12px", color: "var(--sidebar-muted)", fontSize: 13, opacity: 0.6 }}>
-              {item.icon}
-              {item.label}
-            </div>
+              {t(item.key)}
+            </Link>
           ))}
         </nav>
-        <div style={{ padding: "10px 10px 16px", borderTop: "1px solid var(--sidebar-border)" }}>
-          <div style={{ padding: "6px 12px 10px", fontSize: 12, color: "var(--sidebar-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{user?.fullName}</div>
-          <button onClick={() => logout()} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 9, border: "none", background: "transparent", color: "var(--sidebar-muted)", fontSize: 13, cursor: "pointer", textAlign: "left", fontFamily: "inherit" }}>
+        <div className="border-t border-sidebar-line px-2.5 pb-4 pt-2.5">
+          <div className="truncate px-3 pb-2 text-xs text-sidebar-muted">{user?.fullName}</div>
+          <button onClick={() => logout()} className="flex w-full items-center gap-2.5 rounded-control px-3 py-2.5 text-left text-[13px] text-sidebar-muted hover:bg-sidebar-active hover:text-white">
             <LogOut size={16} />
             {t("nav.signOut")}
           </button>
         </div>
       </aside>
-      <main style={{ flex: 1, minWidth: 0, padding: "32px 40px", maxWidth: 1100 }}>{content}</main>
+      <main className="min-w-0 flex-1 px-10 py-8">
+        <div className="mx-auto max-w-content">{content}</div>
+      </main>
     </div>
   );
 }

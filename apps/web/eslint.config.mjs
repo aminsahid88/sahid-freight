@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Archived marketplace app; see legacy/README.md
+    "legacy/**",
   ]),
 ]);
 

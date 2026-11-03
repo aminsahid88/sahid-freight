@@ -1,12 +1,50 @@
 import type { Config } from "tailwindcss";
 
+/**
+ * Design tokens come from CSS variables in app/globals.css (light + dark), so
+ * Tailwind classes like `bg-surface text-ink border-line` follow the theme.
+ */
 const config: Config = {
-  content: [
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-  ],
+  content: ["./app/**/*.{js,ts,jsx,tsx,mdx}", "./components/**/*.{js,ts,jsx,tsx,mdx}"],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        canvas: "var(--bg)",
+        surface: "var(--surface)",
+        surface2: "var(--surface2)",
+        line: "var(--border)",
+        ink: "var(--text)",
+        "ink-2": "var(--text-secondary)",
+        "ink-3": "var(--text-muted)",
+        accent: "var(--accent)",
+        "accent-hover": "var(--accent-hover)",
+        "accent-dim": "var(--accent-dim)",
+        navy: "var(--navy)",
+        success: "var(--success)",
+        warning: "var(--warning)",
+        danger: "var(--danger)",
+        sidebar: "var(--sidebar)",
+        "sidebar-text": "var(--sidebar-text)",
+        "sidebar-muted": "var(--sidebar-muted)",
+        "sidebar-line": "var(--sidebar-border)",
+        "sidebar-active": "var(--sidebar-active-bg)",
+      },
+      fontFamily: {
+        sans: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"],
+        mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
+      },
+      borderRadius: {
+        card: "14px",
+        control: "10px",
+      },
+      boxShadow: {
+        card: "var(--card-shadow)",
+        dropdown: "var(--dropdown-shadow)",
+      },
+      maxWidth: {
+        content: "1120px",
+      },
+    },
   },
   plugins: [],
 };

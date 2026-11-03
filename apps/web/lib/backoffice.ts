@@ -1,11 +1,16 @@
 /**
  * Typed client for the back-office API (apps/api `/companies/...`).
- * Uses the existing axios instance so the bearer token and refresh flow apply.
+ * Uses the shared axios instance so the bearer token and refresh flow apply.
  */
 import api from "@/lib/api";
 
 export type CompanyRole = "OWNER" | "STAFF" | "DRIVER" | "REVIEWER" | "PARTNER" | "ADMIN";
 export type DocumentStatus = "RECEIVED" | "PROCESSING" | "PROCESSED" | "FAILED" | "UNREADABLE";
+export type TxStatus = "VERIFIED" | "NEEDS_ATTENTION" | "UNABLE_TO_VERIFY";
+export type Severity = "ERROR" | "WARNING" | "INFO";
+export type IssueStatus = "OPEN" | "RESOLVED" | "ACCEPTED";
+export type ReportType = "TRANSACTIONS_CSV" | "IFTA_WORKSHEET";
+export type ReportStatus = "PRELIMINARY" | "REVIEWED";
 
 export interface CompanySummary {
   id: string;
@@ -26,11 +31,17 @@ export interface CompanyDetail extends CompanySummary {
 }
 
 export interface Issue {
-  id?: string;
+  id: string;
   code: string;
-  severity: "ERROR" | "WARNING" | "INFO";
+  severity: Severity;
   message: string;
-  status?: string;
+  status: IssueStatus;
+  fields?: string[];
+  evidence?: unknown;
+  createdAt?: string;
+  resolutionNote?: string | null;
+  transaction?: { id: string; vendor: string | null; date: string | null; receiptTotal: string | null } | null;
+  document?: { id: string; filename: string } | null;
 }
 
 export interface DocumentRow {
@@ -46,7 +57,7 @@ export interface DocumentRow {
   isExactDuplicateOf: string | null;
   deletedAt: string | null;
   uploadedBy: { id: string; fullName: string } | null;
-  issues: Issue[];
+  issues: Pick<Issue, "code" | "severity" | "message">[];
 }
 
 export interface Vehicle {
@@ -70,13 +81,132 @@ export interface Driver {
   defaultVehicle: { id: string; unitNumber: string } | null;
 }
 
+export interface Period {
+  id: string;
+  type: "MONTH" | "QUARTER" | "YEAR";
+  startDate: string;
+  endDate: string;
+  status: "OPEN" | "IN_REVIEW" | "APPROVED" | "LOCKED";
+}
+
+export interface TransactionLine {
+  id: string;
+  descriptionRaw: string;
+  category: "MOTOR_FUEL" | "REEFER_FUEL" | "DEF" | "NON_FUEL" | "TAX" | "FEE" | "DISCOUNT" | "CREDIT";
+  fuelType: string | null;
+  quantity: string | null;
+  unit: string | null;
+  unitPrice: string | null;
+  amount: string | null;
+}
+
+export interface TransactionRow {
+  id: string;
+  type: string;
+  date: string | null;
+  time: string | null;
+  vendor: string | null;
+  sellerAddress: string | null;
+  state: string | null;
+  stateSource: string | null;
+  unitNumberRaw: string | null;
+  receiptTotal: string | null;
+  currency: string | null;
+  status: TxStatus;
+  corroboration: string;
+  paymentMethod: string | null;
+  cardLast4: string | null;
+  vehicle: { id: string; unitNumber: string } | null;
+  lines: TransactionLine[];
+  openIssueCount?: number;
+  document: { id: string; filename: string } | null;
+  issues?: Issue[];
+  provenance?: Record<string, unknown>;
+  fieldEdits?: Array<{ id: string; field: string; oldValue: string | null; newValue: string | null; reason: string; createdAt: string; userId: string }>;
+}
+
+export interface PeriodSummary {
+  period: Period;
+  documents: { total: number; byStatus: Record<string, number> };
+  transactions: { total: number; byStatus: Record<string, number>; verifiedPercent: string };
+  openIssues: Record<Severity, number>;
+  fuelByState: Array<{ state: string; motorFuelGallons: string; motorFuelAmount: string; reeferGallons: string; defGallons: string }>;
+  unassigned: number;
+}
+
+export interface MileageRecord {
+  id: string;
+  jurisdiction: string;
+  totalMiles: string;
+  taxableMiles: string;
+  vehicle: { id: string; unitNumber: string };
+}
+
+export interface WorksheetRow {
+  jurisdiction: string;
+  totalMiles: string;
+  taxableMiles: string;
+  gallonsConsumed: string | null;
+  taxPaidGallons: string;
+  netTaxableGallons: string | null;
+  rate: string | null;
+  surcharge: string | null;
+  taxDue: string | null;
+}
+
+export interface Worksheet {
+  status: ReportStatus;
+  openErrorIssues: number;
+  unassignedTransactions: number;
+  worksheet: {
+    totals: { totalMiles: string; totalTaxableMiles: string; totalTaxableGallons: string; totalGallonsConsumed: string | null; totalTaxDue: string | null };
+    fleetMpg: string | null;
+    mpgDecimals: number;
+    rows: WorksheetRow[];
+    roundingNotes: string[];
+    ratesMissing: boolean;
+    missingRateJurisdictions: string[];
+  };
+  rateSource: { quarter: string; fuelType: string; sourceUrl: string; importedAt: string; jurisdictions: number } | null;
+  disclaimer: string;
+}
+
+export interface Report {
+  id: string;
+  type: ReportType;
+  status: ReportStatus;
+  snapshotHash: string;
+  periodId: string;
+  createdAt: string;
+  generatedBy: string;
+}
+
+export interface Member {
+  id: string;
+  role: CompanyRole;
+  createdAt: string;
+  user: { id: string; fullName: string; email: string | null };
+}
+
 export interface UploadResult {
   batchId: string;
   uploaded: Array<{ id: string; filename: string; sha256: string; status: DocumentStatus; isExactDuplicateOf: string | null }>;
   rejected: Array<{ filename: string; reason: "unsupported_type" | "content_mismatch" | "empty" }>;
 }
 
+export interface AuditEntry {
+  id: string;
+  action: string;
+  target: string | null;
+  meta: Record<string, unknown> | null;
+  createdAt: string;
+  user: { id: string; fullName: string } | null;
+}
+
+const c = (companyId: string) => `/companies/${companyId}`;
+
 export const backoffice = {
+  // ── Companies ──
   async myCompanies() {
     const { data } = await api.get<{ companies: Array<{ company: CompanySummary; roles: CompanyRole[] }> }>("/companies");
     return data.companies;
@@ -86,21 +216,31 @@ export const backoffice = {
     return data;
   },
   async company(id: string) {
-    const { data } = await api.get<{ company: CompanyDetail; role: CompanyRole }>(`/companies/${id}`);
+    const { data } = await api.get<{ company: CompanyDetail; role: CompanyRole }>(c(id));
     return data;
   },
+  async periods(companyId: string) {
+    const { data } = await api.get<{ periods: Period[] }>(`${c(companyId)}/periods`);
+    return data.periods;
+  },
+  async audit(companyId: string, limit = 50) {
+    const { data } = await api.get<{ entries: AuditEntry[] }>(`${c(companyId)}/audit`, { params: { limit } });
+    return data.entries;
+  },
+
+  // ── Documents ──
   async documents(companyId: string, params: { status?: DocumentStatus; cursor?: string; limit?: number } = {}) {
-    const { data } = await api.get<{ documents: DocumentRow[]; nextCursor: string | null }>(`/companies/${companyId}/documents`, { params });
+    const { data } = await api.get<{ documents: DocumentRow[]; nextCursor: string | null }>(`${c(companyId)}/documents`, { params });
     return data;
   },
   async document(companyId: string, id: string) {
-    const { data } = await api.get<{ document: DocumentRow; signedUrl: string | null; signedUrlExpiresInSeconds: number }>(`/companies/${companyId}/documents/${id}`);
+    const { data } = await api.get<{ document: DocumentRow; signedUrl: string | null; signedUrlExpiresInSeconds: number }>(`${c(companyId)}/documents/${id}`);
     return data;
   },
   async upload(companyId: string, files: File[], onProgress?: (percent: number) => void) {
     const form = new FormData();
     for (const f of files) form.append("files", f, f.name);
-    const { data } = await api.post<UploadResult>(`/companies/${companyId}/documents`, form, {
+    const { data } = await api.post<UploadResult>(`${c(companyId)}/documents`, form, {
       headers: { "Content-Type": "multipart/form-data" },
       onUploadProgress: (e) => {
         if (onProgress && e.total) onProgress(Math.round((e.loaded / e.total) * 100));
@@ -108,21 +248,102 @@ export const backoffice = {
     });
     return data;
   },
+  async requestDeletion(companyId: string, documentId: string, reason: string) {
+    const { data } = await api.post<{ message: string }>(`${c(companyId)}/documents/${documentId}/deletion-requests`, { reason });
+    return data;
+  },
+
+  // ── Fleet ──
   async vehicles(companyId: string) {
-    const { data } = await api.get<{ vehicles: Vehicle[] }>(`/companies/${companyId}/vehicles`);
+    const { data } = await api.get<{ vehicles: Vehicle[] }>(`${c(companyId)}/vehicles`);
     return data.vehicles;
   },
-  async addVehicle(companyId: string, input: Partial<Vehicle> & { unitNumber: string }) {
-    const { data } = await api.post<{ vehicle: Vehicle }>(`/companies/${companyId}/vehicles`, input);
+  async addVehicle(companyId: string, input: Record<string, unknown>) {
+    const { data } = await api.post<{ vehicle: Vehicle }>(`${c(companyId)}/vehicles`, input);
+    return data.vehicle;
+  },
+  async updateVehicle(companyId: string, id: string, input: Record<string, unknown>) {
+    const { data } = await api.patch<{ vehicle: Vehicle }>(`${c(companyId)}/vehicles/${id}`, input);
     return data.vehicle;
   },
   async drivers(companyId: string) {
-    const { data } = await api.get<{ drivers: Driver[] }>(`/companies/${companyId}/drivers`);
+    const { data } = await api.get<{ drivers: Driver[] }>(`${c(companyId)}/drivers`);
     return data.drivers;
   },
   async addDriver(companyId: string, input: { name: string; phone?: string; defaultVehicleId?: string; language?: "EN" | "SO" }) {
-    const { data } = await api.post<{ driver: Driver }>(`/companies/${companyId}/drivers`, input);
+    const { data } = await api.post<{ driver: Driver }>(`${c(companyId)}/drivers`, input);
     return data.driver;
+  },
+  async updateDriver(companyId: string, id: string, input: Record<string, unknown>) {
+    const { data } = await api.patch<{ driver: Driver }>(`${c(companyId)}/drivers/${id}`, input);
+    return data.driver;
+  },
+
+  // ── Transactions & review ──
+  async transactions(companyId: string, params: { status?: TxStatus; periodId?: string; cursor?: string; limit?: number } = {}) {
+    const { data } = await api.get<{ transactions: TransactionRow[]; nextCursor: string | null }>(`${c(companyId)}/transactions`, { params });
+    return data;
+  },
+  async transaction(companyId: string, id: string) {
+    const { data } = await api.get<{ transaction: TransactionRow }>(`${c(companyId)}/transactions/${id}`);
+    return data.transaction;
+  },
+  async editField(companyId: string, id: string, input: { field: string; newValue: string | null; reason: string }) {
+    const { data } = await api.patch<{ transaction: TransactionRow }>(`${c(companyId)}/transactions/${id}/fields`, input);
+    return data.transaction;
+  },
+  async issues(companyId: string, params: { status?: IssueStatus; severity?: Severity; cursor?: string; limit?: number } = {}) {
+    const { data } = await api.get<{ issues: Issue[]; nextCursor: string | null }>(`${c(companyId)}/issues`, { params });
+    return data;
+  },
+  async resolveIssue(companyId: string, id: string, note: string, accept = false) {
+    const { data } = await api.post<{ issue: Issue }>(`${c(companyId)}/issues/${id}/${accept ? "accept" : "resolve"}`, { note });
+    return data.issue;
+  },
+
+  // ── Fuel & IFTA ──
+  async periodSummary(companyId: string, periodId: string) {
+    const { data } = await api.get<PeriodSummary>(`${c(companyId)}/periods/${periodId}/summary`);
+    return data;
+  },
+  async mileage(companyId: string, periodId: string) {
+    const { data } = await api.get<{ records: MileageRecord[]; byJurisdiction: Array<{ jurisdiction: string; totalMiles: string; taxableMiles: string }>; totals: { totalMiles: string; taxableMiles: string } }>(`${c(companyId)}/periods/${periodId}/mileage`);
+    return data;
+  },
+  async importMileage(companyId: string, periodId: string, file: File, provider = "generic") {
+    const form = new FormData();
+    form.append("file", file, file.name);
+    form.append("provider", provider);
+    const { data } = await api.post<{ mileageImport: { id: string; provider: string; importedAt: string; rows: number } }>(`${c(companyId)}/periods/${periodId}/mileage-imports`, form, { headers: { "Content-Type": "multipart/form-data" } });
+    return data.mileageImport;
+  },
+  async worksheet(companyId: string, periodId: string) {
+    const { data } = await api.get<Worksheet>(`${c(companyId)}/periods/${periodId}/ifta-worksheet`);
+    return data;
+  },
+
+  // ── Reports ──
+  async reports(companyId: string) {
+    const { data } = await api.get<{ reports: Report[] }>(`${c(companyId)}/reports`);
+    return data.reports;
+  },
+  async generateReport(companyId: string, input: { type: ReportType; periodId: string }) {
+    const { data } = await api.post<{ report: Report }>(`${c(companyId)}/reports`, input);
+    return data.report;
+  },
+  async report(companyId: string, id: string) {
+    const { data } = await api.get<{ report: Report; signedUrl: string }>(`${c(companyId)}/reports/${id}`);
+    return data;
+  },
+
+  // ── Members ──
+  async members(companyId: string) {
+    const { data } = await api.get<{ members: Member[] }>(`${c(companyId)}/members`);
+    return data.members;
+  },
+  async addMember(companyId: string, input: { email: string; role: CompanyRole }) {
+    const { data } = await api.post<{ member: Member }>(`${c(companyId)}/members`, input);
+    return data.member;
   },
 };
 
@@ -134,4 +355,40 @@ export function formatBytes(n: number): string {
   if (n < 1024) return `${n} B`;
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`;
   return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+/** Money as "$1,234.56"; values arrive as decimal strings from the API. */
+export function formatMoney(value: string | number | null | undefined, currency = "USD"): string {
+  if (value === null || value === undefined || value === "") return "—";
+  const n = Number(value);
+  if (Number.isNaN(n)) return String(value);
+  return new Intl.NumberFormat("en-US", { style: "currency", currency }).format(n);
+}
+
+export function formatNumber(value: string | number | null | undefined, places = 3): string {
+  if (value === null || value === undefined || value === "") return "—";
+  const n = Number(value);
+  if (Number.isNaN(n)) return String(value);
+  return new Intl.NumberFormat("en-US", { minimumFractionDigits: places, maximumFractionDigits: places }).format(n);
+}
+
+export function formatDate(value: string | null | undefined, locale = "en-US"): string {
+  if (!value) return "—";
+  const d = new Date(value.length === 10 ? `${value}T00:00:00Z` : value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleDateString(locale, { month: "short", day: "numeric", year: "numeric", timeZone: value.length === 10 ? "UTC" : undefined });
+}
+
+export function formatDateTime(value: string | null | undefined, locale = "en-US"): string {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return d.toLocaleString(locale, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+}
+
+export function periodLabel(p: Pick<Period, "type" | "startDate">): string {
+  const d = new Date(p.startDate);
+  if (p.type === "QUARTER") return `Q${Math.floor(d.getUTCMonth() / 3) + 1} ${d.getUTCFullYear()}`;
+  if (p.type === "MONTH") return d.toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
+  return String(d.getUTCFullYear());
 }

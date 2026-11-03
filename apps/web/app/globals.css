@@ -2,90 +2,79 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Light theme (default) ─────────────────── */
+/* ── Design tokens (Sahid Freight back-office) ─────────────────────────────
+   Restrained, Linear/Stripe-like. Inter, Lucide icons, no emoji. Consumed by
+   tailwind.config.ts (bg-surface, text-ink, border-line, …). */
 :root,
 [data-theme="light"] {
-  --bg:         #FFFFFF;
-  --primary:    #0F172A;
-  --accent:     #3D7BFF;
-  --accent-hover: #2C5FE0;
-  --accent-dim: rgba(61,123,255,0.08);
-  --navy:       #0A1F44;
-  --navy-deep:  #13316B;
-  --teal:       #5BE3C4;
-  --tint:       #E8F0FF;
-  --surface:    #F8FAFC;
-  --surface2:   #F1F5F9;
-  --border:     #E2E8F0;
-  --text:       #0F172A;
+  --bg: #ffffff;
+  --surface: #f8fafc;
+  --surface2: #f1f5f9;
+  --border: #e2e8f0;
+  --text: #0f172a;
   --text-secondary: #475569;
-  --text-muted: #94A3B8;
-  --input-bg:   #F8FAFC;
-  --input-text: #0F172A;
-  --input-border: #E2E8F0;
-  --input-placeholder: #94A3B8;
-  --success:    #16A34A;
-  --danger:     #DC2626;
-  --warning:    #F59E0B;
-  --blue:       #3D7BFF;
-  --orange:     #F97316;
-  --sidebar:    #0F172A;
-  --sidebar-text: #F8FAFC;
-  --sidebar-muted: rgba(248,250,252,0.42);
-  --sidebar-active-bg: rgba(248,250,252,0.08);
-  --sidebar-border: rgba(248,250,252,0.08);
-  --topbar-bg:  #FFFFFF;
-  --topbar-border: #E2E8F0;
-  --card-shadow: 0 1px 2px rgba(0,0,0,0.05);
-  --dropdown-shadow: 0 16px 48px rgba(0,0,0,0.12);
-  --shimmer-from: #F1F5F9;
-  --shimmer-mid:  #E2E8F0;
-  --shimmer-to:   #F1F5F9;
-  --font:       var(--font-inter), Inter, system-ui, sans-serif;
+  --text-muted: #94a3b8;
+  --primary: #0f172a;
+  --accent: #2f6bff;
+  --accent-hover: #2457d6;
+  --accent-dim: rgba(47, 107, 255, 0.08);
+  --navy: #0a1f44;
+  --success: #15803d;
+  --warning: #b45309;
+  --danger: #b91c1c;
+  --input-bg: #ffffff;
+  --input-text: #0f172a;
+  --input-border: #e2e8f0;
+  --input-placeholder: #94a3b8;
+  --sidebar: #0f172a;
+  --sidebar-text: #f8fafc;
+  --sidebar-muted: rgba(248, 250, 252, 0.55);
+  --sidebar-active-bg: rgba(248, 250, 252, 0.1);
+  --sidebar-border: rgba(248, 250, 252, 0.08);
+  --card-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --dropdown-shadow: 0 16px 48px rgba(15, 23, 42, 0.14);
+  --shimmer-from: #f1f5f9;
+  --shimmer-mid: #e2e8f0;
+  --shimmer-to: #f1f5f9;
+  --font: var(--font-inter), Inter, system-ui, sans-serif;
+  color-scheme: light;
 }
 
-/* ── Dark theme ────────────────────────────── */
 [data-theme="dark"] {
-  --bg:         #0F172A;
-  --primary:    #F8FAFC;
-  --accent:     #3D7BFF;
-  --accent-hover: #2C5FE0;
-  --accent-dim: rgba(61,123,255,0.12);
-  --navy:       #0A1F44;
-  --navy-deep:  #13316B;
-  --teal:       #5BE3C4;
-  --tint:       rgba(61,123,255,0.14);
-  --surface:    #1E293B;
-  --surface2:   #334155;
-  --border:     #334155;
-  --text:       #F8FAFC;
-  --text-secondary: #CBD5E1;
-  --text-muted: #94A3B8;
-  --input-bg:   #1E293B;
-  --input-text: #F8FAFC;
-  --input-border: #334155;
-  --input-placeholder: #64748B;
-  --success:    #22C55E;
-  --danger:     #EF4444;
-  --warning:    #FBBF24;
-  --blue:       #3D7BFF;
-  --orange:     #FB923C;
-  --sidebar:    #0F172A;
-  --sidebar-text: #F8FAFC;
-  --sidebar-muted: rgba(248,250,252,0.4);
-  --sidebar-active-bg: rgba(61,123,255,0.12);
-  --sidebar-border: rgba(248,250,252,0.06);
-  --topbar-bg:  #0F172A;
-  --topbar-border: #334155;
+  --bg: #0b1220;
+  --surface: #111a2b;
+  --surface2: #1b2639;
+  --border: #243044;
+  --text: #f1f5f9;
+  --text-secondary: #c3cddb;
+  --text-muted: #8a97ab;
+  --primary: #f1f5f9;
+  --accent: #5b8cff;
+  --accent-hover: #7aa2ff;
+  --accent-dim: rgba(91, 140, 255, 0.14);
+  --navy: #0a1f44;
+  --success: #4ade80;
+  --warning: #fbbf24;
+  --danger: #f87171;
+  --input-bg: #111a2b;
+  --input-text: #f1f5f9;
+  --input-border: #243044;
+  --input-placeholder: #64748b;
+  --sidebar: #070d18;
+  --sidebar-text: #f1f5f9;
+  --sidebar-muted: rgba(241, 245, 249, 0.5);
+  --sidebar-active-bg: rgba(91, 140, 255, 0.16);
+  --sidebar-border: rgba(241, 245, 249, 0.06);
   --card-shadow: none;
-  --dropdown-shadow: 0 16px 48px rgba(0,0,0,0.4);
-  --shimmer-from: #1E293B;
-  --shimmer-mid:  #334155;
-  --shimmer-to:   #1E293B;
+  --dropdown-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+  --shimmer-from: #1b2639;
+  --shimmer-mid: #243044;
+  --shimmer-to: #1b2639;
+  color-scheme: dark;
 }
 
-html, body {
-  /* Prevent any page from leaking a horizontal scrollbar on mobile */
+html,
+body {
   overflow-x: hidden;
   max-width: 100%;
 }
@@ -94,99 +83,70 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font);
-  font-size: 16px;                 /* base — iOS won't zoom inputs at 16px+ */
+  font-size: 16px; /* iOS will not zoom inputs at 16px+ */
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  -webkit-text-size-adjust: 100%;  /* iOS Safari — stop auto text inflation */
+  -webkit-text-size-adjust: 100%;
   text-rendering: optimizeLegibility;
-  transition: background 0.2s, color 0.2s;
 }
 
-/* ── Fluid type scale — headings shrink gracefully on small screens ── */
-h1 { font-size: clamp(28px, 6vw, 56px); line-height: 1.08; letter-spacing: -0.02em; }
-h2 { font-size: clamp(22px, 4vw, 40px); line-height: 1.12; letter-spacing: -0.01em; }
-h3 { font-size: clamp(18px, 2.4vw, 22px); line-height: 1.2; }
-
-/* iOS Safari input zoom guard — text inputs must be ≥16px */
-input, select, textarea {
+input,
+select,
+textarea,
+button {
   font-family: inherit;
 }
+
 @media (max-width: 640px) {
   input:not([type="checkbox"]):not([type="radio"]),
   select,
-  textarea { font-size: 16px !important; }
+  textarea {
+    font-size: 16px !important;
+  }
 }
 
-/* Any interactive control should be at least a proper touch target on
-   phones — 44×44 is Apple's minimum, aligns with Android's 48dp. */
+/* Touch targets on phones: 44px minimum. */
 @media (hover: none) and (pointer: coarse) {
-  button, [role="button"], a[href], input[type="submit"] {
+  button,
+  [role="button"],
+  a[href],
+  input[type="submit"] {
     min-height: 44px;
   }
 }
 
-/* ── Auth pages ─────────────────────────────────── */
-@media (max-width: 900px) {
-  /* Left brand panel: hide it below tablet — form card centers with full width */
-  .auth-left, .verify-left { display: none !important; }
-  .auth-right, .verify-right {
-    padding: 32px 20px !important;
-    width: 100% !important;
-    align-items: flex-start !important;
-    padding-top: 48px !important;
-  }
-  .auth-card { width: 100% !important; max-width: 440px !important; margin: 0 auto !important; }
-  .auth-card > div, .verify-card {
-    padding: 28px 22px !important;
-    border-radius: 16px !important;
-  }
-}
-@media (max-width: 380px) {
-  .auth-right, .verify-right { padding: 24px 14px !important; padding-top: 40px !important; }
-  .auth-card > div, .verify-card { padding: 22px 18px !important; }
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
 }
 
-/* ── Landing page ───────────────────────────────── */
-@media (max-width: 768px) {
-  .how-grid { grid-template-columns: 1fr !important; }
-  .features-grid { grid-template-columns: 1fr !important; }
-  .countries-flex { flex-direction: column !important; align-items: stretch !important; }
-  .trucks-grid { grid-template-columns: 1fr 1fr !important; }
-  .cta-btns { flex-direction: column !important; align-items: center !important; }
-  .footer-inner { flex-direction: column !important; }
-  .footer-links { flex-direction: column !important; gap: 32px !important; }
-  .nav-ctas { display: none !important; }
-  .hero-h1 { font-size: 38px !important; letter-spacing: -1px !important; }
-  .hero-stats { gap: 20px !important; flex-wrap: wrap !important; }
-  .hero-btns { flex-direction: column !important; align-items: center !important; }
-  section { padding: 64px 20px !important; }
-}
-
-/* ── Verify / OTP — extra tightening for the OTP boxes on tiny screens ── */
-@media (max-width: 380px) {
-  .otp-input { width: 40px !important; height: 48px !important; font-size: 20px !important; }
-}
-
-/* ── Dashboard misc ─────────────────────────────── */
-@media (max-width: 768px) {
-  .bookings-grid { grid-template-columns: 1fr !important; }
-  .loads-table-header { display: none !important; }
-  .loads-table-row { grid-template-columns: 1fr !important; gap: 4px !important; padding: 12px 16px !important; }
-}
-
-@media (max-width: 480px) {
-  .stat-cards { grid-template-columns: 1fr 1fr !important; }
-}
-
-/* ── Spinner / shimmer ─────────────────────────── */
-@keyframes spin { to { transform: rotate(360deg); } }
+/* ── Loading shimmer ── */
 @keyframes shimmer {
-  0%   { background-position: -1000px 0; }
-  100% { background-position:  1000px 0; }
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
 }
 .sk {
   background: linear-gradient(90deg, var(--shimmer-from) 25%, var(--shimmer-mid) 50%, var(--shimmer-to) 75%);
   background-size: 2000px 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 8px;
+}
+
+/* Tabular figures for money, gallons and hashes. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

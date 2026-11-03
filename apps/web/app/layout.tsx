@@ -9,6 +9,15 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "https://sahidfreight.com"),
+  title: {
+    default: "Sahid Freight — Trucking back office, done for you",
+    template: "%s · Sahid Freight",
+  },
+  description:
+    "Send us your paperwork. Every month you get clean books and IFTA-ready numbers, checked by AI and confirmed by a person, with every number traceable to its receipt.",
+  applicationName: "Sahid Freight",
+  manifest: "/site.webmanifest",
   icons: {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },
@@ -18,28 +27,27 @@ export const metadata: Metadata = {
     ],
     apple: "/apple-touch-icon.png",
   },
-  manifest: "/site.webmanifest",
-  title: "Sahid Freight — Move Cargo. Connect East Africa.",
-  description: "The fastest way to connect cargo senders with trusted truck owners across Ethiopia, Somalia, and Djibouti.",
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "Sahid Freight" },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  // No maximumScale / userScalable — accessibility zoom must work.
-  themeColor: "#0A1F44",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b1220" },
+  ],
   viewportFit: "cover",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+// Applies the saved theme and language before first paint (no flash). Static string: safe.
+const bootstrap = `(function(){try{var t=localStorage.getItem('theme')||'light';var l=localStorage.getItem('language')||'en';if(l!=='so')l='en';document.documentElement.setAttribute('data-theme',t);document.documentElement.setAttribute('lang',l);}catch(e){}})();`;
+
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} antialiased`} style={{ fontFamily: "var(--font-inter), Inter, system-ui, sans-serif" }}>
-        <script dangerouslySetInnerHTML={{ __html: `(function(){var t=localStorage.getItem('theme')||'light';var l=localStorage.getItem('language')||'en';document.documentElement.setAttribute('data-theme',t);document.documentElement.setAttribute('lang',l);})();` }} />
+      <body className={`${inter.variable} font-sans antialiased bg-canvas text-ink`}>
+        <script dangerouslySetInnerHTML={{ __html: bootstrap }} />
         {children}
       </body>
     </html>

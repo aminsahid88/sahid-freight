@@ -1,11 +1,13 @@
 {
   "name": "Sahid Freight",
   "short_name": "Sahid Freight",
-  "description": "Trucking and freight logistics.",
-  "start_url": "/",
+  "description": "Trucking back office: receipts in, clean books and IFTA-ready numbers out.",
+  "start_url": "/office",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#0A1F44",
-  "theme_color": "#0A1F44",
+  "background_color": "#ffffff",
+  "theme_color": "#0f172a",
+  "lang": "en",
   "icons": [
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
