@@ -1,0 +1,1070 @@
+{
+  "meta": {
+    "document": "AI Trucking Back-Office Platform — Master Build Prompt",
+    "version": "2.0",
+    "updated": "2026-11-02",
+    "supersedes": "1.0 (founder's original brief)",
+    "how_to_use": "Give this whole file to the coding agent (e.g. Claude Code) as the project brief. Sections marked TEMPORARY DEFAULT may be changed by the founder; everything else is a requirement.",
+    "changes_from_v1": [
+      "Added market context, target customer, business model and pilot plan from the November 2026 research brief.",
+      "Added a done-for-you service model: AI does the work, an internal reviewer confirms flags, the owner approves.",
+      "Added zero-typing intake: phone photos, email forwarding, WhatsApp/SMS, fuel card CSV import and ELD mileage import.",
+      "Replaced 'AI checks itself' with deterministic rule checks plus a second independent extraction pass.",
+      "Added a full validation rule catalog with codes, severities and deterministic checks.",
+      "Added a full relational data model, field-level provenance and edit history.",
+      "Added IFTA calculation logic, rate-table handling and 4-year record retention.",
+      "Added receipt-to-fuel-card matching, report and CSV specs, i18n (English and Somali), metrics, cost controls, test fixtures and a dated roadmap with gates.",
+      "Added a recommended stack as a TEMPORARY DEFAULT, with trade-offs."
+    ]
+  },
+  "role": "You are a senior product architect, AI engineer, full-stack developer, and practical startup partner. Build a real, secure, production-minded AI back-office platform for trucking companies. Be honest about what is implemented, prioritize accuracy and traceability, and never pretend unfinished features work. Act as the technical co-founder: make sensible decisions autonomously, label assumptions, and only stop to ask the founder when a choice is expensive to reverse, involves money or legal exposure, or contradicts this brief.",
+  "project": {
+    "working_name": "AI Trucking Back-Office Platform",
+    "brand_name": "TBD",
+    "mission": "Help trucking companies run their back office by turning documents into organized, verified, actionable business records.",
+    "first_test_company": "A&H FREIGHT GROUP LLC",
+    "company_ownership": "The software is owned by the founder's venture, not by A&H FREIGHT GROUP LLC. A&H is the first pilot customer and design partner. Put a short written data-use agreement in place before processing their real documents.",
+    "budget": "Undecided; prototype first and avoid unnecessary costs.",
+    "product_strategy": "Architect for a larger platform but build one complete, testable module at a time.",
+    "languages": [
+      "English (default)",
+      "Somali (owner-facing UI, notifications and report summaries)"
+    ],
+    "one_line_promise": "Send us your paperwork. Every month you get clean books and IFTA-ready numbers, checked by AI and confirmed by a person, with every number traceable to its receipt.",
+    "key_dates": {
+      "today": "2026-11-02 (Q3 2026 IFTA returns due today)",
+      "pilot_ready_target": "2027-01-15",
+      "first_customer_deadline": "2027-02-01 — Q4 2026 IFTA returns due. The pilot must deliver a complete, preparer-ready Q4 2026 IFTA package for A&H before this date."
+    }
+  },
+  "market_context": {
+    "summary": "Very small carriers dominate U.S. trucking, pay several separate vendors for back-office help, and still do the paperwork by hand.",
+    "facts": [
+      {
+        "fact": "Fleets of 1–6 tractors are about 86% of U.S. carriers; fleets of 7–19 are another 9%.",
+        "source": "https://www.freightwaves.com/news/small-carriers-owner-operators-remain-lifeblood-of-transportation-during-market-downturn"
+      },
+      {
+        "fact": "About 88,000 carrier authorities were lost between January 2025 and February 2026; surviving carriers are cost-sensitive.",
+        "source": "https://truckdispatchexperts.com/resources/carrier-exodus-reshaping-freight-2026/"
+      },
+      {
+        "fact": "IFTA records must be kept 4 years from the return due date or filing date, whichever is later; burden of proof is on the carrier.",
+        "source": "https://www.cpapracticeadvisor.com/?p=192588"
+      },
+      {
+        "fact": "Fuel receipts missing required details can be disallowed as tax-paid credits in an audit.",
+        "source": "https://Tax.Colorado.Gov/sites/tax/files/Excise%2010.pdf"
+      },
+      {
+        "fact": "Software: Rigbooks $19–$149/mo; TruckingOffice $25–$90/mo; TruckLogics $39.95–$249.95/mo plus ~$20–$25 per IFTA report.",
+        "source": "https://toolradar.com/tools/rigbooks ; https://toolradar.com/tools/truckingoffice ; https://www.rfp.wiki/supply-chain-logistics-transportation/transportation-logistics/trucking-erp-software/truckbase/trucklogics"
+      },
+      {
+        "fact": "Trucking-specialist bookkeepers charge about $200–$450/mo.",
+        "source": "https://loadwrap.com/services/company/owner-operator-books-llc-2"
+      },
+      {
+        "fact": "Factoring costs small carriers roughly 2–5% of invoice value.",
+        "source": "https://otrucking.com/resources/guides/freight-factoring-rates-2026/"
+      },
+      {
+        "fact": "Funded AI-native players (Datatruck $12M Series A, Bubba, Transflo Workflow AI) target growing and mid-size fleets willing to replace their whole system.",
+        "source": "https://seedtable.com/companies/datatruck/funding-rounds/series-a-2026-01"
+      }
+    ],
+    "our_gap": "Priced like software, delivered like a service; plugs into what the owner already uses; audit-proof by design; Somali-language support for our first community."
+  },
+  "target_customer": {
+    "primary": "U.S. for-hire carriers with 1–10 power units running interstate (IFTA-licensed), where the owner does the back office personally.",
+    "first_50_customers": "Somali and East African owner-operators and small fleets reached through the founder's network, community groups and referrals.",
+    "secondary_buyer": "Trucking bookkeepers and IFTA/permit service firms who manage many carriers and need clean, traceable paperwork (partner role, multi-company access).",
+    "not_now": "Mid-size and enterprise fleets, brokers, intrastate-only carriers, Canadian-based carriers."
+  },
+  "business_model": {
+    "pricing_hypotheses_TEMPORARY_DEFAULT": [
+      {
+        "plan": "Starter",
+        "who": "1–2 trucks",
+        "price": "$79/month"
+      },
+      {
+        "plan": "Fleet",
+        "who": "3–10 trucks",
+        "price": "$149/month + $15/truck"
+      },
+      {
+        "plan": "IFTA only",
+        "who": "Any size",
+        "price": "$99/quarter"
+      },
+      {
+        "plan": "Partner",
+        "who": "Bookkeepers/service firms",
+        "price": "Per-company wholesale rate, TBD"
+      }
+    ],
+    "pricing_rule": "Do not hard-code prices. Store plans in configuration. Billing integration (e.g. Stripe) is out of scope until the pilot validates willingness to pay.",
+    "later_revenue": "Referral partnerships with factoring companies and fuel card providers once we hold verified invoices and fuel data (year two decision; requires explicit customer consent)."
+  },
+  "product_vision": {
+    "long_term_modules": [
+      "AI document processing and audit",
+      "Fuel transactions and IFTA preparation",
+      "Expense tracking and bookkeeping support",
+      "Revenue, loads, and invoicing",
+      "Driver settlements",
+      "Truck, trailer, and maintenance records",
+      "Compliance calendar and reminders",
+      "Quarterly reports",
+      "Year-end tax preparation package",
+      "Financial summaries and profit-and-loss reporting",
+      "Document storage and evidence traceability"
+    ],
+    "core_differentiator": "An AI agent that processes trucking paperwork end to end, checks its results against source documents, explains discrepancies, keeps evidence linked to every record, and prepares professional reports for human review.",
+    "guiding_promise": "The owner never types data. They send documents, approve results, and download deliverables.",
+    "competitive_stance": "Do not try to replace the ELD, fuel card, dispatch or factoring provider. Ingest their outputs and become the verified record that sits on top of them."
+  },
+  "service_model": {
+    "description": "Hybrid AI + human service. AI extracts and checks everything; an internal reviewer resolves flagged items within an SLA; the owner approves anything consequential.",
+    "roles": [
+      {
+        "role": "Owner",
+        "can": "See everything for their company, approve corrections, approve and download reports, manage users, vehicles and drivers."
+      },
+      {
+        "role": "Office staff",
+        "can": "Upload, review and correct; cannot approve final reports unless granted."
+      },
+      {
+        "role": "Driver",
+        "can": "Submit documents via phone camera, WhatsApp, SMS or email; see only their own submissions and statuses."
+      },
+      {
+        "role": "Reviewer (internal ops)",
+        "can": "Work the cross-company review queue for assigned companies; resolve flags; every action logged; cannot export or delete customer data."
+      },
+      {
+        "role": "Partner (bookkeeper)",
+        "can": "Access multiple client companies they are invited to; same rights as office staff per company."
+      },
+      {
+        "role": "Platform admin",
+        "can": "Manage tenants, plans, rate tables and system config; access customer documents only through a logged break-glass action."
+      }
+    ],
+    "review_sla_TEMPORARY_DEFAULT": "Flagged items resolved within 1 business day; quarter-end packages within 2 business days of the last document.",
+    "reviewer_console": [
+      "Queue across assigned companies, sorted by deadline and severity.",
+      "Side-by-side source image (zoomable, with highlighted field region) and extracted fields from both passes.",
+      "One-click accept pass A / accept pass B / enter value / mark unreadable / request info from customer.",
+      "Requests to the customer go out as a message in their chosen channel and language.",
+      "Track reviewer minutes per document as a cost metric."
+    ]
+  },
+  "intake_channels": {
+    "principle": "Meet owners and drivers where they already are. Every channel lands in the same documents pipeline with identical processing.",
+    "channels": [
+      {
+        "channel": "Web upload",
+        "phase": 1,
+        "details": "Drag-and-drop multi-file upload; PDF, JPG, PNG, HEIC, TIFF, CSV, XLSX; per-file progress and errors."
+      },
+      {
+        "channel": "Mobile camera capture (PWA)",
+        "phase": 1,
+        "details": "Installable PWA on iPhone/Android; multi-shot capture, auto-crop, blur and glare warnings before upload; offline queue that uploads when signal returns."
+      },
+      {
+        "channel": "Email forwarding",
+        "phase": 1,
+        "details": "Each company gets a unique inbound address (e.g. docs+<company-slug>@<domain>). Attachments become documents; sender must be a registered user or is held for owner approval."
+      },
+      {
+        "channel": "WhatsApp / SMS",
+        "phase": 1,
+        "details": "Twilio (or equivalent) number. Sender phone maps to a user/driver and company. Photos become documents; the bot replies with a receipt confirmation and asks only for missing essentials (e.g. truck unit number) in the user's language. Unknown senders are rejected politely."
+      },
+      {
+        "channel": "Fuel card statement import",
+        "phase": 1,
+        "details": "CSV/XLSX import with saved column mappings per provider (Comdata, WEX/EFS, AtoB, TCS, generic). Each row becomes a fuel_card_transaction, not a duplicate receipt."
+      },
+      {
+        "channel": "ELD mileage import",
+        "phase": 1,
+        "details": "Import the ELD's IFTA/jurisdiction mileage report (CSV/XLSX/PDF) per vehicle and quarter. Direct API integrations (Motive, Samsara, etc.) are phase 3."
+      },
+      {
+        "channel": "Bank and credit card statements",
+        "phase": 2,
+        "details": "CSV/OFX import for expense matching and bookkeeping."
+      }
+    ],
+    "attribution_rules": [
+      "Every document gets company, reporting period (derived from transaction date, overridable), uploader and channel.",
+      "Truck unit number is captured from the receipt, the fuel card row, the driver's default truck, or by asking — in that order, recording which source was used.",
+      "Never assign a document to a company based on guesswork; unattributable documents go to an 'Unassigned' inbox."
+    ]
+  },
+  "mvp": {
+    "name": "Document Processing and Audit Center (with IFTA-ready output)",
+    "goal": "A trucking owner can upload a batch of receipts and receive an organized transaction ledger, state-by-state fuel summary when supported, an exception list, and a professional downloadable report with source documents. For IFTA, combine verified fuel purchases with imported jurisdiction mileage to produce a preparer-ready quarterly worksheet, clearly labeled preliminary until reviewed.",
+    "in_scope": [
+      "All intake channels marked phase 1",
+      "Two-pass extraction with field-level provenance",
+      "Validation rule catalog (codes V/F/D/M/I below)",
+      "Receipt ↔ fuel card matching",
+      "ELD mileage import and jurisdiction summaries",
+      "Review queue (owner + internal reviewer) with edit history",
+      "PDF report, CSV export, supporting-document package, IFTA worksheet",
+      "Audit log, 4-year retention, English and Somali UI"
+    ],
+    "out_of_scope_for_mvp": [
+      "Filing any return with any jurisdiction",
+      "Payments, billing and subscriptions",
+      "Direct ELD/fuel card APIs",
+      "Invoicing, settlements, maintenance, full bookkeeping (later phases)",
+      "Native iOS/Android apps (PWA only)"
+    ],
+    "input_types": [
+      "PDFs",
+      "Scanned documents",
+      "Receipt photos",
+      "Fuel receipts",
+      "Expense receipts",
+      "Fuel invoices",
+      "Spreadsheets where appropriate",
+      "Fuel card statements (CSV/XLSX)",
+      "ELD jurisdiction mileage reports",
+      "Multi-receipt photos (several receipts in one image)",
+      "Multi-page PDFs containing many receipts"
+    ],
+    "workflow": [
+      {
+        "step": 1,
+        "name": "Intake",
+        "requirements": [
+          "Allow multiple documents per batch.",
+          "Associate uploads with a company and reporting period.",
+          "Show progress, failures, and processing status.",
+          "Preserve the original files unchanged.",
+          "Accept documents from every phase-1 channel into one pipeline.",
+          "Compute a SHA-256 hash of every original file; identical hashes are flagged as exact duplicates (D001) but still stored and linked.",
+          "Store originals immutably in object storage; all processing works on derived copies."
+        ]
+      },
+      {
+        "step": 2,
+        "name": "Pre-process",
+        "requirements": [
+          "Split multi-page PDFs into pages; detect multiple receipts in one image and create one region per receipt.",
+          "Run an image quality check (blur, glare, crop, resolution) and record a quality score; poor images trigger a re-capture request rather than a guess.",
+          "Rotate and deskew derived copies only."
+        ]
+      },
+      {
+        "step": 3,
+        "name": "Extract — two independent passes",
+        "requirements": [
+          "Extract merchant, transaction date, location, state, fuel type, gallons, unit price, fuel subtotal, taxes, fees, parking, other charges, credits, currency, and receipt total when present.",
+          "Record source filename and page or region reference where possible.",
+          "Store original extracted text/value separately from normalized values.",
+          "Use null for missing or unreadable values; never invent them.",
+          "Track confidence per field and flag low-confidence fields for review.",
+          "Pass A: vision-capable LLM reads the image and returns JSON matching the extraction contract.",
+          "Pass B: an independent read using a different prompt and either a different model or an OCR-text-then-parse path. Pass B must not see Pass A's output.",
+          "For every field store: raw text as printed, normalized value, confidence, bounding box/page reference, pass id, model id and prompt version.",
+          "Fields where passes agree (after normalization) are 'corroborated'; fields that disagree raise V010 and go to review.",
+          "Also extract when present: truck/unit number, odometer, driver name, card last 4, payment method, pump number, reefer fuel and DEF lines, purchaser name, seller address."
+        ]
+      },
+      {
+        "step": 4,
+        "name": "Normalize and classify",
+        "requirements": [
+          "Normalize dates, state abbreviations, currency, and measurement units.",
+          "Classify fuel charges separately from non-fuel charges, taxes, fees, parking, credits, and refunds when evidence supports it.",
+          "Keep source values available for comparison.",
+          "Do not assume receipt total equals fuel spend.",
+          "Split a receipt into line items: motor fuel (diesel, gasoline), reefer fuel, DEF, other non-fuel, taxes, fees, discounts/credits.",
+          "Treat reefer fuel and DEF as separate fuel types; never add them to IFTA motor-fuel gallons. Flag for preparer confirmation.",
+          "Resolve state from the printed address; if only a city or station number is present, use a station directory lookup and mark the source as 'lookup'."
+        ]
+      },
+      {
+        "step": 5,
+        "name": "Validate",
+        "requirements": [
+          "Flag likely duplicate documents and explain the matching evidence.",
+          "Check arithmetic when line items and totals are available.",
+          "Flag missing, conflicting, unreadable, or suspicious values.",
+          "Check date, state, unit, and total consistency where possible.",
+          "Link every issue to the relevant source document and field.",
+          "Do not silently delete, merge, or overwrite records.",
+          "Run every rule in validation_rule_catalog; rules are deterministic code, versioned, and each produces an issue with code, severity, evidence and the fields involved.",
+          "Status logic: any error-severity issue → Needs Attention; unreadable or unresolvable after review → Unable to Verify; all required fields corroborated or human-confirmed and no open errors → Verified."
+        ]
+      },
+      {
+        "step": 6,
+        "name": "Match and reconcile",
+        "requirements": [
+          "Calculate supported totals by state and reporting period.",
+          "Separate gallons, fuel amounts, non-fuel charges, taxes, fees, credits, and overall receipt totals.",
+          "Show calculation formulas, included records, excluded records, and unresolved differences.",
+          "Preserve edit history when users correct values.",
+          "Label results preliminary until required information is reviewed and complete.",
+          "Match receipts to fuel card rows by date (±1 day), gallons (±0.5%), amount (±$0.50) and state/location; record match score and the fields used.",
+          "Matched pairs become one fuel purchase with two pieces of evidence (corroboration).",
+          "Unmatched card rows → I003 'card purchase with no receipt'. Unmatched receipts paid by card → I004.",
+          "Import ELD jurisdiction miles per vehicle; reconcile total miles against odometer readings where available (M001–M004)."
+        ]
+      },
+      {
+        "step": 7,
+        "name": "Human review",
+        "requirements": [
+          "Use statuses Verified, Needs Attention, and Unable to Verify.",
+          "Provide a review queue for uncertain fields and exceptions.",
+          "Allow users to open the source document from each transaction.",
+          "Require explicit approval for material corrections and consequential actions.",
+          "Two-tier review: internal reviewer resolves extraction flags; owner approves material corrections and final reports.",
+          "Every correction stores old value, new value, who, when, why and evidence; original extracted values are never overwritten."
+        ]
+      },
+      {
+        "step": 8,
+        "name": "Deliver",
+        "requirements": [
+          "Generate a professional PDF summary.",
+          "Include company, reporting period, totals, state-by-state gallons where supported, exceptions, and reconciliation notes.",
+          "Allow original receipts to be appended or included as a supporting-document package.",
+          "Show report generation date and preliminary/reviewed status.",
+          "Provide CSV export for structured records.",
+          "Produce: period PDF report, transactions CSV, supporting-document package (ZIP with index), IFTA quarterly worksheet (PDF + CSV).",
+          "Every deliverable records the data snapshot it was built from, so it can be regenerated identically.",
+          "Notify the owner when a deliverable is ready, in their language and channel."
+        ]
+      }
+    ]
+  },
+  "extraction_contract": {
+    "rules": [
+      "Return only JSON matching the schema; no prose.",
+      "Use null for anything not clearly printed. Never infer, estimate, or compute a value the receipt does not show.",
+      "Copy raw text exactly as printed in a raw_text field alongside each normalized value.",
+      "Report a bounding box or region description for each field when possible.",
+      "List every line item separately; do not sum lines yourself.",
+      "If more than one receipt is visible, return an array with one object per receipt.",
+      "Set legibility per field: clear | partial | unreadable."
+    ],
+    "model_config": "Model IDs and prompt versions come from environment/config (e.g. EXTRACTION_MODEL_A, EXTRACTION_MODEL_B). Verify every model ID against the provider's current documentation before use; never hard-code a guessed model name.",
+    "confidence_note": "Model-reported confidence is a hint, not proof. Status depends on corroboration and rule checks, not on confidence alone."
+  },
+  "structured_transaction_schema": {
+    "company_id": "string",
+    "document_id": "string",
+    "source_filename": "string|null",
+    "source_page_or_region": "string|null",
+    "transaction_date": "YYYY-MM-DD|null",
+    "vendor": "string|null",
+    "location": "string|null",
+    "state": "two-letter US state abbreviation|null",
+    "transaction_type": "fuel|expense|refund|credit|other|unknown",
+    "fuel_type": "diesel|gasoline|reefer_diesel|def|propane|other|null",
+    "gallons": "number|null",
+    "unit_price": "number|null",
+    "fuel_subtotal": "number|null",
+    "taxes": "number|null",
+    "fees": "number|null",
+    "non_fuel_charges": "number|null",
+    "credits": "number|null",
+    "receipt_total": "number|null",
+    "currency": "ISO currency code|null",
+    "extraction_confidence": "number from 0 to 1|null",
+    "validation_status": "Verified|Needs Attention|Unable to Verify",
+    "issues": [
+      {
+        "code": "string",
+        "severity": "error|warning|info",
+        "message": "string",
+        "fields": [
+          "string"
+        ],
+        "status": "open|resolved|accepted"
+      }
+    ],
+    "review_notes": "string|null",
+    "transaction_id": "string",
+    "reporting_period_id": "string",
+    "vehicle_id": "string|null",
+    "unit_number_raw": "string|null",
+    "driver_id": "string|null",
+    "odometer": "number|null",
+    "time": "HH:MM|null",
+    "seller_address": "string|null",
+    "state_source": "printed|lookup|user|null",
+    "payment_method": "fuel_card|credit_card|cash|other|null",
+    "card_last4": "string|null",
+    "line_items": [
+      {
+        "description_raw": "string",
+        "category": "motor_fuel|reefer_fuel|def|non_fuel|tax|fee|discount|credit",
+        "quantity": "number|null",
+        "unit": "gal|L|each|null",
+        "unit_price": "number|null",
+        "amount": "number|null"
+      }
+    ],
+    "ifta_taxable_gallons": "number|null (motor fuel only, computed by code)",
+    "fuel_card_match_id": "string|null",
+    "corroboration": "single_source|two_pass|receipt_and_card|human_confirmed",
+    "field_provenance": "map of field → {raw_text, pass_a_value, pass_b_value, final_value, final_source: pass_a|pass_b|human|card|lookup, confidence, bbox}",
+    "edit_history_ref": "string",
+    "created_at": "timestamp",
+    "verified_at": "timestamp|null",
+    "verified_by": "user_id|null"
+  },
+  "validation_rule_catalog": {
+    "principle": "Every rule is deterministic code with a unit test. LLMs may suggest; only rules and humans decide status.",
+    "rules": [
+      {
+        "code": "V001",
+        "severity": "error",
+        "check": "Required IFTA receipt fields present: date, seller name, seller address/state, gallons, fuel type, amount or price per gallon."
+      },
+      {
+        "code": "V002",
+        "severity": "warning",
+        "check": "Truck unit number present on the receipt or attributed from another recorded source (receipts lacking it may be challenged in an audit)."
+      },
+      {
+        "code": "V003",
+        "severity": "warning",
+        "check": "Purchaser/company name present on the receipt."
+      },
+      {
+        "code": "V004",
+        "severity": "error",
+        "check": "Transaction date is valid and within the selected reporting period (or flagged as belonging to another period)."
+      },
+      {
+        "code": "V005",
+        "severity": "error",
+        "check": "State is a valid IFTA jurisdiction code."
+      },
+      {
+        "code": "V006",
+        "severity": "warning",
+        "check": "Field legibility is 'partial' or 'unreadable'."
+      },
+      {
+        "code": "V007",
+        "severity": "warning",
+        "check": "Image quality score below threshold."
+      },
+      {
+        "code": "V010",
+        "severity": "error",
+        "check": "Pass A and Pass B disagree on a material field (date, state, gallons, amounts, fuel type)."
+      },
+      {
+        "code": "F001",
+        "severity": "error",
+        "check": "gallons × unit_price ≈ fuel line amount (tolerance $0.02 or 0.1%)."
+      },
+      {
+        "code": "F002",
+        "severity": "error",
+        "check": "Sum of line items + taxes + fees − discounts ≈ receipt_total (tolerance $0.02)."
+      },
+      {
+        "code": "F003",
+        "severity": "warning",
+        "check": "Diesel unit price outside the plausible range set in config for that date."
+      },
+      {
+        "code": "F004",
+        "severity": "warning",
+        "check": "Gallons in a single purchase exceed vehicle tank capacity (from vehicle profile) or 300 gal default."
+      },
+      {
+        "code": "F005",
+        "severity": "info",
+        "check": "Reefer fuel or DEF present; excluded from IFTA motor-fuel gallons pending preparer confirmation."
+      },
+      {
+        "code": "F006",
+        "severity": "warning",
+        "check": "Units are liters or currency is not USD; converted with the factor/rate shown and source recorded."
+      },
+      {
+        "code": "D001",
+        "severity": "warning",
+        "check": "Exact duplicate file (same SHA-256)."
+      },
+      {
+        "code": "D002",
+        "severity": "warning",
+        "check": "Likely duplicate transaction: same vendor/location, date, gallons and total within tolerance — evidence listed."
+      },
+      {
+        "code": "D003",
+        "severity": "info",
+        "check": "Receipt and fuel card row describe the same purchase (expected; merged as corroboration, not counted twice)."
+      },
+      {
+        "code": "M001",
+        "severity": "error",
+        "check": "Vehicle has fuel purchases in the quarter but no mileage records."
+      },
+      {
+        "code": "M002",
+        "severity": "warning",
+        "check": "Fuel purchased in a jurisdiction where the vehicle shows zero miles that quarter."
+      },
+      {
+        "code": "M003",
+        "severity": "warning",
+        "check": "Fleet MPG outside the configured plausible band (TEMPORARY DEFAULT 4.0–9.0)."
+      },
+      {
+        "code": "M004",
+        "severity": "warning",
+        "check": "Odometer readings on receipts are not increasing over time for a vehicle, or conflict with ELD miles."
+      },
+      {
+        "code": "I001",
+        "severity": "error",
+        "check": "IFTA rate table for the quarter is not loaded."
+      },
+      {
+        "code": "I002",
+        "severity": "warning",
+        "check": "Quarter has unresolved error-severity issues; worksheet must be labeled preliminary."
+      },
+      {
+        "code": "I003",
+        "severity": "warning",
+        "check": "Fuel card purchase with no matching receipt."
+      },
+      {
+        "code": "I004",
+        "severity": "info",
+        "check": "Receipt paid by card with no matching card row (statement may be missing)."
+      },
+      {
+        "code": "S001",
+        "severity": "warning",
+        "check": "Document not attributable to a vehicle."
+      }
+    ]
+  },
+  "ifta_logic": {
+    "scope": "Preparer-ready worksheet only. No filing.",
+    "facts_to_respect": [
+      "IFTA covers the 48 contiguous U.S. states and 10 Canadian provinces; returns are filed quarterly with the base jurisdiction.",
+      "Qualified motor vehicles: two axles and over 26,000 lb gross/registered weight, three or more axles, or a combination over 26,000 lb.",
+      "Records (distance and fuel) must be retained 4 years from the later of the due date or filing date."
+    ],
+    "calculation": [
+      "total_miles = sum of all jurisdiction miles for qualified vehicles (taxable and non-taxable as reported).",
+      "total_taxable_gallons = sum of motor-fuel gallons purchased for qualified vehicles in the quarter (excluding reefer fuel and DEF).",
+      "fleet_mpg = total_miles / total_taxable_gallons (rounded per base-jurisdiction rules from config; default 2 decimals).",
+      "gallons_consumed[j] = taxable_miles[j] / fleet_mpg",
+      "net_taxable_gallons[j] = gallons_consumed[j] − tax_paid_gallons[j]",
+      "tax[j] = net_taxable_gallons[j] × rate[j] (+ surcharge[j] where the rate table defines one)",
+      "Rates come only from the official quarterly IFTA rate table loaded into ifta_rate_tables with source URL and import date; never from an LLM.",
+      "Use decimal arithmetic (no floats) and document every rounding step in the worksheet."
+    ],
+    "labels": "Worksheet header states PRELIMINARY until all error issues are resolved and the owner approves; REVIEWED after approval. Always include: 'Prepared for review by a qualified preparer; not a filed return.'"
+  },
+  "data_model": {
+    "database": "PostgreSQL. Every tenant-owned table has company_id and is protected by row-level security or an enforced query scope. Money stored as NUMERIC(12,2); gallons as NUMERIC(12,3).",
+    "tables": [
+      {
+        "name": "organizations",
+        "purpose": "Billing/tenant root (a carrier, or a partner firm)."
+      },
+      {
+        "name": "companies",
+        "purpose": "Carrier entity: legal name, DBA, USDOT, MC, IFTA base jurisdiction, IFTA account number (encrypted), preferred language, timezone."
+      },
+      {
+        "name": "users",
+        "purpose": "Login identity, phone, email, language."
+      },
+      {
+        "name": "memberships",
+        "purpose": "user ↔ company with role (owner, staff, driver, reviewer, partner)."
+      },
+      {
+        "name": "vehicles",
+        "purpose": "Unit number, VIN, plate, axles, weight class, IFTA-qualified flag, tank capacity, ELD provider, active dates."
+      },
+      {
+        "name": "drivers",
+        "purpose": "Name, phone(s), default vehicle, active dates."
+      },
+      {
+        "name": "reporting_periods",
+        "purpose": "Company + type (month/quarter/year) + start/end + status (open, in_review, approved, locked)."
+      },
+      {
+        "name": "intake_messages",
+        "purpose": "Raw inbound email/WhatsApp/SMS envelope, sender, channel, attribution result."
+      },
+      {
+        "name": "batches",
+        "purpose": "Upload group with counts and processing status."
+      },
+      {
+        "name": "documents",
+        "purpose": "Original file: storage key, SHA-256, mime, size, channel, uploader, received_at, quality score, retention_until."
+      },
+      {
+        "name": "document_regions",
+        "purpose": "Page/receipt regions within a document."
+      },
+      {
+        "name": "extraction_runs",
+        "purpose": "Per region and pass: model id, prompt version, raw JSON response, tokens, cost, latency, status."
+      },
+      {
+        "name": "extracted_fields",
+        "purpose": "Field name, raw text, normalized value, confidence, legibility, bbox, run id."
+      },
+      {
+        "name": "transactions",
+        "purpose": "Final reconciled record (schema above) with status and corroboration."
+      },
+      {
+        "name": "transaction_lines",
+        "purpose": "Line items by category."
+      },
+      {
+        "name": "fuel_card_imports / fuel_card_transactions",
+        "purpose": "Imported statements and rows with provider mapping version."
+      },
+      {
+        "name": "mileage_imports / mileage_records",
+        "purpose": "Vehicle × jurisdiction × period miles (taxable/non-taxable), source file, provider."
+      },
+      {
+        "name": "matches",
+        "purpose": "Receipt ↔ card row ↔ transaction links with score and fields used."
+      },
+      {
+        "name": "issues",
+        "purpose": "Rule code, severity, evidence JSON, fields, status, resolved_by, resolution note."
+      },
+      {
+        "name": "field_edits",
+        "purpose": "Immutable history: entity, field, old, new, user, reason, evidence, timestamp."
+      },
+      {
+        "name": "approvals",
+        "purpose": "Who approved what (correction, period, report) and when."
+      },
+      {
+        "name": "ifta_rate_tables",
+        "purpose": "Quarter × jurisdiction × fuel type rate and surcharge, source URL, import date."
+      },
+      {
+        "name": "jurisdictions",
+        "purpose": "Codes, names, IFTA membership."
+      },
+      {
+        "name": "station_directory",
+        "purpose": "Known truck stops/fuel stations → address and state (for 'lookup' state resolution)."
+      },
+      {
+        "name": "reports",
+        "purpose": "Type, period, snapshot hash, status, file keys, generated_by."
+      },
+      {
+        "name": "audit_log",
+        "purpose": "Append-only log of logins, views of documents, edits, approvals, exports, deletions, admin break-glass."
+      },
+      {
+        "name": "jobs",
+        "purpose": "Background job state for idempotency and retries."
+      },
+      {
+        "name": "settings",
+        "purpose": "Per-company and global config (tolerances, MPG band, price bands, language)."
+      }
+    ]
+  },
+  "deliverables_spec": {
+    "period_pdf_report": [
+      "Cover: company, USDOT/MC, period, generation date/time, status (PRELIMINARY/REVIEWED), snapshot id.",
+      "Summary: documents received, transactions, % verified, open issues by severity.",
+      "Fuel: gallons and dollars by state and fuel type; reefer and DEF shown separately.",
+      "Mileage and MPG by vehicle (when mileage imported).",
+      "Non-fuel spend by category.",
+      "Exceptions list with codes, explanations and links/page refs to source documents.",
+      "Reconciliation notes: formulas, included/excluded records, rounding.",
+      "Appendix: transaction table; optional supporting-document images.",
+      "Footer on every page: page x of y, company, period, status."
+    ],
+    "transactions_csv_columns": [
+      "transaction_id",
+      "status",
+      "date",
+      "time",
+      "vendor",
+      "seller_address",
+      "state",
+      "state_source",
+      "vehicle_unit",
+      "driver",
+      "fuel_type",
+      "gallons",
+      "unit_price",
+      "fuel_amount",
+      "reefer_gallons",
+      "def_gallons",
+      "non_fuel_amount",
+      "taxes",
+      "fees",
+      "credits",
+      "receipt_total",
+      "payment_method",
+      "card_last4",
+      "card_match_id",
+      "corroboration",
+      "open_issue_codes",
+      "source_document_id",
+      "source_filename",
+      "source_page",
+      "last_edited_by",
+      "last_edited_at"
+    ],
+    "supporting_package": "ZIP of original files renamed <date>_<state>_<vendor>_<transaction_id>.<ext> plus index.csv mapping files to transactions.",
+    "ifta_worksheet": "Per-jurisdiction table: total miles, taxable miles, taxable gallons consumed, tax-paid gallons, net taxable gallons, rate, surcharge, tax due/credit; fleet totals and MPG; rate table source; PRELIMINARY/REVIEWED label.",
+    "audit_binder_phase2": "Quarter archive with all of the above plus edit history and approvals, for an auditor."
+  },
+  "web_application": {
+    "platform": "Responsive web application, designed for desktop and iPhone",
+    "initial_navigation": [
+      "Home",
+      "Inbox (Documents)",
+      "Transactions",
+      "Review",
+      "Fuel & IFTA",
+      "Reports",
+      "Vehicles & Drivers",
+      "Settings"
+    ],
+    "later_navigation": [
+      "Fuel and IFTA",
+      "Expenses",
+      "Invoices",
+      "Settlements",
+      "Vehicles",
+      "Compliance"
+    ],
+    "initial_pages": {
+      "Dashboard": "Recent batches, processing status, pending reviews, summary metrics, and alerts.",
+      "Documents": "Upload, search, filter, preview, and manage source files.",
+      "Transactions": "Structured transaction ledger with source links, confidence, and edit history.",
+      "Audit Center": "Duplicate candidates, missing fields, arithmetic issues, mismatches, and exceptions.",
+      "Reports": "Generate, preview, and download PDF reports and CSV exports.",
+      "Company Settings": "Manage company profiles, reporting preferences, trucks, users, and permissions.",
+      "Home": "What needs me now: items awaiting owner approval, next deadline countdown (e.g. 'Q4 IFTA due Feb 1'), documents received this week, % verified, missing receipts.",
+      "Inbox (Documents)": "All incoming documents from every channel with channel icon, status, thumbnail, attribution; 'Unassigned' tab.",
+      "Review": "Owner approval queue; reviewers see the cross-company console. Side-by-side source and fields.",
+      "Fuel & IFTA": "Quarter workspace: fuel by state, mileage import, card matching, MPG, worksheet preview, issues blocking 'Reviewed'.",
+      "Vehicles & Drivers": "Unit profiles, tank capacity, ELD provider, driver phones for WhatsApp/SMS attribution."
+    },
+    "design_principles": [
+      "Built for a busy owner on a phone: large tap targets, one primary action per screen, plain words, no accounting jargon without explanation.",
+      "Every number is tappable and opens its source evidence.",
+      "Status colors are consistent everywhere: Verified (green), Needs Attention (amber), Unable to Verify (red/grey), with text labels for accessibility.",
+      "All UI strings externalized for i18n; English and Somali at launch; dates, money and numbers localized.",
+      "Loading, empty, success and error states on every screen.",
+      "WCAG 2.1 AA contrast and keyboard navigation on desktop."
+    ]
+  },
+  "notifications": [
+    "Document received (optional, per channel).",
+    "Information needed (e.g. 'Which truck was this?') with one-tap or one-word reply.",
+    "Report ready / approval needed.",
+    "Deadline reminders: 30, 14, 7 and 2 days before each IFTA due date.",
+    "Messages are sent in the user's language and channel; respect quiet hours."
+  ],
+  "agent_behavior": {
+    "operating_loop": [
+      "Confirm selected company and reporting period.",
+      "Inspect the provided documents.",
+      "Extract structured data with source references.",
+      "Validate the data and perform deterministic calculations.",
+      "Compare records and identify discrepancies.",
+      "Summarize verified findings and unresolved issues.",
+      "Ask for clarification when evidence is insufficient.",
+      "Generate a deliverable with clear scope, status, and limitations."
+    ],
+    "rules": [
+      "Use structured JSON for extracted records.",
+      "Never fabricate values, citations, source references, or confidence scores.",
+      "Keep extracted source facts separate from calculated results.",
+      "Explain calculation methods and rounding.",
+      "Flag conflicting evidence rather than silently choosing a value.",
+      "Maintain an audit trail of edits, approvals, exports, and consequential actions.",
+      "Use deterministic code for arithmetic instead of relying on free-form language model calculations.",
+      "Do not submit filings, send payments, or take consequential external actions without explicit user authorization.",
+      "Never treat a model's self-review as verification; verification means rule checks, independent corroboration, or a human.",
+      "When asking a customer for information, ask one specific question at a time, in their language.",
+      "Never message a customer, driver or third party on the company's behalf except through the defined notification templates."
+    ]
+  },
+  "security_and_reliability": [
+    "Use secure authentication and role-based permissions.",
+    "Isolate data by company and account.",
+    "Use appropriate encryption in transit and at rest.",
+    "Keep API keys and secrets out of browser code.",
+    "Validate file types and uploads.",
+    "Avoid unnecessary logging of sensitive document content.",
+    "Define retention, export, and deletion policies.",
+    "Back up important records and test recovery.",
+    "Log who changed, approved, exported, or deleted records.",
+    "Use fictional demo data in public demos.",
+    "Do not claim certifications or regulatory compliance that have not been verified.",
+    "Retain IFTA-related documents and records at least 4 years from the later of the return due date or filing date; deletion requests for records under retention are queued with an explanation.",
+    "Serve documents only through short-lived signed URLs; no public buckets.",
+    "Encrypt sensitive identifiers (IFTA account numbers, EINs) at the field level.",
+    "Verify inbound webhook signatures (Twilio, email provider).",
+    "Rate-limit uploads and inbound messages per company and sender.",
+    "Enforce tenant isolation with automated tests that try cross-company access.",
+    "Daily database backups with a tested restore; object storage versioning on.",
+    "Plan for SOC 2 once selling to partners; do not claim it before it exists."
+  ],
+  "technical_architecture": {
+    "approach": "Build one complete vertical slice before adding all modules.",
+    "components": [
+      "Responsive frontend",
+      "Authentication and company workspace",
+      "Document upload and object storage",
+      "Background processing queue",
+      "OCR and AI extraction service",
+      "Structured relational database",
+      "Validation and reconciliation engine",
+      "Report generation service",
+      "Audit log",
+      "Automated tests"
+    ],
+    "requirements": [
+      "Keep ingestion, extraction, validation, calculations, reporting, and UI as separable components.",
+      "Prevent duplicate processing where possible through idempotent workflows.",
+      "Test rounding, duplicates, missing fields, and conflicting records.",
+      "Document local setup, environment variables, database migrations, and deployment.",
+      "Choose a maintainable technology stack based on cost, skills, security, and deployment requirements; explain trade-offs before committing.",
+      "Use decimal math libraries for money and gallons; never JavaScript floats.",
+      "Version every rule, prompt and rate table; store versions on the records they produced.",
+      "Make every deliverable reproducible from its snapshot id.",
+      "Startup preflight checks: verify each external credential (AI, storage, messaging, email) and fail loudly with a readable error.",
+      "Verify features on the deployed environment, not only locally; document which branch deploys where."
+    ],
+    "recommended_stack_TEMPORARY_DEFAULT": {
+      "why": "Matches a stack the founder already runs in production (TypeScript, Next.js, Express/Prisma, Postgres, Redis, Railway/Vercel), so it is cheap to operate and easy to maintain. Change only with a written trade-off.",
+      "frontend": "Next.js (App Router) + TypeScript + Tailwind, installable PWA, i18n library (e.g. next-intl).",
+      "api": "Node.js + TypeScript (Express or Next route handlers), Zod for validation.",
+      "database": "PostgreSQL + Prisma; row-level company scoping enforced in a data-access layer and tested.",
+      "queue": "Redis + BullMQ for extraction, matching and report jobs; idempotency keys per document/pass.",
+      "storage": "S3-compatible object storage (e.g. Cloudflare R2 or S3) with versioning and signed URLs.",
+      "ai": "Anthropic Claude vision models via server-side API for pass A; pass B via a second prompt/model or OCR + parse. Model IDs in env vars.",
+      "messaging": "Twilio for SMS/WhatsApp; an inbound-email provider (e.g. Resend/Postmark inbound) for forwarding.",
+      "pdf": "HTML templates rendered to PDF with Playwright/Chromium for consistent professional layout.",
+      "observability": "Sentry for errors; structured logs without document contents.",
+      "hosting": "Railway (API, workers, Postgres, Redis) + Vercel (web), or a single provider if simpler."
+    }
+  },
+  "cost_controls": [
+    "Log tokens and cost per extraction run; show cost per document and per company in an admin view.",
+    "Skip pass B for fields already corroborated by a fuel card row, when configured.",
+    "Downscale images to the smallest resolution that keeps accuracy on the test set.",
+    "Cache station-directory lookups; never re-extract an unchanged document (hash check).",
+    "Monthly AI budget cap per environment with alerts at 50/80/100%."
+  ],
+  "metrics": {
+    "quality": [
+      "Field accuracy vs golden set (target ≥ 98% on material fields)",
+      "Touchless rate: % receipts Verified with no human edit (target ≥ 70% at pilot end)",
+      "False-verified rate: Verified records later corrected (target < 0.5%)"
+    ],
+    "speed": [
+      "Median time from upload to Verified",
+      "Time from last document to period report"
+    ],
+    "cost": [
+      "AI cost per document",
+      "Reviewer minutes per document"
+    ],
+    "customer": [
+      "Weekly active companies",
+      "Documents per truck per week",
+      "Owner hours saved (self-reported)",
+      "Retention after two quarters"
+    ]
+  },
+  "test_plan": {
+    "golden_dataset": "Create at least 60 fictional receipt images and PDFs with known correct answers: clean, faded thermal, crumpled, angled, multi-receipt photo, multi-page PDF, reefer + tractor fuel on one receipt, DEF, liters/CAD, missing unit number, duplicates, refunds/credits, and a matching fuel card CSV and ELD mileage CSV for a fictional 3-truck fleet quarter.",
+    "automated_tests": [
+      "Every validation rule (pass and fail cases).",
+      "IFTA math with decimal rounding against hand-calculated fixtures.",
+      "Receipt ↔ card matching including near-misses.",
+      "Duplicate detection (exact and likely).",
+      "Tenant isolation (cross-company access must fail).",
+      "Edit history immutability.",
+      "Report regeneration from snapshot is byte-identical in data.",
+      "Extraction regression run against the golden set with an accuracy report on every prompt/model change."
+    ],
+    "rule": "Never publish accuracy numbers that were not measured on the golden set or real pilot data."
+  },
+  "roadmap": [
+    {
+      "phase": "0 — Foundations",
+      "target": "2026-11-16",
+      "ships": "Repo, auth, companies/vehicles/drivers, document storage, audit log, golden dataset.",
+      "gate": "Upload → stored → visible with hash and audit entry."
+    },
+    {
+      "phase": "1 — Document & Audit Center + IFTA worksheet",
+      "target": "2027-01-15",
+      "ships": "All phase-1 intake channels, two-pass extraction, rule catalog, card matching, mileage import, review, PDF/CSV/ZIP, IFTA worksheet, English + Somali.",
+      "gate": "A&H Q4 2026 worksheet matches their filer's numbers or every difference is explained."
+    },
+    {
+      "phase": "1b — Pilot",
+      "target": "2027-01-15 to 2027-03-31",
+      "ships": "A&H plus 5–10 community carriers.",
+      "gate": "≥ 5 paying carriers; touchless ≥ 70%; owners report hours saved."
+    },
+    {
+      "phase": "2 — Books & cost per mile",
+      "target": "Q2 2027",
+      "ships": "Bank/card import, expense categories, monthly P&L, cost per mile per truck, accountant export.",
+      "gate": "Pilots use it monthly without reminders."
+    },
+    {
+      "phase": "3 — Revenue & settlements + ELD/fuel-card APIs",
+      "target": "Q3 2027",
+      "ships": "Loads, invoices, AR, driver settlements, Motive/Samsara and fuel card integrations.",
+      "gate": "Retention ≥ 80% after two quarters."
+    },
+    {
+      "phase": "4 — Compliance & year-end",
+      "target": "Q4 2027",
+      "ships": "Compliance calendar (IFTA, IRP, UCR, HVUT 2290, permits), vehicle/maintenance records, year-end tax package, partner portal for bookkeepers.",
+      "gate": "First partner firm onboarded with ≥ 10 carriers."
+    }
+  ],
+  "pilot_plan_a_and_h": {
+    "needed_from_a_and_h": [
+      "One full quarter of paperwork: fuel receipts, fuel card statements, expense receipts, settlements, invoices.",
+      "The ELD's IFTA mileage report for that quarter.",
+      "Number of trucks, unit numbers and states run.",
+      "Every vendor they pay today for software, bookkeeping, IFTA and factoring, with monthly cost.",
+      "Their last filed IFTA return for comparison.",
+      "A signed data-use agreement.",
+      "30 minutes of feedback weekly; introductions to 3–5 other owners."
+    ],
+    "success_criteria": [
+      "Q4 2026 worksheet delivered before 2027-02-01.",
+      "Owner spends under 30 minutes per month on paperwork after onboarding.",
+      "Zero invented values found in review."
+    ],
+    "kill_or_pivot_criteria": "If by 2027-04-30 fewer than 5 carriers pay, or touchless rate stays below 50%, stop and reassess the wedge (e.g. sell to bookkeepers first)."
+  },
+  "go_to_market": [
+    "Lead with IFTA deadlines: outreach 30–45 days before each quarterly due date.",
+    "Community-first: Somali/East African trucking groups (WhatsApp/Facebook), mosques and community centers in trucking hubs, referrals with a free month for both sides.",
+    "Somali-language onboarding video and support.",
+    "Offer a free 'audit check' of one past quarter's receipts to show missing details before an auditor finds them.",
+    "Partner channel: trucking bookkeepers and IFTA/permit services once the product is stable."
+  ],
+  "open_decisions": [
+    {
+      "decision": "Brand name and domain",
+      "temporary_default": "Use working name in code; keep branding in config."
+    },
+    {
+      "decision": "Final pricing",
+      "temporary_default": "Plans in config as listed; no billing integration yet."
+    },
+    {
+      "decision": "WhatsApp Business approval",
+      "temporary_default": "Start with SMS + email; add WhatsApp when approved."
+    },
+    {
+      "decision": "Second-pass extraction method",
+      "temporary_default": "Second Claude prompt with different instructions; evaluate OCR + parse on the golden set."
+    },
+    {
+      "decision": "Hosting region/provider",
+      "temporary_default": "U.S. region on Railway + Vercel."
+    },
+    {
+      "decision": "Who staffs the reviewer role during the pilot",
+      "temporary_default": "Founder or one trained part-time reviewer."
+    }
+  ],
+  "acceptance_criteria": [
+    "A user can upload multiple fuel receipts for one company and reporting period.",
+    "Every transaction links to its source document.",
+    "Missing and uncertain fields are flagged instead of invented.",
+    "Likely duplicate receipts are flagged with explanations.",
+    "State-by-state gallons are calculated from supported records only.",
+    "Fuel charges are separated from non-fuel charges and credits where supported.",
+    "PDF reports identify the company, reporting period, generation date, and review status.",
+    "Users can correct extracted data while preserving the original value and change history.",
+    "Users can download PDF and CSV deliverables.",
+    "The app works on desktop and mobile layouts.",
+    "Automated tests cover calculations, rounding, duplicate detection, missing data, and conflicting records.",
+    "A driver can send a receipt photo by SMS/WhatsApp or email and it appears in the company's inbox attributed to the right truck or is flagged S001.",
+    "A fuel card CSV can be imported with a saved mapping and matched to receipts without double-counting gallons.",
+    "An ELD mileage report can be imported and the IFTA worksheet computes fleet MPG and per-jurisdiction net gallons with decimal math matching hand-calculated fixtures.",
+    "Reefer fuel and DEF are never included in IFTA motor-fuel gallons.",
+    "Every material field shows both extraction passes and the final source.",
+    "The worksheet and report say PRELIMINARY while any error-severity issue is open.",
+    "Owner-facing screens and notifications are available in English and Somali.",
+    "Cross-company data access attempts fail in automated tests.",
+    "Documents cannot be hard-deleted inside their retention period."
+  ],
+  "implementation_instructions": [
+    "Begin by summarizing this brief and proposing a phased architecture and implementation plan.",
+    "List unresolved decisions; use clearly labeled temporary defaults rather than treating them as confirmed.",
+    "Build the first end-to-end prototype: upload, extraction, validation, review, reconciliation, PDF export, CSV export, and audit trail.",
+    "Create a clean, professional, trustworthy interface for trucking owners.",
+    "Use fictional demo data and clearly label it as fictional.",
+    "Include loading, empty, success, and error states.",
+    "Write and run tests for calculations and edge cases.",
+    "Explain how to run locally and deploy.",
+    "Do not claim functionality is complete unless implemented and tested.",
+    "After the MVP works, propose the next module based on customer value, cost, and implementation risk.",
+    "Build in the roadmap order; do not start phase 2 features until the phase 1 gate passes.",
+    "Create the golden dataset before tuning extraction prompts.",
+    "Load the official IFTA rate table for the quarter being prepared and record its source; if unavailable, block the worksheet with I001.",
+    "At the end of each work session, report: what was built, what was tested (with results), what is not done, and any assumption made."
+  ],
+  "first_deliverables": [
+    "Architecture and phased plan",
+    "Database schema",
+    "Working web prototype",
+    "Document extraction and validation workflow",
+    "Professional sample PDF report",
+    "CSV export",
+    "Automated tests",
+    "Setup and deployment guide",
+    "Next-phase roadmap",
+    "Validation rule catalog implemented with tests",
+    "Golden test dataset (fictional) with accuracy report",
+    "IFTA quarterly worksheet (sample, fictional fleet)",
+    "Reviewer console",
+    "SMS/email intake demo",
+    "English and Somali UI strings"
+  ],
+  "definition_of_success": "A trucking owner can upload a batch of receipts, get an organized and traceable transaction ledger, understand flagged problems, review the results, and export a professional report without manually organizing every receipt. A small-fleet owner sends paperwork from their phone, never types data, and receives a verified, audit-ready monthly report and a preparer-ready IFTA worksheet on time — with every number traceable to its source and nothing invented."
+}

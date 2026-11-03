@@ -1,0 +1,59 @@
+{
+  "nav": {
+    "home": "Home",
+    "inbox": "Inbox",
+    "transactions": "Transactions",
+    "review": "Review",
+    "fuelIfta": "Fuel & IFTA",
+    "reports": "Reports",
+    "vehicles": "Vehicles & Drivers",
+    "settings": "Settings"
+  },
+  "status": {
+    "verified": "Verified",
+    "needsAttention": "Needs Attention",
+    "unableToVerify": "Unable to Verify",
+    "preliminary": "Preliminary",
+    "reviewed": "Reviewed"
+  },
+  "home": {
+    "needsYou": "Needs your approval",
+    "nextDeadline": "Next deadline",
+    "daysLeft": "{days} days left",
+    "receivedThisWeek": "Documents received this week",
+    "percentVerified": "{percent}% verified",
+    "missingReceipts": "Missing receipts"
+  },
+  "upload": {
+    "title": "Upload documents",
+    "dropHere": "Drop files here or tap to choose",
+    "takePhoto": "Take photo",
+    "uploading": "Uploading…",
+    "done": "Uploaded",
+    "failed": "Upload failed. Try again.",
+    "blurry": "This photo looks blurry. Please retake it."
+  },
+  "review": {
+    "approve": "Approve",
+    "correct": "Correct value",
+    "unreadable": "Mark unreadable",
+    "askCustomer": "Ask the customer",
+    "original": "Original value",
+    "source": "Open source document",
+    "reason": "Reason for change"
+  },
+  "messages": {
+    "received": "Got it — {count} document(s) received.",
+    "whichTruck": "Which truck was this for? Reply with the unit number.",
+    "reportReady": "Your {period} report is ready to review.",
+    "deadlineReminder": "{period} IFTA is due on {date}. {count} items still need attention."
+  },
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "download": "Download",
+    "loading": "Loading…",
+    "empty": "Nothing here yet.",
+    "error": "Something went wrong. Please try again."
+  }
+}

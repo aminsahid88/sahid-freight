@@ -1,0 +1,21 @@
+# Security and Reliability
+
+- Use secure authentication and role-based permissions.
+- Isolate data by company and account.
+- Use appropriate encryption in transit and at rest.
+- Keep API keys and secrets out of browser code.
+- Validate file types and uploads.
+- Avoid unnecessary logging of sensitive document content.
+- Define retention, export, and deletion policies.
+- Back up important records and test recovery.
+- Log who changed, approved, exported, or deleted records.
+- Use fictional demo data in public demos.
+- Do not claim certifications or regulatory compliance that have not been verified.
+- Retain IFTA-related documents and records at least 4 years from the later of the return due date or filing date; deletion requests for records under retention are queued with an explanation.
+- Serve documents only through short-lived signed URLs; no public buckets.
+- Encrypt sensitive identifiers (IFTA account numbers, EINs) at the field level.
+- Verify inbound webhook signatures (Twilio, email provider).
+- Rate-limit uploads and inbound messages per company and sender.
+- Enforce tenant isolation with automated tests that try cross-company access.
+- Daily database backups with a tested restore; object storage versioning on.
+- Plan for SOC 2 once selling to partners; do not claim it before it exists.

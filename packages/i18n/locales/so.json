@@ -1,0 +1,59 @@
+{
+  "nav": {
+    "home": "Bogga hore",
+    "inbox": "Sanduuqa",
+    "transactions": "Dhaqdhaqaaqa",
+    "review": "Dib-u-eegis",
+    "fuelIfta": "Shidaal & IFTA",
+    "reports": "Warbixinno",
+    "vehicles": "Baabuurta & Darawallada",
+    "settings": "Dejinta"
+  },
+  "status": {
+    "verified": "La xaqiijiyay",
+    "needsAttention": "Wuxuu u baahan yahay fiiro",
+    "unableToVerify": "Lama xaqiijin karo",
+    "preliminary": "Hordhac",
+    "reviewed": "Dib loo eegay"
+  },
+  "home": {
+    "needsYou": "Waxa u baahan ansixintaada",
+    "nextDeadline": "Waqtiga xiga ee kama dambaysta ah",
+    "daysLeft": "{days} maalmood ayaa haray",
+    "receivedThisWeek": "Dukumentiyada la helay toddobaadkan",
+    "percentVerified": "{percent}% waa la xaqiijiyay",
+    "missingReceipts": "Rasiidho maqan"
+  },
+  "upload": {
+    "title": "Soo geli dukumentiyo",
+    "dropHere": "Halkan ku rid faylasha ama taabo si aad u doorato",
+    "takePhoto": "Sawir qaad",
+    "uploading": "Waa la soo gelinayaa…",
+    "done": "Waa la soo geliyay",
+    "failed": "Soo gelintu way fashilantay. Mar kale isku day.",
+    "blurry": "Sawirkan wuu mugdi yahay. Fadlan mar kale qaad."
+  },
+  "review": {
+    "approve": "Ansixi",
+    "correct": "Sax qiimaha",
+    "unreadable": "U calaamadee aan la akhrin karin",
+    "askCustomer": "Weydii macmiilka",
+    "original": "Qiimihii asalka ahaa",
+    "source": "Fur dukumentiga asalka ah",
+    "reason": "Sababta isbeddelka"
+  },
+  "messages": {
+    "received": "Waa la helay — {count} dukumenti.",
+    "whichTruck": "Baabuurkee buu ahaa? Ku jawaab lambarka baabuurka.",
+    "reportReady": "Warbixintaada {period} waa diyaar, eeg.",
+    "deadlineReminder": "IFTA-da {period} waxaa la gudbinayaa {date}. {count} shay ayaa weli u baahan fiiro."
+  },
+  "common": {
+    "save": "Kaydi",
+    "cancel": "Jooji",
+    "download": "Soo deji",
+    "loading": "Waa la soo rarayaa…",
+    "empty": "Weli waxba ma jiraan halkan.",
+    "error": "Wax baa khaldamay. Fadlan mar kale isku day."
+  }
+}
