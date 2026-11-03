@@ -43,10 +43,22 @@ const userPayload = (user: any) => ({
 // ── REGISTER (server-side email-OTP verified) ────────────────────────────
 export const register = async (req: Request, res: Response) => {
   try {
-    const { verificationToken, phone, fullName, password, role, country, city } = req.body;
+    const body = req.body as { verificationToken?: string; phone?: string; fullName?: string; password?: string; role?: string; country?: string; city?: string };
+    const { verificationToken, fullName, password, city } = body;
+    // Phone is optional (U.S. owners sign up by email). Legacy role defaults to the carrier-owner value;
+    // real authorization is the company Membership role.
+    const phone = body.phone?.trim() ? (body.phone.trim().startsWith("+") ? body.phone.trim() : `+${body.phone.replace(/\D/g, "")}`) : null;
+    const role = body.role || "TRUCK_OWNER";
+    const country = body.country || "USA";
 
-    if (!verificationToken || !phone || !fullName || !password || !role) {
-      return res.status(400).json({ message: "verificationToken, phone, fullName, password and role are required" });
+    if (!verificationToken || !fullName || !password) {
+      return res.status(400).json({ message: "verificationToken, fullName and password are required" });
+    }
+    if (typeof password !== "string" || password.length < 8) {
+      return res.status(400).json({ message: "Password must be at least 8 characters" });
+    }
+    if (phone && !/^\+[1-9]\d{7,14}$/.test(phone)) {
+      return res.status(400).json({ message: "Phone must be a valid number with country code, e.g. +16125550100" });
     }
 
     // Verify the email-OTP verification token (issued by /auth/verify-otp).
@@ -66,17 +78,19 @@ export const register = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "Verification expired or invalid. Please verify your email again." });
     }
 
-    // Dedupe on both unique fields — phone (always) and email (now required + load-bearing)
-    const existingByPhone = await prisma.user.findUnique({ where: { phone } });
-    if (existingByPhone) return res.status(400).json({ message: "Phone number already registered. Please log in instead." });
+    // Dedupe on both unique fields — email (load-bearing) and phone (when given)
+    if (phone) {
+      const existingByPhone = await prisma.user.findUnique({ where: { phone } });
+      if (existingByPhone) return res.status(400).json({ message: "Phone number already registered. Please log in instead." });
+    }
     const existingByEmail = await prisma.user.findUnique({ where: { email } });
     if (existingByEmail) return res.status(400).json({ message: "This email is already registered. Please log in instead." });
 
     const passwordHash = await bcrypt.hash(password, 12);
     const user = await prisma.user.create({
       data: {
-        fullName, phone, email, passwordHash, role,
-        country: country || "ETHIOPIA",
+        fullName, phone: phone ?? undefined, email, passwordHash, role: role as never,
+        country: country as never,
         city: city || "",
         phoneVerified: false,        // phone is now a claimed-but-unverified field
         status: "ACTIVE",
@@ -84,20 +98,15 @@ export const register = async (req: Request, res: Response) => {
       },
     });
 
-    // Create role-specific profile (non-critical)
+    // Legacy marketplace profiles and driver-invite auto-link (archived flows; kept
+    // only for accounts that still carry a marketplace role and a phone).
     try {
       if (role === "CARGO_SENDER") {
         await prisma.senderProfile.create({ data: { userId: user.id, senderType: "INDIVIDUAL" } });
       }
-      if (role === "TRUCK_OWNER") {
-        await prisma.truckOwnerProfile.create({ data: { userId: user.id } });
-      }
     } catch (err) { console.error("Profile creation failed (user still created):", err); }
 
-    // Best-effort driver-invite auto-link. If a non-expired PENDING invite exists
-    // for this phone, link the new driver to the inviting owner's fleet.
-    // MUST NOT throw — registration succeeds even if linking fails.
-    if (role === "DRIVER") {
+    if (role === "DRIVER" && phone) {
       try {
         const invite = await prisma.driverInvite.findFirst({
           where: {
@@ -144,10 +153,14 @@ export const register = async (req: Request, res: Response) => {
 // ── LOGIN (phone + password, no Firebase) ─────────────────────────────────
 export const login = async (req: Request, res: Response) => {
   try {
-    const { phone, password } = req.body;
-    if (!phone || !password) return res.status(400).json({ message: "Phone and password required" });
+    // Email-first for U.S. carriers; phone still accepted for existing accounts.
+    const { email, phone, identifier, password } = req.body as { email?: string; phone?: string; identifier?: string; password?: string };
+    const raw = (identifier || email || phone || "").trim();
+    if (!raw || !password) return res.status(400).json({ message: "Email (or phone) and password are required" });
 
-    const user = await prisma.user.findUnique({ where: { phone } });
+    const user = EMAIL_RE.test(raw)
+      ? await prisma.user.findUnique({ where: { email: raw.toLowerCase() } })
+      : await prisma.user.findUnique({ where: { phone: raw.startsWith("+") ? raw : `+${raw.replace(/\D/g, "")}` } });
     if (!user) {
       await auditPlatform(prisma, { action: "login_failed", target: "unknown phone", ip: req.ip }).catch(() => undefined);
       return res.status(401).json({ message: "Invalid phone or password" });
@@ -480,6 +493,13 @@ export const requestOtp = async (req: Request, res: Response) => {
         expiresAt: new Date(Date.now() + OTP_TTL_MS),
       },
     });
+
+    // Local development without an email provider: print the code instead of sending it.
+    // Never active in production (preflight fails there without RESEND_API_KEY).
+    if (!process.env.RESEND_API_KEY && process.env.NODE_ENV !== "production") {
+      console.log(`[dev] email OTP for ${email} (${purpose}): ${code}`);
+      return res.status(200).json({ ok: true, devCode: code });
+    }
 
     // Send via Resend. If sending fails (Resend API error or network error),
     // sendOTPEmail throws — we return 502 so the caller can prompt retry.

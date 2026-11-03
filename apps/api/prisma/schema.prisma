@@ -181,7 +181,7 @@ model User {
   id                String     @id @default(uuid())
   fullName          String
   email             String?    @unique
-  phone             String     @unique
+  phone             String?     @unique // optional since 2026-11: U.S. owners sign up by email
   passwordHash      String?
   firebaseUid       String?    @unique
   phoneVerified     Boolean    @default(false)
