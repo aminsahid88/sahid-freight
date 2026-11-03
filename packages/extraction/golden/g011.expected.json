@@ -1,0 +1,105 @@
+{
+  "id": "g011",
+  "variant": "def",
+  "file": "g011.png",
+  "notes": "DEF line present; excluded from IFTA gallons",
+  "receipts": [
+    {
+      "region_hint": null,
+      "fields": {
+        "transaction_date": {
+          "raw_text": "10/27/2026",
+          "value": "2026-10-27",
+          "legibility": "clear"
+        },
+        "time": {
+          "raw_text": "07:52",
+          "value": "07:52",
+          "legibility": "clear"
+        },
+        "vendor": {
+          "raw_text": "LONE STAR PETRO #58",
+          "value": "LONE STAR PETRO",
+          "legibility": "clear"
+        },
+        "seller_address": {
+          "raw_text": "7700 I-35 N SAN ANTONIO, TX 78233",
+          "value": "7700 I-35 N, SAN ANTONIO, TX 78233",
+          "legibility": "clear"
+        },
+        "state": {
+          "raw_text": "TX",
+          "value": "TX",
+          "legibility": "clear"
+        },
+        "unit_number": {
+          "raw_text": "UNIT 101",
+          "value": "101",
+          "legibility": "clear"
+        },
+        "odometer": {
+          "raw_text": "ODOMETER 302540",
+          "value": 302540,
+          "legibility": "clear"
+        },
+        "driver_name": {
+          "raw_text": "DRIVER: A HASSAN",
+          "value": "A HASSAN",
+          "legibility": "clear"
+        },
+        "purchaser_name": {
+          "raw_text": "DEMO FREIGHT LLC",
+          "value": "DEMO FREIGHT LLC",
+          "legibility": "clear"
+        },
+        "payment_method": {
+          "raw_text": "FUEL CARD ****4417",
+          "value": "fuel_card",
+          "legibility": "clear"
+        },
+        "card_last4": {
+          "raw_text": "****4417",
+          "value": "4417",
+          "legibility": "clear"
+        },
+        "pump_number": {
+          "raw_text": "PUMP 12",
+          "value": "12",
+          "legibility": "clear"
+        },
+        "receipt_total": {
+          "raw_text": "TOTAL USD 435.83",
+          "value": 435.83,
+          "legibility": "clear"
+        },
+        "currency": {
+          "raw_text": "USD",
+          "value": "USD",
+          "legibility": "clear"
+        }
+      },
+      "line_items": [
+        {
+          "description_raw": "DIESEL #2 115.000 GAL @ 3.609",
+          "category": "motor_fuel",
+          "fuel_type": "diesel",
+          "quantity": 115,
+          "unit": "gal",
+          "unit_price": 3.609,
+          "amount": 415.04,
+          "legibility": "clear"
+        },
+        {
+          "description_raw": "DEF BULK 6.500 GAL @ 3.199",
+          "category": "def",
+          "fuel_type": "def",
+          "quantity": 6.5,
+          "unit": "gal",
+          "unit_price": 3.199,
+          "amount": 20.79,
+          "legibility": "clear"
+        }
+      ]
+    }
+  ]
+}

@@ -11,5 +11,10 @@
   },
   "peerDependencies": {
     "@prisma/client": "*"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./period": "./src/period.ts",
+    "./decimal": "./src/decimal.ts"
   }
 }

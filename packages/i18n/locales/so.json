@@ -7,7 +7,9 @@
     "fuelIfta": "Shidaal & IFTA",
     "reports": "Warbixinno",
     "vehicles": "Baabuurta & Darawallada",
-    "settings": "Dejinta"
+    "settings": "Dejinta",
+    "signOut": "Ka bax",
+    "comingSoon": "Wuxuu imanayaa Marxaladda 1"
   },
   "status": {
     "verified": "La xaqiijiyay",
@@ -22,7 +24,14 @@
     "daysLeft": "{days} maalmood ayaa haray",
     "receivedThisWeek": "Dukumentiyada la helay toddobaadkan",
     "percentVerified": "{percent}% waa la xaqiijiyay",
-    "missingReceipts": "Rasiidho maqan"
+    "missingReceipts": "Rasiidho maqan",
+    "title": "Bogga hore",
+    "welcome": "Ku soo dhawoow, {name}",
+    "nextIftaDeadline": "Waqtiga xiga ee IFTA",
+    "quarter": "Warbixinta {label}",
+    "inboxCount": "{count} dukumenti ayaa sanduuqaaga ku jira",
+    "goInbox": "Fur sanduuqa",
+    "setupHint": "Ku dar baabuurtaada iyo darawalladaada si rasiidhada loogu xiro gaariga saxda ah."
   },
   "upload": {
     "title": "Soo geli dukumentiyo",
@@ -55,5 +64,93 @@
     "loading": "Waa la soo rarayaa…",
     "empty": "Weli waxba ma jiraan halkan.",
     "error": "Wax baa khaldamay. Fadlan mar kale isku day."
+  },
+  "app": {
+    "name": "Xafiiska Gadaal",
+    "tagline": "Waraaqaha soo dir. Buugaag nadiif ah ayaad helaysaa.",
+    "demo": "Xog tijaabo ah"
+  },
+  "company": {
+    "select": "Dooro shirkad",
+    "create": "Deji shirkaddaada",
+    "legalName": "Magaca rasmiga ah ee shirkadda",
+    "dba": "Magaca ganacsiga (ikhtiyaari)",
+    "usdot": "Lambarka USDOT",
+    "mcNumber": "Lambarka MC (ikhtiyaari)",
+    "baseJurisdiction": "Gobolka saldhigga IFTA",
+    "timezone": "Waqtiga aagga",
+    "createButton": "Abuur shirkad",
+    "created": "Shirkadda waa la abuuray",
+    "noCompany": "Weli xubin kama tihid shirkad.",
+    "role": "Doorkaaga"
+  },
+  "inbox": {
+    "title": "Sanduuqa",
+    "subtitle": "Rasiid iyo warbixin kasta oo aad soo dirto halkan ayay ku soo degaan.",
+    "upload": "Soo geli dukumentiyo",
+    "dropHere": "Halkan ku rid faylasha ama taabo si aad u doorato",
+    "accepted": "PDF, JPG, PNG, HEIC, TIFF, CSV, XLSX. Ilaa {max} MB mid kasta.",
+    "uploading": "Waa la soo gelinayaa {count} fayl…",
+    "uploaded": "{count} fayl ayaa la helay",
+    "rejected": "{count} fayl lama aqbali karin",
+    "rejectedReason": "{file}: {reason}",
+    "empty": "Weli dukumenti ma jiro. Soo geli rasiidkaaga ugu horreeya.",
+    "filterAll": "Dhammaan",
+    "received": "La helay",
+    "hash": "Faraha faylka",
+    "duplicate": "Nuqul ka mid ah mid hore loo soo geliyay",
+    "channel": "Marinka",
+    "uploadedBy": "Waxaa soo geliyay",
+    "retention": "Hay ilaa",
+    "preview": "Muuqaal",
+    "openOriginal": "Fur asalka",
+    "noPreview": "Muuqaal looma heli karo nooca faylkan.",
+    "loadMore": "Soo bandhig kuwo kale",
+    "detail": "Dukumenti",
+    "issues": "Arrimo furan"
+  },
+  "docStatus": {
+    "RECEIVED": "La helay",
+    "PROCESSING": "Waa la shaqeynayaa",
+    "PROCESSED": "La dhammeeyay",
+    "FAILED": "Fashilmay",
+    "UNREADABLE": "Lama akhrin karo"
+  },
+  "reason": {
+    "unsupported_type": "Nooca faylkan lama taageero",
+    "content_mismatch": "Waxa ku jira faylka kuma habboona noociisa",
+    "empty": "Faylku waa madhan yahay"
+  },
+  "vehicles": {
+    "title": "Baabuurta & Darawallada",
+    "addVehicle": "Ku dar gaari",
+    "addDriver": "Ku dar darawal",
+    "unitNumber": "Lambarka gaariga",
+    "vin": "VIN",
+    "plate": "Taarikada",
+    "axles": "Fiilooyinka (axles)",
+    "tankCapacity": "Qiyaasta taangiga (galaan)",
+    "eldProvider": "Bixiyaha ELD",
+    "iftaQualified": "U qalma IFTA",
+    "emptyVehicles": "Weli gaari ma jiro. Ku dar gaarigaaga ugu horreeya.",
+    "emptyDrivers": "Weli darawal ma jiro.",
+    "driverName": "Magaca darawalka",
+    "driverPhone": "Taleefanka darawalka (rasiidhada lagu diro)",
+    "defaultVehicle": "Gaariga caadiga ah",
+    "language": "Luqadda",
+    "active": "Firfircoon",
+    "inactive": "Aan firfircoonayn"
+  },
+  "settings": {
+    "title": "Dejinta",
+    "language": "Luqadda",
+    "theme": "Muuqaalka",
+    "light": "Iftiin",
+    "dark": "Mugdi",
+    "company": "Shirkadda",
+    "inboundEmail": "Rasiidhada u dir"
+  },
+  "auth": {
+    "signInRequired": "Fadlan gal si aad u sii wadato."
   }
 }

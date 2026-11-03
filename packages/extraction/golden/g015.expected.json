@@ -1,0 +1,104 @@
+{
+  "id": "g015",
+  "variant": "refund",
+  "file": "g015.png",
+  "notes": "credit line for a pump misfill refund",
+  "receipts": [
+    {
+      "region_hint": null,
+      "fields": {
+        "transaction_date": {
+          "raw_text": "11/03/2026",
+          "value": "2026-11-03",
+          "legibility": "clear"
+        },
+        "time": {
+          "raw_text": "12:16",
+          "value": "12:16",
+          "legibility": "clear"
+        },
+        "vendor": {
+          "raw_text": "NORTHSTAR TRAVEL CENTER #214",
+          "value": "NORTHSTAR TRAVEL CENTER",
+          "legibility": "clear"
+        },
+        "seller_address": {
+          "raw_text": "1450 INDUSTRIAL BLVD FARGO, ND 58102",
+          "value": "1450 INDUSTRIAL BLVD, FARGO, ND 58102",
+          "legibility": "clear"
+        },
+        "state": {
+          "raw_text": "ND",
+          "value": "ND",
+          "legibility": "clear"
+        },
+        "unit_number": {
+          "raw_text": "UNIT 102",
+          "value": "102",
+          "legibility": "clear"
+        },
+        "odometer": {
+          "raw_text": "ODOMETER 417402",
+          "value": 417402,
+          "legibility": "clear"
+        },
+        "driver_name": {
+          "raw_text": "DRIVER: M YUSUF",
+          "value": "M YUSUF",
+          "legibility": "clear"
+        },
+        "purchaser_name": {
+          "raw_text": "DEMO FREIGHT LLC",
+          "value": "DEMO FREIGHT LLC",
+          "legibility": "clear"
+        },
+        "payment_method": {
+          "raw_text": "FUEL CARD ****4417",
+          "value": "fuel_card",
+          "legibility": "clear"
+        },
+        "card_last4": {
+          "raw_text": "****4417",
+          "value": "4417",
+          "legibility": "clear"
+        },
+        "pump_number": {
+          "raw_text": "PUMP 08",
+          "value": "08",
+          "legibility": "clear"
+        },
+        "receipt_total": {
+          "raw_text": "TOTAL USD 421.09",
+          "value": 421.09,
+          "legibility": "clear"
+        },
+        "currency": {
+          "raw_text": "USD",
+          "value": "USD",
+          "legibility": "clear"
+        }
+      },
+      "line_items": [
+        {
+          "description_raw": "DIESEL #2 112.000 GAL @ 3.899",
+          "category": "motor_fuel",
+          "fuel_type": "diesel",
+          "quantity": 112,
+          "unit": "gal",
+          "unit_price": 3.899,
+          "amount": 436.69,
+          "legibility": "clear"
+        },
+        {
+          "description_raw": "CREDIT MISFILL -15.60",
+          "category": "credit",
+          "quantity": null,
+          "unit": null,
+          "unit_price": null,
+          "amount": -15.6,
+          "legibility": "clear"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "id": "g010",
+  "variant": "reefer_and_tractor",
+  "file": "g010.png",
+  "notes": "tractor diesel and reefer fuel on one receipt; reefer excluded from IFTA",
+  "receipts": [
+    {
+      "region_hint": null,
+      "fields": {
+        "transaction_date": {
+          "raw_text": "10/24/2026",
+          "value": "2026-10-24",
+          "legibility": "clear"
+        },
+        "time": {
+          "raw_text": "10:05",
+          "value": "10:05",
+          "legibility": "clear"
+        },
+        "vendor": {
+          "raw_text": "GREAT LAKES FUEL #1182",
+          "value": "GREAT LAKES FUEL",
+          "legibility": "clear"
+        },
+        "seller_address": {
+          "raw_text": "4100 INTERSTATE DR GARY, IN 46406",
+          "value": "4100 INTERSTATE DR, GARY, IN 46406",
+          "legibility": "clear"
+        },
+        "state": {
+          "raw_text": "IN",
+          "value": "IN",
+          "legibility": "clear"
+        },
+        "unit_number": {
+          "raw_text": "UNIT 102",
+          "value": "102",
+          "legibility": "clear"
+        },
+        "odometer": {
+          "raw_text": "ODOMETER 416233",
+          "value": 416233,
+          "legibility": "clear"
+        },
+        "driver_name": {
+          "raw_text": "DRIVER: M YUSUF",
+          "value": "M YUSUF",
+          "legibility": "clear"
+        },
+        "purchaser_name": {
+          "raw_text": "DEMO FREIGHT LLC",
+          "value": "DEMO FREIGHT LLC",
+          "legibility": "clear"
+        },
+        "payment_method": {
+          "raw_text": "FUEL CARD ****4417",
+          "value": "fuel_card",
+          "legibility": "clear"
+        },
+        "card_last4": {
+          "raw_text": "****4417",
+          "value": "4417",
+          "legibility": "clear"
+        },
+        "pump_number": {
+          "raw_text": "PUMP 02",
+          "value": "02",
+          "legibility": "clear"
+        },
+        "receipt_total": {
+          "raw_text": "TOTAL USD 546.07",
+          "value": 546.07,
+          "legibility": "clear"
+        },
+        "currency": {
+          "raw_text": "USD",
+          "value": "USD",
+          "legibility": "clear"
+        }
+      },
+      "line_items": [
+        {
+          "description_raw": "DIESEL #2 105.300 GAL @ 3.819",
+          "category": "motor_fuel",
+          "fuel_type": "diesel",
+          "quantity": 105.3,
+          "unit": "gal",
+          "unit_price": 3.819,
+          "amount": 402.14,
+          "legibility": "clear"
+        },
+        {
+          "description_raw": "REEFER DIESEL 38.700 GAL @ 3.719",
+          "category": "reefer_fuel",
+          "fuel_type": "reefer_diesel",
+          "quantity": 38.7,
+          "unit": "gal",
+          "unit_price": 3.719,
+          "amount": 143.93,
+          "legibility": "clear"
+        }
+      ]
+    }
+  ]
+}

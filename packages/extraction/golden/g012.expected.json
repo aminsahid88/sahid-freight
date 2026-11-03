@@ -1,0 +1,95 @@
+{
+  "id": "g012",
+  "variant": "liters_cad",
+  "file": "g012.png",
+  "notes": "Canadian cardlock: liters and CAD",
+  "receipts": [
+    {
+      "region_hint": null,
+      "fields": {
+        "transaction_date": {
+          "raw_text": "10/29/2026",
+          "value": "2026-10-29",
+          "legibility": "clear"
+        },
+        "time": {
+          "raw_text": "15:21",
+          "value": "15:21",
+          "legibility": "clear"
+        },
+        "vendor": {
+          "raw_text": "RED RIVER CARDLOCK #3",
+          "value": "RED RIVER CARDLOCK",
+          "legibility": "clear"
+        },
+        "seller_address": {
+          "raw_text": "1800 KING EDWARD ST WINNIPEG, MB R2R 0N1",
+          "value": "1800 KING EDWARD ST, WINNIPEG, MB R2R 0N1",
+          "legibility": "clear"
+        },
+        "state": {
+          "raw_text": "MB",
+          "value": "MB",
+          "legibility": "clear"
+        },
+        "unit_number": {
+          "raw_text": "UNIT 103",
+          "value": "103",
+          "legibility": "clear"
+        },
+        "odometer": {
+          "raw_text": "ODOMETER 154108",
+          "value": 154108,
+          "legibility": "clear"
+        },
+        "driver_name": {
+          "raw_text": "DRIVER: F OMAR",
+          "value": "F OMAR",
+          "legibility": "clear"
+        },
+        "purchaser_name": {
+          "raw_text": "DEMO FREIGHT LLC",
+          "value": "DEMO FREIGHT LLC",
+          "legibility": "clear"
+        },
+        "payment_method": {
+          "raw_text": "FUEL CARD ****4417",
+          "value": "fuel_card",
+          "legibility": "clear"
+        },
+        "card_last4": {
+          "raw_text": "****4417",
+          "value": "4417",
+          "legibility": "clear"
+        },
+        "pump_number": {
+          "raw_text": "PUMP 4",
+          "value": "4",
+          "legibility": "clear"
+        },
+        "receipt_total": {
+          "raw_text": "TOTAL CAD 763.93",
+          "value": 763.93,
+          "legibility": "clear"
+        },
+        "currency": {
+          "raw_text": "CAD",
+          "value": "CAD",
+          "legibility": "clear"
+        }
+      },
+      "line_items": [
+        {
+          "description_raw": "DIESEL 452.300 L @ 1.689",
+          "category": "motor_fuel",
+          "fuel_type": "diesel",
+          "quantity": 452.3,
+          "unit": "L",
+          "unit_price": 1.689,
+          "amount": 763.93,
+          "legibility": "clear"
+        }
+      ]
+    }
+  ]
+}

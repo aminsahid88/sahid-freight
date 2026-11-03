@@ -1,0 +1,95 @@
+{
+  "id": "g013",
+  "variant": "missing_unit",
+  "file": "g013.png",
+  "notes": "no unit number printed (V002/S001 path)",
+  "receipts": [
+    {
+      "region_hint": null,
+      "fields": {
+        "transaction_date": {
+          "raw_text": "11/01/2026",
+          "value": "2026-11-01",
+          "legibility": "clear"
+        },
+        "time": {
+          "raw_text": "09:40",
+          "value": "09:40",
+          "legibility": "clear"
+        },
+        "vendor": {
+          "raw_text": "BUCKEYE TRUCK STOP #9",
+          "value": "BUCKEYE TRUCK STOP",
+          "legibility": "clear"
+        },
+        "seller_address": {
+          "raw_text": "3300 US-30 MANSFIELD, OH 44903",
+          "value": "3300 US-30, MANSFIELD, OH 44903",
+          "legibility": "clear"
+        },
+        "state": {
+          "raw_text": "OH",
+          "value": "OH",
+          "legibility": "clear"
+        },
+        "unit_number": {
+          "raw_text": null,
+          "value": null,
+          "legibility": "clear"
+        },
+        "odometer": {
+          "raw_text": null,
+          "value": null,
+          "legibility": "clear"
+        },
+        "driver_name": {
+          "raw_text": null,
+          "value": null,
+          "legibility": "clear"
+        },
+        "purchaser_name": {
+          "raw_text": "DEMO FREIGHT LLC",
+          "value": "DEMO FREIGHT LLC",
+          "legibility": "clear"
+        },
+        "payment_method": {
+          "raw_text": "FUEL CARD ****4417",
+          "value": "fuel_card",
+          "legibility": "clear"
+        },
+        "card_last4": {
+          "raw_text": "****4417",
+          "value": "4417",
+          "legibility": "clear"
+        },
+        "pump_number": {
+          "raw_text": "PUMP 06",
+          "value": "06",
+          "legibility": "clear"
+        },
+        "receipt_total": {
+          "raw_text": "TOTAL USD 376.92",
+          "value": 376.92,
+          "legibility": "clear"
+        },
+        "currency": {
+          "raw_text": "USD",
+          "value": "USD",
+          "legibility": "clear"
+        }
+      },
+      "line_items": [
+        {
+          "description_raw": "DIESEL #2 97.420 GAL @ 3.869",
+          "category": "motor_fuel",
+          "fuel_type": "diesel",
+          "quantity": 97.42,
+          "unit": "gal",
+          "unit_price": 3.869,
+          "amount": 376.92,
+          "legibility": "clear"
+        }
+      ]
+    }
+  ]
+}

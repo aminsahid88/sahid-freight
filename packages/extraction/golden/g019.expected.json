@@ -1,0 +1,269 @@
+{
+  "id": "g019",
+  "variant": "multi_page_pdf",
+  "file": "g019.pdf",
+  "notes": "three receipts, one per page, in a single PDF",
+  "receipts": [
+    {
+      "region_hint": "page 1",
+      "fields": {
+        "transaction_date": {
+          "raw_text": "11/12/2026",
+          "value": "2026-11-12",
+          "legibility": "clear"
+        },
+        "time": {
+          "raw_text": "06:20",
+          "value": "06:20",
+          "legibility": "clear"
+        },
+        "vendor": {
+          "raw_text": "LONE STAR PETRO #58",
+          "value": "LONE STAR PETRO",
+          "legibility": "clear"
+        },
+        "seller_address": {
+          "raw_text": "7700 I-35 N SAN ANTONIO, TX 78233",
+          "value": "7700 I-35 N, SAN ANTONIO, TX 78233",
+          "legibility": "clear"
+        },
+        "state": {
+          "raw_text": "TX",
+          "value": "TX",
+          "legibility": "clear"
+        },
+        "unit_number": {
+          "raw_text": "UNIT 101",
+          "value": "101",
+          "legibility": "clear"
+        },
+        "odometer": {
+          "raw_text": "ODOMETER 304900",
+          "value": 304900,
+          "legibility": "clear"
+        },
+        "driver_name": {
+          "raw_text": "DRIVER: A HASSAN",
+          "value": "A HASSAN",
+          "legibility": "clear"
+        },
+        "purchaser_name": {
+          "raw_text": "DEMO FREIGHT LLC",
+          "value": "DEMO FREIGHT LLC",
+          "legibility": "clear"
+        },
+        "payment_method": {
+          "raw_text": "FUEL CARD ****4417",
+          "value": "fuel_card",
+          "legibility": "clear"
+        },
+        "card_last4": {
+          "raw_text": "****4417",
+          "value": "4417",
+          "legibility": "clear"
+        },
+        "pump_number": {
+          "raw_text": "PUMP 13",
+          "value": "13",
+          "legibility": "clear"
+        },
+        "receipt_total": {
+          "raw_text": "TOTAL USD 426.01",
+          "value": 426.01,
+          "legibility": "clear"
+        },
+        "currency": {
+          "raw_text": "USD",
+          "value": "USD",
+          "legibility": "clear"
+        }
+      },
+      "line_items": [
+        {
+          "description_raw": "DIESEL #2 118.700 GAL @ 3.589",
+          "category": "motor_fuel",
+          "fuel_type": "diesel",
+          "quantity": 118.7,
+          "unit": "gal",
+          "unit_price": 3.589,
+          "amount": 426.01,
+          "legibility": "clear"
+        }
+      ]
+    },
+    {
+      "region_hint": "page 2",
+      "fields": {
+        "transaction_date": {
+          "raw_text": "11/14/2026",
+          "value": "2026-11-14",
+          "legibility": "clear"
+        },
+        "time": {
+          "raw_text": "22:05",
+          "value": "22:05",
+          "legibility": "clear"
+        },
+        "vendor": {
+          "raw_text": "NORTHSTAR TRAVEL CENTER #214",
+          "value": "NORTHSTAR TRAVEL CENTER",
+          "legibility": "clear"
+        },
+        "seller_address": {
+          "raw_text": "1450 INDUSTRIAL BLVD FARGO, ND 58102",
+          "value": "1450 INDUSTRIAL BLVD, FARGO, ND 58102",
+          "legibility": "clear"
+        },
+        "state": {
+          "raw_text": "ND",
+          "value": "ND",
+          "legibility": "clear"
+        },
+        "unit_number": {
+          "raw_text": "UNIT 102",
+          "value": "102",
+          "legibility": "clear"
+        },
+        "odometer": {
+          "raw_text": "ODOMETER 420118",
+          "value": 420118,
+          "legibility": "clear"
+        },
+        "driver_name": {
+          "raw_text": "DRIVER: M YUSUF",
+          "value": "M YUSUF",
+          "legibility": "clear"
+        },
+        "purchaser_name": {
+          "raw_text": "DEMO FREIGHT LLC",
+          "value": "DEMO FREIGHT LLC",
+          "legibility": "clear"
+        },
+        "payment_method": {
+          "raw_text": "FUEL CARD ****4417",
+          "value": "fuel_card",
+          "legibility": "clear"
+        },
+        "card_last4": {
+          "raw_text": "****4417",
+          "value": "4417",
+          "legibility": "clear"
+        },
+        "pump_number": {
+          "raw_text": "PUMP 06",
+          "value": "06",
+          "legibility": "clear"
+        },
+        "receipt_total": {
+          "raw_text": "TOTAL USD 485.11",
+          "value": 485.11,
+          "legibility": "clear"
+        },
+        "currency": {
+          "raw_text": "USD",
+          "value": "USD",
+          "legibility": "clear"
+        }
+      },
+      "line_items": [
+        {
+          "description_raw": "DIESEL #2 124.420 GAL @ 3.899",
+          "category": "motor_fuel",
+          "fuel_type": "diesel",
+          "quantity": 124.42,
+          "unit": "gal",
+          "unit_price": 3.899,
+          "amount": 485.11,
+          "legibility": "clear"
+        }
+      ]
+    },
+    {
+      "region_hint": "page 3",
+      "fields": {
+        "transaction_date": {
+          "raw_text": "11/16/2026",
+          "value": "2026-11-16",
+          "legibility": "clear"
+        },
+        "time": {
+          "raw_text": "11:58",
+          "value": "11:58",
+          "legibility": "clear"
+        },
+        "vendor": {
+          "raw_text": "PRAIRIE FUEL STOP #31",
+          "value": "PRAIRIE FUEL STOP",
+          "legibility": "clear"
+        },
+        "seller_address": {
+          "raw_text": "2200 HWY 10 W MOORHEAD, MN 56560",
+          "value": "2200 HWY 10 W, MOORHEAD, MN 56560",
+          "legibility": "clear"
+        },
+        "state": {
+          "raw_text": "MN",
+          "value": "MN",
+          "legibility": "clear"
+        },
+        "unit_number": {
+          "raw_text": "UNIT 103",
+          "value": "103",
+          "legibility": "clear"
+        },
+        "odometer": {
+          "raw_text": "ODOMETER 156873",
+          "value": 156873,
+          "legibility": "clear"
+        },
+        "driver_name": {
+          "raw_text": "DRIVER: F OMAR",
+          "value": "F OMAR",
+          "legibility": "clear"
+        },
+        "purchaser_name": {
+          "raw_text": "DEMO FREIGHT LLC",
+          "value": "DEMO FREIGHT LLC",
+          "legibility": "clear"
+        },
+        "payment_method": {
+          "raw_text": "FUEL CARD ****4417",
+          "value": "fuel_card",
+          "legibility": "clear"
+        },
+        "card_last4": {
+          "raw_text": "****4417",
+          "value": "4417",
+          "legibility": "clear"
+        },
+        "pump_number": {
+          "raw_text": "PUMP 04",
+          "value": "04",
+          "legibility": "clear"
+        },
+        "receipt_total": {
+          "raw_text": "TOTAL USD 329.48",
+          "value": 329.48,
+          "legibility": "clear"
+        },
+        "currency": {
+          "raw_text": "USD",
+          "value": "USD",
+          "legibility": "clear"
+        }
+      },
+      "line_items": [
+        {
+          "description_raw": "DIESEL #2 87.650 GAL @ 3.759",
+          "category": "motor_fuel",
+          "fuel_type": "diesel",
+          "quantity": 87.65,
+          "unit": "gal",
+          "unit_price": 3.759,
+          "amount": 329.48,
+          "legibility": "clear"
+        }
+      ]
+    }
+  ]
+}

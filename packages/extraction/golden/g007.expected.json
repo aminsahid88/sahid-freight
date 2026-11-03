@@ -1,0 +1,95 @@
+{
+  "id": "g007",
+  "variant": "faded",
+  "file": "g007.png",
+  "notes": "faded thermal print, low contrast",
+  "receipts": [
+    {
+      "region_hint": null,
+      "fields": {
+        "transaction_date": {
+          "raw_text": "10/18/2026",
+          "value": "2026-10-18",
+          "legibility": "clear"
+        },
+        "time": {
+          "raw_text": "05:58",
+          "value": "05:58",
+          "legibility": "clear"
+        },
+        "vendor": {
+          "raw_text": "NORTHSTAR TRAVEL CENTER #214",
+          "value": "NORTHSTAR TRAVEL CENTER",
+          "legibility": "clear"
+        },
+        "seller_address": {
+          "raw_text": "1450 INDUSTRIAL BLVD FARGO, ND 58102",
+          "value": "1450 INDUSTRIAL BLVD, FARGO, ND 58102",
+          "legibility": "clear"
+        },
+        "state": {
+          "raw_text": "ND",
+          "value": "ND",
+          "legibility": "clear"
+        },
+        "unit_number": {
+          "raw_text": "UNIT 102",
+          "value": "102",
+          "legibility": "clear"
+        },
+        "odometer": {
+          "raw_text": "ODOMETER 415010",
+          "value": 415010,
+          "legibility": "clear"
+        },
+        "driver_name": {
+          "raw_text": "DRIVER: M YUSUF",
+          "value": "M YUSUF",
+          "legibility": "clear"
+        },
+        "purchaser_name": {
+          "raw_text": "DEMO FREIGHT LLC",
+          "value": "DEMO FREIGHT LLC",
+          "legibility": "clear"
+        },
+        "payment_method": {
+          "raw_text": "FUEL CARD ****4417",
+          "value": "fuel_card",
+          "legibility": "clear"
+        },
+        "card_last4": {
+          "raw_text": "****4417",
+          "value": "4417",
+          "legibility": "clear"
+        },
+        "pump_number": {
+          "raw_text": "PUMP 07",
+          "value": "07",
+          "legibility": "clear"
+        },
+        "receipt_total": {
+          "raw_text": "TOTAL USD 465.50",
+          "value": 465.5,
+          "legibility": "clear"
+        },
+        "currency": {
+          "raw_text": "USD",
+          "value": "USD",
+          "legibility": "clear"
+        }
+      },
+      "line_items": [
+        {
+          "description_raw": "DIESEL #2 120.004 GAL @ 3.879",
+          "category": "motor_fuel",
+          "fuel_type": "diesel",
+          "quantity": 120.004,
+          "unit": "gal",
+          "unit_price": 3.879,
+          "amount": 465.5,
+          "legibility": "clear"
+        }
+      ]
+    }
+  ]
+}

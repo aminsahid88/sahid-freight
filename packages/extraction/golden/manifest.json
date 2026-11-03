@@ -1,0 +1,126 @@
+{
+  "generatedBy": "packages/extraction/src/golden/generate.ts",
+  "fictional": true,
+  "fixtures": [
+    {
+      "id": "g001",
+      "variant": "clean",
+      "file": "g001.png",
+      "sha256": "e3f73ee1a8d20850ea466724a19923fec7382ffe88f7c3ecc86e06bf7c7c0833"
+    },
+    {
+      "id": "g002",
+      "variant": "clean",
+      "file": "g002.png",
+      "sha256": "68970a3dda707cfc6893ee4c6be794a981de8d9bdb527cf088d70a360b181d28"
+    },
+    {
+      "id": "g003",
+      "variant": "clean",
+      "file": "g003.png",
+      "sha256": "ff149233f69d10d8f9c1a31d792541928b4e4b96559f305db7cfa8a146f078c3"
+    },
+    {
+      "id": "g004",
+      "variant": "clean",
+      "file": "g004.png",
+      "sha256": "989fceda731cb78bb2138afcfe115c8b4e105973b953437a3628ad61e9070ab2"
+    },
+    {
+      "id": "g005",
+      "variant": "clean",
+      "file": "g005.png",
+      "sha256": "ee0002104c8498143b29795c5e9fe58d3cf9c2ae62e02efd9a8ebac1b91efd7c"
+    },
+    {
+      "id": "g006",
+      "variant": "clean",
+      "file": "g006.png",
+      "sha256": "3502044e3a24b2b9f87635526dbcb33729e41d3e544ec67337d55ed492377519"
+    },
+    {
+      "id": "g007",
+      "variant": "faded",
+      "file": "g007.png",
+      "sha256": "bb017e27b3068eea307349cd773aad8495c4b47e8f536828e7e4addd1074ec9e"
+    },
+    {
+      "id": "g008",
+      "variant": "angled",
+      "file": "g008.png",
+      "sha256": "e568e415248c144f3b33f16f98e139937d81ea5c0d00fd03e644ba2a49e61588"
+    },
+    {
+      "id": "g009",
+      "variant": "crumpled",
+      "file": "g009.png",
+      "sha256": "8239f6b139425d418b7eb30ed6a64ebbeec253b6e30b1330fbc6d53a32bddd0e"
+    },
+    {
+      "id": "g010",
+      "variant": "reefer_and_tractor",
+      "file": "g010.png",
+      "sha256": "bab543b6d0817393b43d98d83bd3ccdf4fc0b329a402372efd5a95c46f756e36"
+    },
+    {
+      "id": "g011",
+      "variant": "def",
+      "file": "g011.png",
+      "sha256": "6cda25271ac9c938ae954e5e03c120787607b6e0d861dd57deaf89738790948c"
+    },
+    {
+      "id": "g012",
+      "variant": "liters_cad",
+      "file": "g012.png",
+      "sha256": "75095b21f08e58ad396273e36874697220a925628c611506ebcc5d7223a5349e"
+    },
+    {
+      "id": "g013",
+      "variant": "missing_unit",
+      "file": "g013.png",
+      "sha256": "9232918ccb356c675cd028ca8df9cef984b10a4ad3d93ad44c5e2de65577e68d"
+    },
+    {
+      "id": "g014",
+      "variant": "duplicate",
+      "file": "g014.png",
+      "sha256": "e3f73ee1a8d20850ea466724a19923fec7382ffe88f7c3ecc86e06bf7c7c0833"
+    },
+    {
+      "id": "g015",
+      "variant": "refund",
+      "file": "g015.png",
+      "sha256": "9dd808c5760fedbab2880a26f56cf6f431963742d492f02e3ac723ac6dbac272"
+    },
+    {
+      "id": "g016",
+      "variant": "card_fee",
+      "file": "g016.png",
+      "sha256": "ee56b9d293cb5225859ca751bd6b2387b5266d7659289ef341c3df77c5c421e6"
+    },
+    {
+      "id": "g017",
+      "variant": "unreadable_gallons",
+      "file": "g017.png",
+      "sha256": "60075fc2d5030eea67347c9e298a71a894b160f394e7a47cdc3753b971b7bd5c"
+    },
+    {
+      "id": "g018",
+      "variant": "multi_receipt",
+      "file": "g018.png",
+      "sha256": "b4db9636eede45a8575014b0d175656687c8393e49fe240b3d9af773374f94d0"
+    },
+    {
+      "id": "g019",
+      "variant": "multi_page_pdf",
+      "file": "g019.pdf",
+      "sha256": "019150484ccde058711f0859209fbd457a4ff0de33ca5a34615f41a55efd17e8"
+    },
+    {
+      "id": "g020",
+      "variant": "clean",
+      "file": "g020.pdf",
+      "sha256": "306b288a5eb24a08e930c377ddb276a56d0a084d3a907ac4dd9f243bfba67563"
+    }
+  ]
+}

@@ -1,0 +1,95 @@
+{
+  "id": "g017",
+  "variant": "unreadable_gallons",
+  "file": "g017.png",
+  "notes": "gallons line smudged; value must be null, not guessed",
+  "receipts": [
+    {
+      "region_hint": null,
+      "fields": {
+        "transaction_date": {
+          "raw_text": "11/08/2026",
+          "value": "2026-11-08",
+          "legibility": "clear"
+        },
+        "time": {
+          "raw_text": "20:33",
+          "value": "20:33",
+          "legibility": "clear"
+        },
+        "vendor": {
+          "raw_text": "BIG SKY TRUCK PLAZA #7",
+          "value": "BIG SKY TRUCK PLAZA",
+          "legibility": "clear"
+        },
+        "seller_address": {
+          "raw_text": "900 FRONTAGE RD BILLINGS, MT 59101",
+          "value": "900 FRONTAGE RD, BILLINGS, MT 59101",
+          "legibility": "clear"
+        },
+        "state": {
+          "raw_text": "MT",
+          "value": "MT",
+          "legibility": "clear"
+        },
+        "unit_number": {
+          "raw_text": "UNIT 103",
+          "value": "103",
+          "legibility": "clear"
+        },
+        "odometer": {
+          "raw_text": "ODOMETER 155690",
+          "value": 155690,
+          "legibility": "clear"
+        },
+        "driver_name": {
+          "raw_text": "DRIVER: F OMAR",
+          "value": "F OMAR",
+          "legibility": "clear"
+        },
+        "purchaser_name": {
+          "raw_text": "DEMO FREIGHT LLC",
+          "value": "DEMO FREIGHT LLC",
+          "legibility": "clear"
+        },
+        "payment_method": {
+          "raw_text": "FUEL CARD ****4417",
+          "value": "fuel_card",
+          "legibility": "clear"
+        },
+        "card_last4": {
+          "raw_text": "****4417",
+          "value": "4417",
+          "legibility": "clear"
+        },
+        "pump_number": {
+          "raw_text": "PUMP 10",
+          "value": "10",
+          "legibility": "clear"
+        },
+        "receipt_total": {
+          "raw_text": "TOTAL USD 510.38",
+          "value": 510.38,
+          "legibility": "clear"
+        },
+        "currency": {
+          "raw_text": "USD",
+          "value": "USD",
+          "legibility": "clear"
+        }
+      },
+      "line_items": [
+        {
+          "description_raw": "DIESEL #2 129.900 GAL @ 3.929",
+          "category": "motor_fuel",
+          "fuel_type": "diesel",
+          "quantity": null,
+          "unit": "gal",
+          "unit_price": 3.929,
+          "amount": 510.38,
+          "legibility": "unreadable"
+        }
+      ]
+    }
+  ]
+}

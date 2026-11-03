@@ -1,0 +1,182 @@
+{
+  "id": "g018",
+  "variant": "multi_receipt",
+  "file": "g018.png",
+  "notes": "two receipts in one photo -> two regions",
+  "receipts": [
+    {
+      "region_hint": "receipt 1 of 2",
+      "fields": {
+        "transaction_date": {
+          "raw_text": "11/10/2026",
+          "value": "2026-11-10",
+          "legibility": "clear"
+        },
+        "time": {
+          "raw_text": "08:11",
+          "value": "08:11",
+          "legibility": "clear"
+        },
+        "vendor": {
+          "raw_text": "GREAT LAKES FUEL #1182",
+          "value": "GREAT LAKES FUEL",
+          "legibility": "clear"
+        },
+        "seller_address": {
+          "raw_text": "4100 INTERSTATE DR GARY, IN 46406",
+          "value": "4100 INTERSTATE DR, GARY, IN 46406",
+          "legibility": "clear"
+        },
+        "state": {
+          "raw_text": "IN",
+          "value": "IN",
+          "legibility": "clear"
+        },
+        "unit_number": {
+          "raw_text": "UNIT 102",
+          "value": "102",
+          "legibility": "clear"
+        },
+        "odometer": {
+          "raw_text": "ODOMETER 418555",
+          "value": 418555,
+          "legibility": "clear"
+        },
+        "driver_name": {
+          "raw_text": "DRIVER: M YUSUF",
+          "value": "M YUSUF",
+          "legibility": "clear"
+        },
+        "purchaser_name": {
+          "raw_text": "DEMO FREIGHT LLC",
+          "value": "DEMO FREIGHT LLC",
+          "legibility": "clear"
+        },
+        "payment_method": {
+          "raw_text": "FUEL CARD ****4417",
+          "value": "fuel_card",
+          "legibility": "clear"
+        },
+        "card_last4": {
+          "raw_text": "****4417",
+          "value": "4417",
+          "legibility": "clear"
+        },
+        "pump_number": {
+          "raw_text": "PUMP 01",
+          "value": "01",
+          "legibility": "clear"
+        },
+        "receipt_total": {
+          "raw_text": "TOTAL USD 377.09",
+          "value": 377.09,
+          "legibility": "clear"
+        },
+        "currency": {
+          "raw_text": "USD",
+          "value": "USD",
+          "legibility": "clear"
+        }
+      },
+      "line_items": [
+        {
+          "description_raw": "DIESEL #2 99.000 GAL @ 3.809",
+          "category": "motor_fuel",
+          "fuel_type": "diesel",
+          "quantity": 99,
+          "unit": "gal",
+          "unit_price": 3.809,
+          "amount": 377.09,
+          "legibility": "clear"
+        }
+      ]
+    },
+    {
+      "region_hint": "receipt 2 of 2",
+      "fields": {
+        "transaction_date": {
+          "raw_text": "11/10/2026",
+          "value": "2026-11-10",
+          "legibility": "clear"
+        },
+        "time": {
+          "raw_text": "18:47",
+          "value": "18:47",
+          "legibility": "clear"
+        },
+        "vendor": {
+          "raw_text": "BUCKEYE TRUCK STOP #9",
+          "value": "BUCKEYE TRUCK STOP",
+          "legibility": "clear"
+        },
+        "seller_address": {
+          "raw_text": "3300 US-30 MANSFIELD, OH 44903",
+          "value": "3300 US-30, MANSFIELD, OH 44903",
+          "legibility": "clear"
+        },
+        "state": {
+          "raw_text": "OH",
+          "value": "OH",
+          "legibility": "clear"
+        },
+        "unit_number": {
+          "raw_text": "UNIT 102",
+          "value": "102",
+          "legibility": "clear"
+        },
+        "odometer": {
+          "raw_text": "ODOMETER 419012",
+          "value": 419012,
+          "legibility": "clear"
+        },
+        "driver_name": {
+          "raw_text": "DRIVER: M YUSUF",
+          "value": "M YUSUF",
+          "legibility": "clear"
+        },
+        "purchaser_name": {
+          "raw_text": "DEMO FREIGHT LLC",
+          "value": "DEMO FREIGHT LLC",
+          "legibility": "clear"
+        },
+        "payment_method": {
+          "raw_text": "FUEL CARD ****4417",
+          "value": "fuel_card",
+          "legibility": "clear"
+        },
+        "card_last4": {
+          "raw_text": "****4417",
+          "value": "4417",
+          "legibility": "clear"
+        },
+        "pump_number": {
+          "raw_text": "PUMP 03",
+          "value": "03",
+          "legibility": "clear"
+        },
+        "receipt_total": {
+          "raw_text": "TOTAL USD 354.15",
+          "value": 354.15,
+          "legibility": "clear"
+        },
+        "currency": {
+          "raw_text": "USD",
+          "value": "USD",
+          "legibility": "clear"
+        }
+      },
+      "line_items": [
+        {
+          "description_raw": "DIESEL #2 91.300 GAL @ 3.879",
+          "category": "motor_fuel",
+          "fuel_type": "diesel",
+          "quantity": 91.3,
+          "unit": "gal",
+          "unit_price": 3.879,
+          "amount": 354.15,
+          "legibility": "clear"
+        }
+      ]
+    }
+  ]
+}

@@ -7,7 +7,9 @@
     "fuelIfta": "Fuel & IFTA",
     "reports": "Reports",
     "vehicles": "Vehicles & Drivers",
-    "settings": "Settings"
+    "settings": "Settings",
+    "signOut": "Sign out",
+    "comingSoon": "Coming in Phase 1"
   },
   "status": {
     "verified": "Verified",
@@ -22,7 +24,14 @@
     "daysLeft": "{days} days left",
     "receivedThisWeek": "Documents received this week",
     "percentVerified": "{percent}% verified",
-    "missingReceipts": "Missing receipts"
+    "missingReceipts": "Missing receipts",
+    "title": "Home",
+    "welcome": "Welcome back, {name}",
+    "nextIftaDeadline": "Next IFTA deadline",
+    "quarter": "{label} return",
+    "inboxCount": "{count} documents in your inbox",
+    "goInbox": "Open inbox",
+    "setupHint": "Add your trucks and drivers so receipts can be matched to the right unit."
   },
   "upload": {
     "title": "Upload documents",
@@ -55,5 +64,93 @@
     "loading": "Loading…",
     "empty": "Nothing here yet.",
     "error": "Something went wrong. Please try again."
+  },
+  "app": {
+    "name": "Back Office",
+    "tagline": "Paperwork in. Clean books out.",
+    "demo": "Demo data"
+  },
+  "company": {
+    "select": "Choose a company",
+    "create": "Set up your company",
+    "legalName": "Legal company name",
+    "dba": "Doing business as (optional)",
+    "usdot": "USDOT number",
+    "mcNumber": "MC number (optional)",
+    "baseJurisdiction": "IFTA base state",
+    "timezone": "Time zone",
+    "createButton": "Create company",
+    "created": "Company created",
+    "noCompany": "You are not a member of any company yet.",
+    "role": "Your role"
+  },
+  "inbox": {
+    "title": "Inbox",
+    "subtitle": "Every receipt and statement you send lands here.",
+    "upload": "Upload documents",
+    "dropHere": "Drop files here or tap to choose",
+    "accepted": "PDF, JPG, PNG, HEIC, TIFF, CSV, XLSX. Up to {max} MB each.",
+    "uploading": "Uploading {count} file(s)…",
+    "uploaded": "{count} file(s) received",
+    "rejected": "{count} file(s) could not be accepted",
+    "rejectedReason": "{file}: {reason}",
+    "empty": "No documents yet. Upload your first receipt to get started.",
+    "filterAll": "All",
+    "received": "Received",
+    "hash": "Fingerprint",
+    "duplicate": "Duplicate of an earlier upload",
+    "channel": "Channel",
+    "uploadedBy": "Uploaded by",
+    "retention": "Keep until",
+    "preview": "Preview",
+    "openOriginal": "Open original",
+    "noPreview": "Preview not available for this file type.",
+    "loadMore": "Load more",
+    "detail": "Document",
+    "issues": "Open issues"
+  },
+  "docStatus": {
+    "RECEIVED": "Received",
+    "PROCESSING": "Processing",
+    "PROCESSED": "Processed",
+    "FAILED": "Failed",
+    "UNREADABLE": "Unreadable"
+  },
+  "reason": {
+    "unsupported_type": "This file type is not supported",
+    "content_mismatch": "The file contents do not match its type",
+    "empty": "The file is empty"
+  },
+  "vehicles": {
+    "title": "Vehicles & Drivers",
+    "addVehicle": "Add truck",
+    "addDriver": "Add driver",
+    "unitNumber": "Unit number",
+    "vin": "VIN",
+    "plate": "Plate",
+    "axles": "Axles",
+    "tankCapacity": "Tank capacity (gal)",
+    "eldProvider": "ELD provider",
+    "iftaQualified": "IFTA qualified",
+    "emptyVehicles": "No trucks yet. Add your first unit.",
+    "emptyDrivers": "No drivers yet.",
+    "driverName": "Driver name",
+    "driverPhone": "Driver phone (for texting receipts)",
+    "defaultVehicle": "Usual truck",
+    "language": "Language",
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "company": "Company",
+    "inboundEmail": "Forward receipts to"
+  },
+  "auth": {
+    "signInRequired": "Please sign in to continue."
   }
 }

@@ -1,0 +1,104 @@
+{
+  "id": "g016",
+  "variant": "card_fee",
+  "file": "g016.png",
+  "notes": "fuel card transaction fee as a non-fuel line",
+  "receipts": [
+    {
+      "region_hint": null,
+      "fields": {
+        "transaction_date": {
+          "raw_text": "11/05/2026",
+          "value": "2026-11-05",
+          "legibility": "clear"
+        },
+        "time": {
+          "raw_text": "17:09",
+          "value": "17:09",
+          "legibility": "clear"
+        },
+        "vendor": {
+          "raw_text": "PRAIRIE FUEL STOP #31",
+          "value": "PRAIRIE FUEL STOP",
+          "legibility": "clear"
+        },
+        "seller_address": {
+          "raw_text": "2200 HWY 10 W MOORHEAD, MN 56560",
+          "value": "2200 HWY 10 W, MOORHEAD, MN 56560",
+          "legibility": "clear"
+        },
+        "state": {
+          "raw_text": "MN",
+          "value": "MN",
+          "legibility": "clear"
+        },
+        "unit_number": {
+          "raw_text": "UNIT 101",
+          "value": "101",
+          "legibility": "clear"
+        },
+        "odometer": {
+          "raw_text": "ODOMETER 303771",
+          "value": 303771,
+          "legibility": "clear"
+        },
+        "driver_name": {
+          "raw_text": "DRIVER: A HASSAN",
+          "value": "A HASSAN",
+          "legibility": "clear"
+        },
+        "purchaser_name": {
+          "raw_text": "DEMO FREIGHT LLC",
+          "value": "DEMO FREIGHT LLC",
+          "legibility": "clear"
+        },
+        "payment_method": {
+          "raw_text": "FUEL CARD ****4417",
+          "value": "fuel_card",
+          "legibility": "clear"
+        },
+        "card_last4": {
+          "raw_text": "****4417",
+          "value": "4417",
+          "legibility": "clear"
+        },
+        "pump_number": {
+          "raw_text": "PUMP 02",
+          "value": "02",
+          "legibility": "clear"
+        },
+        "receipt_total": {
+          "raw_text": "TOTAL USD 391.62",
+          "value": 391.62,
+          "legibility": "clear"
+        },
+        "currency": {
+          "raw_text": "USD",
+          "value": "USD",
+          "legibility": "clear"
+        }
+      },
+      "line_items": [
+        {
+          "description_raw": "DIESEL #2 104.260 GAL @ 3.749",
+          "category": "motor_fuel",
+          "fuel_type": "diesel",
+          "quantity": 104.26,
+          "unit": "gal",
+          "unit_price": 3.749,
+          "amount": 390.87,
+          "legibility": "clear"
+        },
+        {
+          "description_raw": "CARD FEE 0.75",
+          "category": "fee",
+          "quantity": null,
+          "unit": null,
+          "unit_price": null,
+          "amount": 0.75,
+          "legibility": "clear"
+        }
+      ]
+    }
+  ]
+}
