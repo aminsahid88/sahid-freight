@@ -6,6 +6,8 @@ import { useAuthStore } from "@/lib/store";
 import { formatApiError } from "@/lib/errors";
 
 const COUNTRIES = [
+  // Back-office customers are U.S. carriers; the East Africa codes stay for legacy marketplace accounts.
+  { code: "US", name: "United States", dial: "+1" },
   { code: "ET", name: "Ethiopia", dial: "+251" },
   { code: "SO", name: "Somalia",  dial: "+252" },
   { code: "DJ", name: "Djibouti", dial: "+253" },

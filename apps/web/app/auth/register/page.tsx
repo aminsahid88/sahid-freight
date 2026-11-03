@@ -302,6 +302,7 @@ export default function RegisterPage() {
                     <label style={labelStyle}>Phone number</label>
                     <div style={{ display: "flex", gap: "8px" }}>
                       <select value={form.countryCode} onChange={(e) => { update("countryCode", e.target.value); update("phone", e.target.value + form.phoneNumber.replace(/^0/, "")); }} style={{ ...inputStyle("countryCode"), width: "140px", flexShrink: 0, appearance: "none" as const, fontFamily: "monospace" }}>
+                        <option value="+1">US  +1</option>
                         <option value="+251">ET  +251</option>
                         <option value="+252">SO  +252</option>
                         <option value="+253">DJ  +253</option>
