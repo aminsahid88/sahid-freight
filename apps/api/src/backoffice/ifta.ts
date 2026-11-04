@@ -2,7 +2,7 @@
  * Loads a reporting period's IFTA inputs through the tenant client and hands
  * them to the pure `computeIftaWorksheet` in @tbo/core.
  *
- *  - Mileage: MileageRecord rows whose [periodStart, periodEnd] lies inside the period.
+ *  - Mileage: active (non-superseded) MileageRecord rows whose [periodStart, periodEnd] lies inside the period.
  *  - Fuel: TransactionLine rows with category MOTOR_FUEL only (reefer fuel and
  *    DEF never count), from transactions assigned to the period that have a state.
  *  - Rates: IftaRate rows for the quarter label of the period start and the
@@ -34,7 +34,7 @@ export function periodTimestampRange(period: PeriodRow): { gte: Date; lt: Date }
 
 /** Issues "in" a period: on a transaction assigned to it, or on a document received during it. */
 export function periodIssueWhere(period: PeriodRow) {
-  return { OR: [{ transaction: { periodId: period.id } }, { document: { receivedAt: periodTimestampRange(period) } }] };
+  return { OR: [{ transaction: { periodId: period.id } }, { document: { receivedAt: periodTimestampRange(period) } }, { transactionId: null, documentId: null, evidence: { path: ["periodId"], equals: period.id } }] };
 }
 
 export async function openErrorCount(db: TenantClient, period: PeriodRow): Promise<number> {
@@ -65,7 +65,7 @@ export async function buildIftaWorksheet(db: TenantClient, period: PeriodRow): P
   if (rateRows.length === 0) return { ok: false, quarter };
 
   const mileage = await db.mileageRecord.findMany({
-    where: { periodStart: { gte: period.startDate }, periodEnd: { lte: period.endDate } },
+    where: { periodStart: { gte: period.startDate }, periodEnd: { lte: period.endDate }, supersededAt: null },
     select: { vehicleId: true, jurisdiction: true, totalMiles: true, taxableMiles: true },
     orderBy: [{ jurisdiction: "asc" }, { vehicleId: "asc" }],
   });

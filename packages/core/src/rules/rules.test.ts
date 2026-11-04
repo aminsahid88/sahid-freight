@@ -47,9 +47,9 @@ test("golden clean receipt yields zero issues and VERIFIED", () => {
 test("RULES are sorted by code and every issue carries its rule version", () => {
   assert.deepEqual(RULES.map((r) => r.code), [...RULES.map((r) => r.code)].sort());
   assert.equal(RULES.length, 20);
-  for (const r of RULES) assert.equal(r.version, `${r.code}-v1`);
+  for (const r of RULES) assert.match(r.version, new RegExp(`^${r.code}-v\\d+$`));
   const tx = cleanTx({ vendor: null, unitNumber: null, unitSource: null, purchaserName: null });
-  for (const i of runRules(tx, ctx())) assert.equal(i.ruleVersion, `${i.code}-v1`);
+  for (const i of runRules(tx, ctx())) assert.match(i.ruleVersion, new RegExp(`^${i.code}-v\\d+$`));
 });
 
 test("unreadable gallons line yields V001 + V006 and UNABLE_TO_VERIFY", () => {
@@ -254,6 +254,7 @@ test("M002 pass/fail", () => {
   assert.equal(i!.code, "M002");
   assert.deepEqual(i!.evidence.jurisdictionsWithMiles, ["MN", "ND"]);
   assert.deepEqual(M002.check(cleanTx({ state: "TX" }), ctx()), []);
+  assert.deepEqual(M002.check(cleanTx({ state: "TX" }), ctx({ mileage: { ...mileage, vehicleHasMileage: false, jurisdictionsWithMiles: new Set() } })), [], "M001 covers a truck with no mileage");
 });
 
 test("M003 pass/fail", () => {

@@ -239,6 +239,73 @@ export interface FuelCardImport {
   duplicates?: number;
 }
 
+export type MileageProvider = "motive" | "samsara" | "geotab" | "omnitracs" | "generic";
+export const MILEAGE_PROVIDERS: MileageProvider[] = ["motive", "samsara", "geotab", "omnitracs", "generic"];
+export type MileageField = "unit" | "jurisdiction" | "totalMiles" | "taxableMiles" | "periodStart" | "periodEnd";
+export const MILEAGE_FIELDS: MileageField[] = ["unit", "jurisdiction", "totalMiles", "taxableMiles", "periodStart", "periodEnd"];
+export type MileageLayout = "long" | "wide";
+export type DistanceUnit = "mi" | "km";
+export type MileageMapping = Partial<Record<MileageField, string>>;
+
+export interface MileagePreview {
+  headers: string[];
+  sampleRows: string[][];
+  layout: MileageLayout;
+  detectedMapping: MileageMapping;
+  mapping: MileageMapping;
+  missing: MileageField[];
+  savedMapping: { layout: MileageLayout; distanceUnit: DistanceUnit; mapping: MileageMapping } | null;
+  distanceUnit: DistanceUnit;
+  jurisdictionColumns: string[];
+  parse: {
+    records: Array<{ unit: string; jurisdiction: string; totalMiles: string; taxableMiles: string; sourceRows: number[] }>;
+    errors: Array<{ row: number; field: string; message: string }>;
+    skipped: number;
+    unknownUnits: string[];
+    unitsSeen: string[];
+  };
+}
+
+export interface MileageImportRow {
+  id: string;
+  provider: MileageProvider | string;
+  filename: string | null;
+  layout: MileageLayout | null;
+  distanceUnit: DistanceUnit | null;
+  mappingVersion: string | null;
+  importedAt: string;
+  rows: number;
+  activeRows: number;
+  rowsSkipped: number;
+}
+
+export interface MileageRulesSummary {
+  transactionsChecked: number;
+  fleetMpg: string | null;
+  opened: { M001: number; M002: number; M003: number };
+  resolved: number;
+}
+
+export interface MileageImportResult {
+  mileageImport: { id: string; provider: string; layout: MileageLayout; distanceUnit: DistanceUnit; mappingVersion: string; importedAt: string; rows: number; skipped: number };
+  superseded: { records: number; imports: number };
+  rules: MileageRulesSummary;
+}
+
+export interface MileageView {
+  records: MileageRecord[];
+  byVehicle: Array<{ vehicleId: string; unitNumber: string; jurisdictions: string[]; totalMiles: string; taxableMiles: string }>;
+  byJurisdiction: Array<{ jurisdiction: string; totalMiles: string; taxableMiles: string }>;
+  totals: { totalMiles: string; taxableMiles: string };
+}
+
+export interface MileageChoices {
+  provider: MileageProvider;
+  layout?: MileageLayout;
+  distanceUnit?: DistanceUnit;
+  mapping?: MileageMapping;
+}
+
 export interface MatchSummary {
   receiptsConsidered: number;
   cardRowsConsidered: number;
@@ -271,6 +338,16 @@ export interface AuditEntry {
 }
 
 const c = (companyId: string) => `/companies/${companyId}`;
+
+function mileageForm(file: File, choices: MileageChoices): FormData {
+  const form = new FormData();
+  form.append("file", file, file.name);
+  form.append("provider", choices.provider);
+  if (choices.layout) form.append("layout", choices.layout);
+  if (choices.distanceUnit) form.append("distanceUnit", choices.distanceUnit);
+  if (choices.mapping) form.append("mapping", JSON.stringify(choices.mapping));
+  return form;
+}
 
 export const backoffice = {
   // ── Companies ──
@@ -374,15 +451,22 @@ export const backoffice = {
     return data;
   },
   async mileage(companyId: string, periodId: string) {
-    const { data } = await api.get<{ records: MileageRecord[]; byJurisdiction: Array<{ jurisdiction: string; totalMiles: string; taxableMiles: string }>; totals: { totalMiles: string; taxableMiles: string } }>(`${c(companyId)}/periods/${periodId}/mileage`);
+    const { data } = await api.get<MileageView>(`${c(companyId)}/periods/${periodId}/mileage`);
     return data;
   },
-  async importMileage(companyId: string, periodId: string, file: File, provider = "generic") {
-    const form = new FormData();
-    form.append("file", file, file.name);
-    form.append("provider", provider);
-    const { data } = await api.post<{ mileageImport: { id: string; provider: string; importedAt: string; rows: number } }>(`${c(companyId)}/periods/${periodId}/mileage-imports`, form, { headers: { "Content-Type": "multipart/form-data" } });
-    return data.mileageImport;
+  async mileagePreview(companyId: string, periodId: string, file: File, choices: MileageChoices) {
+    const { data } = await api.post<MileagePreview>(`${c(companyId)}/periods/${periodId}/mileage-imports/preview`, mileageForm(file, choices), { headers: { "Content-Type": "multipart/form-data" } });
+    return data;
+  },
+  async importMileage(companyId: string, periodId: string, file: File, choices: MileageChoices, saveMapping: boolean) {
+    const form = mileageForm(file, choices);
+    form.append("saveMapping", saveMapping ? "true" : "false");
+    const { data } = await api.post<MileageImportResult>(`${c(companyId)}/periods/${periodId}/mileage-imports`, form, { headers: { "Content-Type": "multipart/form-data" } });
+    return data;
+  },
+  async mileageImports(companyId: string, periodId: string) {
+    const { data } = await api.get<{ imports: MileageImportRow[] }>(`${c(companyId)}/periods/${periodId}/mileage-imports`);
+    return data.imports;
   },
   async worksheet(companyId: string, periodId: string) {
     const { data } = await api.get<Worksheet>(`${c(companyId)}/periods/${periodId}/ifta-worksheet`);

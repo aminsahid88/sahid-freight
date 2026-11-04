@@ -27,6 +27,8 @@ import {
 import type { Env } from "../config/env";
 import type { Storage } from "../storage";
 import { type ClaimedJob, enqueue, type Processor } from "./queue";
+import { loadMileageContext } from "../backoffice/mileage-rules";
+import { tenantClient } from "../tenant/client";
 
 export const EXTRACT_A_STEP = "extract-a";
 export const EXTRACT_B_STEP = "extract-b";
@@ -173,7 +175,7 @@ async function latestRun(prisma: PrismaClient, regionId: string, pass: "A" | "B"
   return prisma.extractionRun.findUnique({ where: { regionId_pass_modelId_promptVersion: { regionId, pass, modelId: model, promptVersion } } });
 }
 
-async function loadSettings(prisma: PrismaClient, companyId: string, env: Env): Promise<RuleSettings> {
+export async function loadSettings(prisma: PrismaClient, companyId: string, env: Env): Promise<RuleSettings> {
   const rows = await prisma.setting.findMany({ where: { OR: [{ companyId: null }, { companyId }] } });
   const get = (key: string) => rows.find((r) => r.companyId === companyId && r.key === key)?.value ?? rows.find((r) => r.companyId === null && r.key === key)?.value;
   const tol = (get("arithmetic_tolerance") as { amountUsd?: string; ratio?: string } | undefined) ?? {};
@@ -315,7 +317,7 @@ export function makeReconcile(deps: ExtractionDeps): Processor {
               receiptTotal: s.receiptTotal?.toString() ?? null,
             }))
           : [],
-        mileage: null,
+        mileage: await loadMileageContext(tenantClient(prisma, company.id), period, vehicle?.id ?? null),
       };
       const passValues = normA && normB ? { a: contractView(normA), b: contractView(normB) } : null;
       const ruleTx = toRuleTransaction({ ...final, unitNumber: final.unitNumber ?? hintedVehicle?.unitNumber ?? null }, unitSource, passValues);

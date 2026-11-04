@@ -7,5 +7,6 @@ Also here, hand-written for the same fictional "Demo Freight LLC" Q4 2026 quarte
   totals), with deliberate cases: one row a day late (10/13 vs receipt 10/12), a reefer and a DEF row that must never
   count as IFTA gallons, a row with no unit, and one purchase (RIVERBEND, 11/21) that has no receipt (→ I003).
 - `demo-eld-mileage-q4-2026.csv` — jurisdiction miles per unit for the quarter (→ mileage import, IFTA worksheet).
+- `demo-eld-mileage-q4-2026-wide.csv` — the same idea in the wide layout (one row per unit, a column per state, a totals row) for units 101 and 102; importing it after the long file replaces those two units' rows and keeps 103's.
 
 Everything is invented. Never replace these with real carrier data.

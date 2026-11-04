@@ -4,20 +4,20 @@
  * ELD mileage import, and the worksheet preview labelled PRELIMINARY until
  * every error is resolved and the owner approves.
  */
-import { useEffect, useRef, useState } from "react";
-import { Fuel, Route, UploadCloud } from "lucide-react";
-import { backoffice, formatMoney, formatNumber, type MileageRecord, type Period, type PeriodSummary, periodLabel, type Worksheet } from "@/lib/backoffice";
+import { useEffect, useState } from "react";
+import { Fuel, Route } from "lucide-react";
+import { backoffice, formatMoney, formatNumber, type MileageView, type Period, type PeriodSummary, periodLabel, type Worksheet } from "@/lib/backoffice";
 import { useCompanyStore } from "@/lib/company";
 import { formatApiError } from "@/lib/errors";
 import { useT } from "@/lib/useT";
 import { Banner } from "@/components/ui/Banner";
-import { Button } from "@/components/ui/Button";
 import { Card, CardBody, CardHeader, Stat } from "@/components/ui/Card";
 import { EmptyState, SkeletonRows } from "@/components/ui/EmptyState";
 import { Select } from "@/components/ui/Field";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Pill, REPORT_TONES } from "@/components/ui/Pill";
 import { FuelCardImport } from "@/components/office/FuelCardImport";
+import { MileageImport } from "@/components/office/MileageImport";
 
 interface WorksheetState {
   data: Worksheet | null;
@@ -32,13 +32,11 @@ export default function IftaPage() {
   const [periods, setPeriods] = useState<Period[]>([]);
   const [periodId, setPeriodId] = useState("");
   const [summary, setSummary] = useState<PeriodSummary | null>(null);
-  const [mileage, setMileage] = useState<MileageRecord[]>([]);
+  const [mileage, setMileage] = useState<MileageView | null>(null);
+  const [mileageView, setMileageView] = useState<"jurisdiction" | "vehicle">("jurisdiction");
   const [ws, setWs] = useState<WorksheetState>({ data: null, ratesMissing: null, error: "" });
   const [loadedKey, setLoadedKey] = useState("");
   const [error, setError] = useState("");
-  const [importing, setImporting] = useState(false);
-  const [importMsg, setImportMsg] = useState<{ tone: "success" | "danger"; text: string } | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!companyId) return;
@@ -74,7 +72,7 @@ export default function IftaPage() {
     ])
       .then(([s, m, w]) => {
         setSummary(s);
-        setMileage(m.records);
+        setMileage(m);
         setWs(w);
         setError("");
         setLoadedKey(key);
@@ -96,32 +94,10 @@ export default function IftaPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [companyId, periodId]);
 
-  const onImport = async (file: File) => {
-    if (!companyId || !periodId) return;
-    setImporting(true);
-    setImportMsg(null);
-    try {
-      const res = await backoffice.importMileage(companyId, periodId, file);
-      setImportMsg({ tone: "success", text: t("ifta.imported", { rows: res.rows }) });
-      await loadPeriod(companyId, periodId);
-    } catch (e) {
-      setImportMsg({ tone: "danger", text: formatApiError(e, t("common.error")) });
-    } finally {
-      setImporting(false);
-      if (fileRef.current) fileRef.current.value = "";
-    }
-  };
-
   const period = periods.find((p) => p.id === periodId);
   const loading = loadedKey !== `${companyId}:${periodId}`;
-  const mileageByJur = Object.values(
-    mileage.reduce<Record<string, { jurisdiction: string; total: number; taxable: number }>>((acc, r) => {
-      const a = (acc[r.jurisdiction] ??= { jurisdiction: r.jurisdiction, total: 0, taxable: 0 });
-      a.total += Number(r.totalMiles);
-      a.taxable += Number(r.taxableMiles);
-      return acc;
-    }, {}),
-  ).sort((a, b) => a.jurisdiction.localeCompare(b.jurisdiction));
+  const mileageByJur = mileage?.byJurisdiction ?? [];
+  const mileageByVehicle = mileage?.byVehicle ?? [];
 
   return (
     <div>
@@ -146,7 +122,7 @@ export default function IftaPage() {
         <>
           <div className="grid gap-4 md:grid-cols-3">
             <Stat icon={<Fuel size={16} />} label={t("ifta.motorFuelGallons")} value={formatNumber(summary?.fuelByState.reduce((a, s) => a + Number(s.motorFuelGallons), 0) ?? 0)} detail={t("ifta.fromVerified")} />
-            <Stat icon={<Route size={16} />} label={t("ifta.totalMiles")} value={formatNumber(mileageByJur.reduce((a, j) => a + j.total, 0), 0)} detail={t("ifta.fromEld")} />
+            <Stat icon={<Route size={16} />} label={t("ifta.totalMiles")} value={formatNumber(mileage?.totals.totalMiles ?? 0, 0)} detail={t("ifta.fromEld")} />
             <Stat label={t("ifta.fleetMpg")} value={ws.data?.worksheet.fleetMpg ?? "—"} detail={ws.data ? t("ifta.mpgHint") : t("ifta.needsBoth")} tone={ws.data?.worksheet.fleetMpg && (Number(ws.data.worksheet.fleetMpg) < 4 || Number(ws.data.worksheet.fleetMpg) > 9) ? "warning" : "default"} />
           </div>
 
@@ -187,19 +163,18 @@ export default function IftaPage() {
                 title={t("ifta.mileage")}
                 description={t("ifta.mileageHint")}
                 action={
-                  <>
-                    <input ref={fileRef} type="file" accept=".csv,text/csv" className="hidden" onChange={(e) => e.target.files?.[0] && onImport(e.target.files[0])} />
-                    <Button size="sm" variant="secondary" icon={<UploadCloud size={14} />} loading={importing} onClick={() => fileRef.current?.click()}>
-                      {t("ifta.importCsv")}
-                    </Button>
-                  </>
+                  mileageByJur.length > 0 ? (
+                    <Select aria-label={t("mileage.layout")} value={mileageView} onChange={(e) => setMileageView(e.target.value as "jurisdiction" | "vehicle")} className="w-36">
+                      <option value="jurisdiction">{t("mileage.byJurisdiction")}</option>
+                      <option value="vehicle">{t("mileage.byVehicle")}</option>
+                    </Select>
+                  ) : undefined
                 }
               />
               <CardBody>
-                {importMsg && <Banner tone={importMsg.tone} className="mb-3">{importMsg.text}</Banner>}
                 {mileageByJur.length === 0 ? (
                   <EmptyState icon={<Route size={18} />} title={t("ifta.noMileage")} description={t("ifta.noMileageHint")} className="py-8" />
-                ) : (
+                ) : mileageView === "jurisdiction" ? (
                   <table className="w-full text-[13px]">
                     <thead className="text-left text-xs uppercase tracking-wide text-ink-3">
                       <tr>
@@ -212,8 +187,29 @@ export default function IftaPage() {
                       {mileageByJur.map((j) => (
                         <tr key={j.jurisdiction} className="border-t border-line">
                           <td className="py-2 font-semibold">{j.jurisdiction}</td>
-                          <td className="py-2 text-right tnum">{formatNumber(j.total, 0)}</td>
-                          <td className="py-2 text-right tnum">{formatNumber(j.taxable, 0)}</td>
+                          <td className="py-2 text-right tnum">{formatNumber(j.totalMiles, 0)}</td>
+                          <td className="py-2 text-right tnum">{formatNumber(j.taxableMiles, 0)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <table className="w-full text-[13px]">
+                    <thead className="text-left text-xs uppercase tracking-wide text-ink-3">
+                      <tr>
+                        <th className="py-1.5">{t("mileage.truck")}</th>
+                        <th className="py-1.5">{t("mileage.states")}</th>
+                        <th className="py-1.5 text-right">{t("ifta.totalMiles")}</th>
+                        <th className="py-1.5 text-right">{t("ifta.taxableMiles")}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {mileageByVehicle.map((v) => (
+                        <tr key={v.vehicleId} className="border-t border-line">
+                          <td className="py-2 font-semibold">{v.unitNumber}</td>
+                          <td className="py-2 text-ink-2">{v.jurisdictions.join(", ")}</td>
+                          <td className="py-2 text-right tnum">{formatNumber(v.totalMiles, 0)}</td>
+                          <td className="py-2 text-right tnum">{formatNumber(v.taxableMiles, 0)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -222,6 +218,12 @@ export default function IftaPage() {
               </CardBody>
             </Card>
           </div>
+
+          {periodId && (
+            <div className="mt-6">
+              <MileageImport key={`${companyId}:${periodId}`} companyId={companyId!} periodId={periodId} onImported={() => companyId && periodId && loadPeriod(companyId, periodId)} />
+            </div>
+          )}
 
           <div className="mt-6">
             <FuelCardImport companyId={companyId!} periodId={periodId || null} onImported={() => companyId && periodId && loadPeriod(companyId, periodId)} />

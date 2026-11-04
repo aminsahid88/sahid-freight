@@ -1005,15 +1005,29 @@ model FuelCardTransaction {
 }
 
 model MileageImport {
-  id         String          @id @default(uuid())
-  companyId  String
-  company    Company         @relation(fields: [companyId], references: [id])
-  provider   String
-  documentId String?
-  importedAt DateTime        @default(now())
-  records    MileageRecord[]
+  id             String          @id @default(uuid())
+  companyId      String
+  company        Company         @relation(fields: [companyId], references: [id])
+  provider       String
+  documentId     String?
+  importedAt     DateTime        @default(now())
+  /// Period the file was imported into (null for rows seeded before 2026-11-05).
+  periodId       String?
+  filename       String?
+  /// `${provider}:${layout}:${unit}:${hash}` — changes whenever a column assignment changes.
+  mappingVersion String?
+  /// sha256 of the uploaded bytes; the same file is refused twice for one period.
+  fileHash       String?
+  /// "long" (row per unit × jurisdiction) or "wide" (row per unit, column per jurisdiction).
+  layout         String?
+  /// "mi" or "km" as found in the file; records are always stored in miles.
+  distanceUnit   String?
+  /// Lines skipped on import (totals rows, repeated headers, blank lines).
+  rowsSkipped    Int             @default(0)
+  records        MileageRecord[]
 
   @@index([companyId, importedAt])
+  @@index([companyId, periodId])
 }
 
 model MileageRecord {
@@ -1028,6 +1042,9 @@ model MileageRecord {
   periodEnd    DateTime      @db.Date
   totalMiles   Decimal       @db.Decimal(12, 3)
   taxableMiles Decimal       @db.Decimal(12, 3)
+  /// Set when a later import for the same period and vehicle replaced this row. Never deleted.
+  supersededAt         DateTime?
+  supersededByImportId String?
 
   @@index([companyId, vehicleId, periodStart])
 }

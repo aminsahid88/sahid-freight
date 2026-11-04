@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { computeIftaWorksheet, iftaWorksheetToJson } from "@tbo/core";
 import { buildIftaWorksheetCsv, buildTransactionsCsv, IFTA_CSV_COLUMNS, snapshotHash, TRANSACTIONS_CSV_COLUMNS, type TransactionCsvRow } from "./reports";
 import { countBy, fuelByState, verifiedPercent } from "./summary";
-import { mapMileageHeader, parseCsv, parseMileageCsv } from "./periods.routes";
+import { parseCsv } from "./periods.routes";
 
 function row(over: Partial<TransactionCsvRow> = {}): TransactionCsvRow {
   return {
@@ -120,28 +120,14 @@ test("summary: fuel by state separates motor fuel, reefer and DEF; null states a
   assert.deepEqual(countBy([{ key: "ERROR", count: 2 }], ["ERROR", "WARNING", "INFO"] as const), { ERROR: 2, WARNING: 0, INFO: 0 });
 });
 
-test("mileage CSV reader: quotes, CRLF, BOM, header aliases and per-row validation", () => {
+test("CSV reader: quotes, CRLF, BOM, blank lines", () => {
   assert.deepEqual(parseCsv('a,b\r\n"x, y","say ""hi"""\n\n1,2\r\n'), [
     ["a", "b"],
     ["x, y", 'say "hi"'],
     ["1", "2"],
   ]);
-  assert.deepEqual(mapMileageHeader(["Unit Number", "STATE", "Total Miles"]).missing, []);
-  assert.deepEqual(mapMileageHeader(["unit", "miles"]).missing, ["jurisdiction"]);
-  const units = new Set(["101", "102"]);
-  const juris = new Set(["OH", "IN"]);
-  const ok = parseMileageCsv("﻿unit,state,miles,taxable_miles\r\n101,oh,1200.5,\r\n102,IN,\"1,000\",900\r\n", units, juris);
-  assert.deepEqual(ok.errors, []);
-  assert.deepEqual(ok.rows, [
-    { row: 2, unit: "101", jurisdiction: "OH", totalMiles: "1200.5", taxableMiles: "1200.5" },
-    { row: 3, unit: "102", jurisdiction: "IN", totalMiles: "1000", taxableMiles: "900" },
+  assert.deepEqual(parseCsv("\ufeffunit,state\r\n101,oh\r\n"), [
+    ["unit", "state"],
+    ["101", "oh"],
   ]);
-  const bad = parseMileageCsv("unit,state,miles\n999,OH,100\n101,XX,100\n101,OH,-5\n101,IN,12.3456\n", units, juris);
-  assert.deepEqual(
-    bad.errors.map((e) => `${e.row}:${e.field}`),
-    ["2:unit", "3:jurisdiction", "4:total_miles", "4:taxable_miles", "5:total_miles", "5:taxable_miles"],
-  );
-  assert.equal(parseMileageCsv("", units, juris).errors[0]!.field, "file");
-  assert.equal(parseMileageCsv("unit,state,miles\n", units, juris).errors[0]!.message, "The file has a header but no data rows");
-  assert.match(parseMileageCsv("unit,state,miles,taxable_miles\n101,OH,50,60\n", units, juris).errors[0]?.message ?? "", /cannot exceed/);
 });
