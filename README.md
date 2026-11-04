@@ -11,7 +11,7 @@ The marketplace code is archived behind the `LEGACY_MARKETPLACE` flags, not dele
 
 - `apps/api/` — Express + Prisma API and the background worker (Railway)
 - `apps/web/` — Next.js dashboard for owners, office staff and reviewers (Vercel). Back-office screens live under `/office`
-- `apps/mobile/` — Expo app (becomes the driver/owner receipt-capture app in Phase 1)
+- `apps/mobile/` — Expo capture app for drivers and owners: camera with blur check, offline upload queue, sent list, "which truck?" replies, English/Somali. Run with `cd apps/mobile && npx expo start` (set `EXPO_PUBLIC_API_URL=http://<your-lan-ip>:8000` for a local API)
 - `packages/core/` — pure domain logic: decimal math, periods and retention, upload validation (unit-tested, no I/O)
 - `packages/i18n/` — English and Somali UI strings
 - `packages/extraction/` — extraction contract and the fictional golden dataset (`golden/`)
