@@ -17,6 +17,7 @@ import { EmptyState, SkeletonRows } from "@/components/ui/EmptyState";
 import { Select } from "@/components/ui/Field";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Pill, REPORT_TONES } from "@/components/ui/Pill";
+import { FuelCardImport } from "@/components/office/FuelCardImport";
 
 interface WorksheetState {
   data: Worksheet | null;
@@ -220,6 +221,10 @@ export default function IftaPage() {
                 )}
               </CardBody>
             </Card>
+          </div>
+
+          <div className="mt-6">
+            <FuelCardImport companyId={companyId!} periodId={periodId || null} onImported={() => companyId && periodId && loadPeriod(companyId, periodId)} />
           </div>
 
           <Card className="mt-6">

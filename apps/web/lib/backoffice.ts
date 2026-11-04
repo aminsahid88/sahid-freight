@@ -215,6 +215,39 @@ export interface Report {
   generatedBy: string;
 }
 
+export type FuelCardProvider = "comdata" | "wex_efs" | "atob" | "tcs" | "generic";
+export const FUEL_CARD_PROVIDERS: FuelCardProvider[] = ["comdata", "wex_efs", "atob", "tcs", "generic"];
+export type FuelCardField = "date" | "location" | "state" | "unitNumber" | "cardLast4" | "fuelType" | "gallons" | "amount";
+export const FUEL_CARD_FIELDS: FuelCardField[] = ["date", "location", "state", "unitNumber", "cardLast4", "fuelType", "gallons", "amount"];
+export type FuelCardMapping = Partial<Record<FuelCardField, string>>;
+
+export interface FuelCardPreview {
+  headers: string[];
+  sampleRows: string[][];
+  detectedMapping: FuelCardMapping;
+  missing: FuelCardField[];
+  savedMapping: FuelCardMapping | null;
+}
+
+export interface FuelCardImport {
+  id: string;
+  provider: FuelCardProvider;
+  mappingVersion: string;
+  importedAt: string;
+  rows: number;
+  matched?: number;
+  duplicates?: number;
+}
+
+export interface MatchSummary {
+  receiptsConsidered: number;
+  cardRowsConsidered: number;
+  matched: number;
+  newMatches: number;
+  unmatchedReceipts: number;
+  unmatchedCardRows: number;
+}
+
 export interface Member {
   id: string;
   role: CompanyRole;
@@ -367,6 +400,32 @@ export const backoffice = {
   },
   async report(companyId: string, id: string) {
     const { data } = await api.get<{ report: Report; signedUrl: string }>(`${c(companyId)}/reports/${id}`);
+    return data;
+  },
+
+  // ── Fuel cards ──
+  async fuelCardPreview(companyId: string, file: File, provider: FuelCardProvider) {
+    const form = new FormData();
+    form.append("file", file, file.name);
+    form.append("provider", provider);
+    const { data } = await api.post<FuelCardPreview>(`${c(companyId)}/fuel-card-imports/preview`, form, { headers: { "Content-Type": "multipart/form-data" } });
+    return data;
+  },
+  async fuelCardImport(companyId: string, file: File, provider: FuelCardProvider, mapping: FuelCardMapping, saveMapping: boolean) {
+    const form = new FormData();
+    form.append("file", file, file.name);
+    form.append("provider", provider);
+    form.append("mapping", JSON.stringify(mapping));
+    form.append("saveMapping", saveMapping ? "true" : "false");
+    const { data } = await api.post<{ fuelCardImport: FuelCardImport; matching: MatchSummary }>(`${c(companyId)}/fuel-card-imports`, form, { headers: { "Content-Type": "multipart/form-data" } });
+    return data;
+  },
+  async fuelCardImports(companyId: string) {
+    const { data } = await api.get<{ imports: FuelCardImport[] }>(`${c(companyId)}/fuel-card-imports`);
+    return data.imports;
+  },
+  async runMatching(companyId: string, periodId: string) {
+    const { data } = await api.post<MatchSummary>(`${c(companyId)}/periods/${periodId}/match`);
     return data;
   },
 

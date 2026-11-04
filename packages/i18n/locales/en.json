@@ -435,5 +435,46 @@
     "subtitle": "These receipts had no unit number. Tap the truck it was for.",
     "empty": "All receipts have a truck",
     "emptyHint": "Nothing to answer right now."
+  },
+  "fuelCard": {
+    "title": "Fuel card statement",
+    "hint": "Import the statement CSV from your fuel card provider. Each row becomes a card purchase and is matched to its receipt, never counted twice.",
+    "provider": "Provider",
+    "chooseFile": "Choose CSV",
+    "preview": "Check columns",
+    "import": "Import",
+    "importing": "Importing…",
+    "columns": "Which column is which?",
+    "columnsHint": "We guessed from the headers. Fix anything wrong; your choice is remembered for this provider.",
+    "notMapped": "Not in this file",
+    "required": "required",
+    "saveMapping": "Remember these columns for {provider}",
+    "imported": "{rows} card rows imported ({duplicates} already there)",
+    "matched": "{matched} matched to receipts",
+    "unmatchedCards": "{count} card purchases with no receipt (I003)",
+    "unmatchedReceipts": "{count} card-paid receipts with no card row (I004)",
+    "runMatch": "Match again",
+    "history": "Statements imported",
+    "none": "No statements imported yet.",
+    "rows": "{rows} rows",
+    "sample": "Sample rows",
+    "xlsxNote": "Export the statement as CSV; spreadsheets (.xlsx) are not read yet."
+  },
+  "fuelCardField": {
+    "date": "Date",
+    "location": "Merchant / location",
+    "state": "State",
+    "unitNumber": "Unit",
+    "cardLast4": "Card (last 4)",
+    "fuelType": "Product",
+    "gallons": "Gallons",
+    "amount": "Amount"
+  },
+  "fuelCardProvider": {
+    "comdata": "Comdata",
+    "wex_efs": "WEX / EFS",
+    "atob": "AtoB",
+    "tcs": "TCS",
+    "generic": "Other (generic CSV)"
   }
 }

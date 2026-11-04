@@ -12,6 +12,7 @@ import { createStorage, type Storage, verifyLocalSignature } from "../storage";
 import { companiesRouter } from "./companies.routes";
 import { documentsRouter } from "./documents.routes";
 import { errorHandler, HttpError, wrap } from "./errors";
+import { fuelCardImportsRouter, fuelCardTransactionsRouter, periodMatchRouter } from "./fuel-cards.routes";
 import { iftaRatesRouter } from "./ifta-rates.routes";
 import { issuesRouter } from "./issues.routes";
 import { membersRouter } from "./members.routes";
@@ -55,7 +56,10 @@ export function mountBackoffice(app: Express, deps: BackofficeDeps): { storage: 
   companies.use("/:companyId/documents", documentsRouter(deps.prisma, storage, deps.env));
   companies.use("/:companyId/transactions", transactionsRouter(deps.prisma));
   companies.use("/:companyId/issues", issuesRouter(deps.prisma));
+  companies.use("/:companyId/periods", periodMatchRouter(deps.prisma));
   companies.use("/:companyId/periods", periodsRouter(deps.prisma, deps.env));
+  companies.use("/:companyId/fuel-card-imports", fuelCardImportsRouter(deps.prisma));
+  companies.use("/:companyId/fuel-card-transactions", fuelCardTransactionsRouter(deps.prisma));
   companies.use("/:companyId/reports", reportsRouter(deps.prisma, storage, deps.env));
   companies.use("/:companyId/members", membersRouter(deps.prisma));
   app.use("/companies", companies);

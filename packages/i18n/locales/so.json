@@ -435,5 +435,46 @@
     "subtitle": "Rasiidhadan lambar gaari ma lahayn. Taabo gaariga ay ahaayeen.",
     "empty": "Rasiid kastaa gaari buu leeyahay",
     "emptyHint": "Hadda waxba lama jawaabayo."
+  },
+  "fuelCard": {
+    "title": "Warbixinta kaadhka shidaalka",
+    "hint": "Soo geli CSV-ga warbixinta ee bixiyaha kaadhka shidaalka. Saf kastaa wuxuu noqdaa iibsasho kaadh, waxaana lagu xiraa rasiidkiisa, marnaba laba jeer lama xisaabiyo.",
+    "provider": "Bixiyaha",
+    "chooseFile": "Dooro CSV",
+    "preview": "Hubi tiirarka",
+    "import": "Soo geli",
+    "importing": "Waa la soo gelinayaa…",
+    "columns": "Tiirkee waa kee?",
+    "columnsHint": "Waxaan ka qiyaasnay cinwaannada. Sax wixii khaldan; doorashadaada waa la xasuusanayaa bixiyahan.",
+    "notMapped": "Faylkan kuma jiro",
+    "required": "loo baahan yahay",
+    "saveMapping": "Xasuuso tiirarkan {provider}",
+    "imported": "{rows} saf kaadh ayaa la soo geliyay ({duplicates} horey u jiray)",
+    "matched": "{matched} ayaa lagu xiray rasiidho",
+    "unmatchedCards": "{count} iibsasho kaadh oo aan rasiid lahayn (I003)",
+    "unmatchedReceipts": "{count} rasiid kaadh lagu bixiyay oo aan saf kaadh lahayn (I004)",
+    "runMatch": "Mar kale isku xir",
+    "history": "Warbixinnada la soo geliyay",
+    "none": "Weli warbixin lama soo gelin.",
+    "rows": "{rows} saf",
+    "sample": "Safaf tusaale ah",
+    "xlsxNote": "Warbixinta u dhoofi CSV; faylasha xisaabta (.xlsx) weli lama akhriyo."
+  },
+  "fuelCardField": {
+    "date": "Taariikhda",
+    "location": "Ganacsade / goobta",
+    "state": "Gobolka",
+    "unitNumber": "Gaariga",
+    "cardLast4": "Kaadhka (4-ta dambe)",
+    "fuelType": "Badeecada",
+    "gallons": "Galaan",
+    "amount": "Lacagta"
+  },
+  "fuelCardProvider": {
+    "comdata": "Comdata",
+    "wex_efs": "WEX / EFS",
+    "atob": "AtoB",
+    "tcs": "TCS",
+    "generic": "Kale (CSV guud)"
   }
 }
