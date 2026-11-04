@@ -5,7 +5,7 @@ audit-ready records and a preparer-ready IFTA worksheet. Every number is traceab
 nothing is invented. Product spec: `docs/` (`docs/00-master-prompt-v2.json` is the source of truth).
 
 This repository was the Sahid Freight freight marketplace until November 2026 (tag `marketplace-final`).
-The marketplace code is archived behind the `LEGACY_MARKETPLACE` flags, not deleted.
+The marketplace code is archived untouched under `apps/web/legacy`, `apps/api/legacy` and `apps/mobile/legacy`, not deleted.
 
 ## Repository structure
 

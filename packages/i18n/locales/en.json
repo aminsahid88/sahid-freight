@@ -199,7 +199,10 @@
     "addMember": "Add person",
     "memberHint": "They need a Sahid Freight account with this email first.",
     "memberAdded": "Added to the team.",
-    "languageHint": "Applies to your screens and notifications."
+    "languageHint": "Applies to your screens and notifications.",
+    "system": "Automatic",
+    "about": "This app",
+    "pendingUploads": "{count} upload(s) waiting on this phone"
   },
   "auth": {
     "signInRequired": "Please sign in to continue.",
@@ -381,5 +384,56 @@
     "lookup": "Lookup",
     "none": "Not decided",
     "disagree": "Reads differ"
+  },
+  "mobile": {
+    "capture": "Capture",
+    "submissions": "Sent",
+    "whichTruck": "Which truck?"
+  },
+  "capture": {
+    "title": "Send a receipt",
+    "subtitle": "Fuel, DEF, scale, parking: snap it and send. We do the rest.",
+    "whichTruck": "Truck:",
+    "noTrucks": "No trucks set up yet. Ask your office.",
+    "permissionTitle": "Camera access",
+    "permissionBody": "Sahid Freight needs the camera to photograph receipts. Photos stay on your phone until they are sent.",
+    "allowCamera": "Allow camera",
+    "chooseFromPhotos": "Choose from photos",
+    "takePhoto": "Take photo",
+    "review": "Review photos",
+    "hint": "Take a photo of each receipt",
+    "reviewAndSend": "Review {count} photo(s)",
+    "send": "Send {count} photo(s)",
+    "takeMore": "Take more",
+    "noShots": "No photos yet.",
+    "sharp": "Clear",
+    "borderline": "Check focus",
+    "blurryShort": "Blurry",
+    "blurry": "That one looks blurry. Hold still, fill the frame, and try again.",
+    "blurryWarning": "{count} photo(s) look blurry. The office may ask you to retake them.",
+    "queued": "{count} photo(s) queued. They upload when you have signal.",
+    "remove": "Remove photo"
+  },
+  "queueStatus": {
+    "pending": "Waiting for signal",
+    "uploading": "Sending",
+    "done": "Sent",
+    "rejected": "Not accepted"
+  },
+  "submissions": {
+    "title": "Sent",
+    "subtitle": "Everything you've sent and where it stands.",
+    "onThisPhone": "On this phone",
+    "empty": "Nothing sent yet",
+    "emptyHint": "Receipts you send show up here with their status.",
+    "retry": "Try again",
+    "discard": "Discard",
+    "needsTruck": "The office needs to know which truck this was for."
+  },
+  "whichTruck": {
+    "title": "Which truck?",
+    "subtitle": "These receipts had no unit number. Tap the truck it was for.",
+    "empty": "All receipts have a truck",
+    "emptyHint": "Nothing to answer right now."
   }
 }

@@ -65,6 +65,12 @@ export function documentsRouter(prisma: PrismaClient, storage: Storage, env: Env
       if (files.length === 0) throw badRequest("No files received. Send one or more files in the `files` field.");
 
       const channel = req.header("x-channel") === "MOBILE" ? "MOBILE" : "WEB";
+      // Optional truck hint from the uploader (capture app "which truck?"); must be one of the company's vehicles.
+      const vehicleHint = typeof req.body?.vehicleId === "string" && req.body.vehicleId ? String(req.body.vehicleId) : null;
+      if (vehicleHint) {
+        const v = await db.vehicle.findUnique({ where: { id: vehicleHint }, select: { id: true } });
+        if (!v) throw badRequest("vehicleId is not a vehicle of this company");
+      }
       const batch = await db.batch.create({ data: { createdBy: userId, channel, fileCount: files.length } as never });
 
       const uploaded: UploadedFileResult[] = [];
@@ -99,6 +105,7 @@ export function documentsRouter(prisma: PrismaClient, storage: Storage, env: Env
             receivedAt,
             retentionUntil: retentionUntil(receivedAt, env.RETENTION_YEARS),
             isExactDuplicateOf: earlier?.id ?? null,
+            vehicleId: vehicleHint,
           } as never,
         });
 

@@ -199,7 +199,10 @@
     "addMember": "Ku dar qof",
     "memberHint": "Waxay u baahan yihiin akoon Sahid Freight oo email-kan leh marka hore.",
     "memberAdded": "Waa lagu daray kooxda.",
-    "languageHint": "Waxay khuseysaa shaashadahaaga iyo ogeysiisyadaada."
+    "languageHint": "Waxay khuseysaa shaashadahaaga iyo ogeysiisyadaada.",
+    "system": "Otomaatig",
+    "about": "App-kan",
+    "pendingUploads": "{count} soo gelin ayaa taleefankan ku sugaya"
   },
   "auth": {
     "signInRequired": "Fadlan gal si aad u sii wadato.",
@@ -381,5 +384,56 @@
     "lookup": "Raadin",
     "none": "Lama go'aamin",
     "disagree": "Akhrisyadu way kala duwan yihiin"
+  },
+  "mobile": {
+    "capture": "Sawir",
+    "submissions": "La diray",
+    "whichTruck": "Gaarikee?"
+  },
+  "capture": {
+    "title": "Dir rasiid",
+    "subtitle": "Shidaal, DEF, miisaan, baarkin: sawir oo dir. Inta kale annagaa qabanayna.",
+    "whichTruck": "Gaariga:",
+    "noTrucks": "Weli gaari lama dejin. Weydii xafiiska.",
+    "permissionTitle": "Ogolaanshaha kaamirada",
+    "permissionBody": "Sahid Freight wuxuu u baahan yahay kaamirada si uu rasiidhada u sawiro. Sawirradu waxay ku sii jiraan taleefankaaga ilaa la diro.",
+    "allowCamera": "Ogolow kaamirada",
+    "chooseFromPhotos": "Ka dooro sawirrada",
+    "takePhoto": "Sawir qaad",
+    "review": "Dib u eeg sawirrada",
+    "hint": "Rasiid kasta sawir qaad",
+    "reviewAndSend": "Dib u eeg {count} sawir",
+    "send": "Dir {count} sawir",
+    "takeMore": "Qaad kuwo kale",
+    "noShots": "Weli sawir ma jiro.",
+    "sharp": "Cad",
+    "borderline": "Hubi diiradda",
+    "blurryShort": "Mugdi",
+    "blurry": "Kaasi wuxuu u muuqdaa mugdi. Xasili gacanta, buuxi sawirka, oo mar kale isku day.",
+    "blurryWarning": "{count} sawir ayaa mugdi u muuqda. Xafiisku wuxuu kaa codsan karaa inaad mar kale qaaddo.",
+    "queued": "{count} sawir ayaa safka ku jira. Waxay soo geli doonaan marka aad shabakad hesho.",
+    "remove": "Ka saar sawirka"
+  },
+  "queueStatus": {
+    "pending": "Sugaya shabakad",
+    "uploading": "Waa la dirayaa",
+    "done": "La diray",
+    "rejected": "Lama aqbalin"
+  },
+  "submissions": {
+    "title": "La diray",
+    "subtitle": "Wax kasta oo aad dirtay iyo halka ay marayaan.",
+    "onThisPhone": "Taleefankan ku jira",
+    "empty": "Weli waxba lama dirin",
+    "emptyHint": "Rasiidhada aad dirto halkan ayay ka muuqdaan iyo xaaladdooda.",
+    "retry": "Mar kale isku day",
+    "discard": "Tuur",
+    "needsTruck": "Xafiisku wuxuu u baahan yahay inuu ogaado gaarigii rasiidkan."
+  },
+  "whichTruck": {
+    "title": "Gaarikee?",
+    "subtitle": "Rasiidhadan lambar gaari ma lahayn. Taabo gaariga ay ahaayeen.",
+    "empty": "Rasiid kastaa gaari buu leeyahay",
+    "emptyHint": "Hadda waxba lama jawaabayo."
   }
 }

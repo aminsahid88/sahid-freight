@@ -289,7 +289,11 @@ export function makeReconcile(deps: ExtractionDeps): Processor {
       const rec = normA ? reconcile(normA, normB) : reconcile(normB!, null);
       const final = rec.final;
 
-      const vehicle = final.unitNumber ? vehicles.find((v) => v.unitNumber.toLowerCase() === final.unitNumber!.toLowerCase()) ?? null : null;
+      // Unit attribution order (brief): printed on the receipt, else the uploader's "which truck?" answer.
+      const printedVehicle = final.unitNumber ? vehicles.find((v) => v.unitNumber.toLowerCase() === final.unitNumber!.toLowerCase()) ?? null : null;
+      const hintedVehicle = !printedVehicle && doc.vehicleId ? vehicles.find((v) => v.id === doc.vehicleId) ?? null : null;
+      const vehicle = printedVehicle ?? hintedVehicle;
+      const unitSource: RuleTransaction["unitSource"] = printedVehicle || final.unitNumber ? "receipt" : hintedVehicle ? "user" : null;
       const period = await periodFor(prisma, company.id, final.date);
       const similar = await prisma.transaction.findMany({
         where: { companyId: company.id, vendor: final.vendor ?? undefined, date: final.date ? new Date(`${final.date}T00:00:00Z`) : undefined, NOT: existing ? { id: existing.id } : undefined },
@@ -314,7 +318,7 @@ export function makeReconcile(deps: ExtractionDeps): Processor {
         mileage: null,
       };
       const passValues = normA && normB ? { a: contractView(normA), b: contractView(normB) } : null;
-      const ruleTx = toRuleTransaction(final, "receipt", passValues);
+      const ruleTx = toRuleTransaction({ ...final, unitNumber: final.unitNumber ?? hintedVehicle?.unitNumber ?? null }, unitSource, passValues);
       const issues = runRules(ruleTx, ctx);
       const status = evaluateStatus(issues, ruleTx);
       const hasFuel = final.lines.some((l) => l.category === "MOTOR_FUEL" || l.category === "REEFER_FUEL" || l.category === "DEF");

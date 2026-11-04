@@ -16,7 +16,7 @@ import { parseIsoDate, toIsoDate } from "@tbo/core";
 import { audit } from "../audit/log";
 import { protect } from "../middleware/auth.middleware";
 import type { TenantClient } from "../tenant/client";
-import { badRequest, notFound, parse, wrap } from "./errors";
+import { badRequest, forbidden, notFound, parse, wrap } from "./errors";
 import { type CompanyRequest, ctx, requireCompany } from "./middleware";
 
 export const EDITABLE_FIELDS = [
@@ -155,12 +155,18 @@ export function transactionsRouter(prisma: PrismaClient): Router {
 
   r.patch(
     "/:transactionId/fields",
-    requireCompany(prisma, "OWNER", "STAFF", "REVIEWER", "PARTNER", "ADMIN"),
+    requireCompany(prisma, "OWNER", "STAFF", "REVIEWER", "PARTNER", "ADMIN", "DRIVER"),
     wrap(async (req: CompanyRequest, res) => {
-      const { db, userId } = ctx(req);
+      const { db, userId, company } = ctx(req);
       const body = parse(editSchema, req.body, "field edit");
       const current = await db.transaction.findUnique({ where: { id: req.params.transactionId as string } });
       if (!current) throw notFound("Transaction");
+      // Drivers may only answer "which truck?" for receipts they uploaded themselves.
+      if (company.role === "DRIVER") {
+        if (body.field !== "vehicleId") throw forbidden("Drivers can only set the truck for their own receipts");
+        const region = current.regionId ? await db.documentRegion.findFirst({ where: { id: current.regionId }, select: { document: { select: { uploadedById: true } } } }) : null;
+        if (!region || region.document.uploadedById !== userId) throw notFound("Transaction");
+      }
 
       const newValue = parse(FIELD_VALUE_SCHEMAS[body.field], body.newValue, `value for ${body.field}`);
       if (body.field === "state") {

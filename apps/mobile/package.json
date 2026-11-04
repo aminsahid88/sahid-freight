@@ -1,6 +1,6 @@
 {
-  "name": "sahid-freight",
-  "version": "1.0.0",
+  "name": "mobile",
+  "version": "2.0.0",
   "main": "index.ts",
   "private": true,
   "scripts": {
@@ -8,7 +8,9 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "build:ios": "eas build --platform ios",
-    "build:android": "eas build --platform android"
+    "build:android": "eas build --platform android",
+    "test": "node --import tsx --test $(find src -name '*.test.ts')",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",

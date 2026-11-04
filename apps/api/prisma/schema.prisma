@@ -858,6 +858,7 @@ model Document {
   sha256             String
   status             DocumentStatus   @default(RECEIVED)
   isExactDuplicateOf String? // first document in the company with the same sha256
+  vehicleId          String? // truck the uploader said this belongs to (capture app "which truck?"); a hint, not the extracted unit
   qualityScore       Decimal?         @db.Decimal(4, 3)
   receivedAt         DateTime         @default(now())
   retentionUntil     DateTime
