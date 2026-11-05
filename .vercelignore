@@ -1,12 +1,20 @@
+# Keep every workspace package.json so npm's workspace tree matches the lockfile; drop everything the web build does not need.
 node_modules
 .next
 dist
 .env*
-apps/api
-apps/mobile
+.storage
 docs
-packages/extraction/golden
 .github
+*.md
 legacy
 **/legacy
-*.md
+apps/api/src
+apps/api/prisma
+apps/api/scripts
+apps/mobile/src
+apps/mobile/assets
+apps/mobile/android
+apps/mobile/ios
+packages/extraction/golden
+packages/extraction/src
