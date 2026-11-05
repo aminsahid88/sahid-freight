@@ -1,51 +1,44 @@
-# Deployment (staging first; production untouched until Amin approves)
+# Deployment
 
-Branch map: `backoffice` → staging. `newmain` → production (marketplace, tagged `marketplace-final`).
-Nothing is pushed to `newmain` or deployed to production without Amin's explicit approval.
+Branch map: `backoffice` → the live site (Amin's decision on 2026-11-05: the marketplace is retired, the back
+office goes live for the demo). `newmain` still holds the marketplace, tagged `marketplace-final`.
 
-## What changed for deployment
-- The API is now bundled with esbuild (`apps/api/dist/index.js`, `dist/worker.js`) so workspace packages
-  (`packages/core`, `packages/i18n`) ship inside the bundle. `prisma generate` must still run before the build.
-- A second long-running process, the worker (`node dist/worker.js`), runs the Postgres-backed job queue.
+## Shape (2026-11-05)
+- One Railway service runs the API **and** the job queue (`WORKER_IN_PROCESS=true`). Split the worker into its
+  own service (`node dist/worker.js`, no public domain) when load grows.
+- The build runs from the **monorepo root** (`railway.json` at the root): workspace packages ship inside the
+  esbuild bundle. Deploy with `railway up` from the repository root, not from `apps/api`.
+- The API is bundled (`apps/api/dist/index.js`, `dist/worker.js`); `prisma generate` runs before the build and
+  `prisma migrate deploy` runs at start. Every migration since the pivot is additive.
 - The API runs a preflight at boot and refuses to start in production when a required credential is missing.
-- New env vars (see `docs/kit-env.example` and `apps/api/src/config/env.ts`):
-  `BACKOFFICE_S3_BUCKET`, `BACKOFFICE_S3_REGION`, `S3_ENDPOINT` (R2/MinIO only), `SIGNED_URL_TTL_SECONDS`,
-  `ANTHROPIC_API_KEY`, `EXTRACTION_MODEL_A`, `EXTRACTION_MODEL_B`, `RETENTION_YEARS`, `MPG_BAND_MIN/MAX`,
-  `MAX_UPLOAD_MB`, `MAX_FILES_PER_BATCH`, `WORKER_POLL_MS`, `LEGACY_MARKETPLACE`.
 
-## Railway (API + worker + Postgres) — staging environment
-Railway login is interactive (`railway login`), so these steps need Amin at the keyboard.
+## Railway (API + queue + Postgres)
+Railway login is interactive (`railway login`, from any folder); the CLI token expires, so log in first.
 
-1. In the existing Railway project, create an environment `staging` (duplicate of production's variables,
-   but pointing at a **new** Postgres service; never reuse the production database).
-2. Service `api` (staging): root directory = repository root (the monorepo), because the build needs
-   `packages/*`. Build command:
-   `npm ci && npx prisma generate --schema=apps/api/prisma/schema.prisma && npm run build -w apps/api`
-   Start command: `cd apps/api && npx prisma migrate deploy && node dist/index.js`
-   Branch: `backoffice`.
-3. Service `worker` (staging): same root and build; start command `cd apps/api && node dist/worker.js`.
-   No public domain.
-4. Variables for both: everything from `apps/api/.env` plus the new ones above. Set
-   `ALLOWED_ORIGINS` to the Vercel preview URL(s). Set `BACKOFFICE_S3_BUCKET` to a **U.S.-region** bucket
-   (open decision in `docs/12-decisions-log.md`); until then the API falls back to `AWS_S3_BUCKET`.
-5. Verify: `GET /health` is 200 and the boot log shows the preflight table with no FAIL rows.
+1. Variables on the `api` service (everything the marketplace had, plus):
+   - `ALLOWED_ORIGINS=https://sahidfreight.com,https://www.sahidfreight.com` (preflight fails when empty)
+   - `JWT_SECRET` / `JWT_REFRESH_SECRET`: at least 32 random characters each, different from each other
+   - `WORKER_IN_PROCESS=true`
+   - `ANTHROPIC_API_KEY` (set by Amin in the Railway dashboard; never in chat or git) — without it receipts stay
+     in PROCESSING and only the deterministic features work
+   - optional: `EXTRACTION_MODEL_A` / `EXTRACTION_MODEL_B` (defaults claude-opus-5-5 / claude-sonnet-5-5),
+     `AI_MONTHLY_BUDGET_USD`, `BACKOFFICE_S3_BUCKET` (falls back to `AWS_S3_BUCKET`)
+2. From the repository root: `railway up --service <api service> --detach`, then watch the deploy log for the
+   preflight table (no FAIL rows) and `API running on port`.
+3. `GET https://<api>/health` → 200.
 
-## Vercel (web) — preview deployment
-1. The existing Vercel project builds `apps/web` from `vercel.json` at the root. Vercel builds every branch as
-   a preview automatically; the `backoffice` branch preview is the staging web.
-2. Set `NEXT_PUBLIC_API_URL` for the Preview environment to the Railway staging API URL.
-3. Do **not** promote to production or alias `sahidfreight.com` until the landing copy is approved.
+## Vercel (web)
+1. The root is linked to project `sahid-freight` (www.sahidfreight.com); root `vercel.json` builds `apps/web`
+   from the workspace and `.vercelignore` keeps the upload small.
+2. Preview: `vercel --yes --archive=tgz`. Production: `vercel --prod --yes --archive=tgz`.
+3. `NEXT_PUBLIC_API_URL` is set on the project for every environment (the Railway API URL).
 
-## Gate check on staging (Phase 0)
-1. Sign in with a staging-only account, create a company (or seed Demo Freight LLC against the staging DB
-   with `DATABASE_URL=<staging> npx ts-node prisma/seed.backoffice.ts` — the seed refuses non-localhost by
-   design, so run it from Railway's shell or temporarily relax the guard only there).
-2. Upload `packages/extraction/golden/g001.png` from the Inbox.
-3. Confirm: the row appears with its SHA-256; the detail drawer opens the original through a signed URL;
-   `GET /companies/:id/audit` shows `upload` and `view_document` entries; the worker log shows
-   `preprocess -> DONE` and the status flips to Processed.
+## Demo data on the live database
+`cd apps/api && SEED_ALLOW_REMOTE=yes npx dotenv -e .env -- npx ts-node prisma/seed.backoffice.ts`
+seeds the fictional Demo Freight LLC (3 trucks, owner/office/reviewer/driver accounts, Q4 2026 period) and
+upserts nothing else. Run it after the first deploy has applied the migrations.
 
-## Not done yet (needs credentials)
-- Creating the Railway staging environment and services (interactive login).
-- U.S. S3 bucket.
-- CI secrets: none needed; CI uses a Postgres service container.
+## Known gaps for the live demo
+- The official IFTA rate table for 2026Q4 must be loaded by a platform admin through
+  `POST /admin/ifta-rates` (iftach.org is unreachable from the dev machine). Until then the worksheet shows I001.
+- No worker/API split, no U.S.-region S3 bucket yet (open decision), PDF/ZIP reports not built.
