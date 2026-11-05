@@ -52,7 +52,12 @@ export const register = async (req: Request, res: Response) => {
     const phone = str(body.phone) || null;
     const companyName = str(body.companyName ?? body.company) || null;
     const iftaBaseState = (str(body.iftaBaseState ?? body.baseState ?? body.state) || "").toUpperCase() || null;
-    const { country, city } = body;
+    const COUNTRIES = ["ETHIOPIA", "SOMALIA", "DJIBOUTI", "USA"] as const;
+    const countryIn = str(body.country).toUpperCase();
+    const country = (COUNTRIES as readonly string[]).includes(countryIn)
+      ? (countryIn as (typeof COUNTRIES)[number])
+      : undefined;
+    const city = str(body.city);
 
     // Role defaults to TRUCK_OWNER (carrier signup). ADMIN can never be self-assigned.
     const SELF_SERVE_ROLES = ["CARGO_SENDER", "TRUCK_OWNER", "DRIVER", "BROKER"] as const;

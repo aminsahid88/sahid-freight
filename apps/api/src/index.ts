@@ -21,6 +21,7 @@ import driverRoutes from "./routes/driver.routes";
 import bidRoutes from "./routes/bid.routes";
 import messageRoutes from "./routes/message.routes";
 import paymentRoutes from "./routes/payment.routes";
+import companyRoutes from "./routes/company.routes";
 import prisma from "./utils/prisma";
 import { setIO } from "./utils/socket";
 
@@ -116,6 +117,7 @@ app.use("/drivers", driverRoutes);
 app.use("/bids", bidRoutes);
 app.use("/messages", messageRoutes);
 app.use("/payments", paymentRoutes);
+app.use("/companies", companyRoutes);
 
 app.get("/", (req, res) => {
   res.json({ status: "ok", message: "Sahid Freight API is running", version: "1.0.0" });
