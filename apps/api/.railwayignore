@@ -1,0 +1,7 @@
+# The service root is apps/api. dist/ is built locally with esbuild (shared packages inlined) and uploaded.
+node_modules
+.env
+.env.*
+.storage
+legacy
+src/**/*.test.ts
