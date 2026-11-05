@@ -35,6 +35,7 @@ const issueTokens = async (userId: string, role: string) => {
 const userPayload = (user: any) => ({
   id: user.id, fullName: user.fullName, phone: user.phone, email: user.email,
   role: user.role, status: user.status, country: user.country, city: user.city,
+  companyName: user.companyName, iftaBaseState: user.iftaBaseState,
   isVerified: user.isVerified, phoneVerified: user.phoneVerified,
   averageRating: user.averageRating, totalRatings: user.totalRatings,
 });
@@ -42,10 +43,35 @@ const userPayload = (user: any) => ({
 // ── REGISTER (server-side email-OTP verified) ────────────────────────────
 export const register = async (req: Request, res: Response) => {
   try {
-    const { verificationToken, phone, fullName, password, role, country, city } = req.body;
+    const body = req.body || {};
+    const str = (v: unknown) => (typeof v === "string" ? v.trim() : "");
+    const verificationToken = str(body.verificationToken);
+    const fullName = str(body.fullName);
+    const password = typeof body.password === "string" ? body.password : "";
+    // Phone is optional — an empty string must be stored as NULL (phone is unique).
+    const phone = str(body.phone) || null;
+    const companyName = str(body.companyName ?? body.company) || null;
+    const iftaBaseState = (str(body.iftaBaseState ?? body.baseState ?? body.state) || "").toUpperCase() || null;
+    const { country, city } = body;
 
-    if (!verificationToken || !phone || !fullName || !password || !role) {
-      return res.status(400).json({ message: "verificationToken, phone, fullName, password and role are required" });
+    // Role defaults to TRUCK_OWNER (carrier signup). ADMIN can never be self-assigned.
+    const SELF_SERVE_ROLES = ["CARGO_SENDER", "TRUCK_OWNER", "DRIVER", "BROKER"] as const;
+    const role = (str(body.role).toUpperCase() || "TRUCK_OWNER") as (typeof SELF_SERVE_ROLES)[number];
+
+    const missing: string[] = [];
+    if (!fullName) missing.push("your name");
+    if (!password) missing.push("a password");
+    if (missing.length) {
+      return res.status(400).json({ message: `Please enter ${missing.join(" and ")}.` });
+    }
+    if (!verificationToken) {
+      return res.status(400).json({ message: "Your email verification is missing. Please go back and verify your email again." });
+    }
+    if (password.length < 8) {
+      return res.status(400).json({ message: "Password must be at least 8 characters." });
+    }
+    if (!SELF_SERVE_ROLES.includes(role)) {
+      return res.status(400).json({ message: "Invalid account type." });
     }
 
     // Verify the email-OTP verification token (issued by /auth/verify-otp).
@@ -66,7 +92,7 @@ export const register = async (req: Request, res: Response) => {
     }
 
     // Dedupe on both unique fields — phone (always) and email (now required + load-bearing)
-    const existingByPhone = await prisma.user.findUnique({ where: { phone } });
+    const existingByPhone = phone ? await prisma.user.findUnique({ where: { phone } }) : null;
     if (existingByPhone) return res.status(400).json({ message: "Phone number already registered. Please log in instead." });
     const existingByEmail = await prisma.user.findUnique({ where: { email } });
     if (existingByEmail) return res.status(400).json({ message: "This email is already registered. Please log in instead." });
@@ -75,6 +101,7 @@ export const register = async (req: Request, res: Response) => {
     const user = await prisma.user.create({
       data: {
         fullName, phone, email, passwordHash, role,
+        companyName, iftaBaseState,
         country: country || "ETHIOPIA",
         city: city || "",
         phoneVerified: false,        // phone is now a claimed-but-unverified field
@@ -96,7 +123,7 @@ export const register = async (req: Request, res: Response) => {
     // Best-effort driver-invite auto-link. If a non-expired PENDING invite exists
     // for this phone, link the new driver to the inviting owner's fleet.
     // MUST NOT throw — registration succeeds even if linking fails.
-    if (role === "DRIVER") {
+    if (role === "DRIVER" && phone) {
       try {
         const invite = await prisma.driverInvite.findFirst({
           where: {

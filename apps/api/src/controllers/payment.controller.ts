@@ -79,10 +79,10 @@ export const initiatePayment = async (req: AuthRequest, res: Response) => {
       const chapaRes = await initializeChapaPayment({
         amount: booking.agreedPrice,
         currency: booking.currency === 'ETB' ? 'ETB' : 'ETB',
-        email: booking.sender.email || `${booking.sender.phone.replace('+', '')}@sahidfreight.com`,
+        email: booking.sender.email || `${(booking.sender.phone || booking.sender.id).replace('+', '')}@sahidfreight.com`,
         firstName: senderName[0] || 'User',
         lastName: senderName[1] || 'Freight',
-        phone: booking.sender.phone,
+        phone: booking.sender.phone || '',
         txRef,
         callbackUrl: `${API_BASE}/payments/webhook/chapa`,
         returnUrl: `${API_BASE}/payments/return`,
