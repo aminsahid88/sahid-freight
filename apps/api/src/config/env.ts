@@ -72,6 +72,11 @@ export const envSchema = z.object({
   MAX_UPLOAD_MB: z.coerce.number().int().positive().max(100).default(25),
   MAX_FILES_PER_BATCH: z.coerce.number().int().positive().max(100).default(20),
   WORKER_POLL_MS: z.coerce.number().int().min(100).default(2000),
+  /** "true" runs the job-queue loop inside the API process (one Railway service). Default off: run `node dist/worker.js` separately. */
+  WORKER_IN_PROCESS: z
+    .string()
+    .default("false")
+    .transform((v) => v.trim().toLowerCase() === "true"),
 
   // ── Legacy marketplace (archived behind a flag; see docs/12-decisions-log.md) ──
   /** "true" keeps the Sahid Freight loads/bookings/payments routes mounted. Defaults on until Amin approves switching it off. */

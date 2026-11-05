@@ -15,6 +15,7 @@ import { mountBackoffice } from "./backoffice/app";
 import { errorHandler } from "./backoffice/errors";
 import { allowedOrigins, getEnv } from "./config/env";
 import { preflightOrExit } from "./preflight";
+import { startWorker } from "./jobs/worker-core";
 
 // Fails at boot with a readable list of problems instead of `undefined` deep in a request.
 const env = getEnv();
@@ -77,6 +78,7 @@ preflightOrExit({ env, prisma, storage }).then(() => {
   httpServer.listen(Number(env.PORT), "0.0.0.0", () => {
     console.log(`API running on port ${env.PORT} (${env.NODE_ENV})`);
   });
+  if (env.WORKER_IN_PROCESS) startWorker(prisma, env, storage);
 });
 
 export default app;

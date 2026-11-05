@@ -8,8 +8,13 @@ import bcrypt from "bcryptjs";
 
 const DB_URL = process.env.DATABASE_URL || "";
 if (!/(localhost|127\.0\.0\.1)/.test(DB_URL)) {
-  console.error("Refusing to seed: DATABASE_URL is not localhost. Use `npm run db:seed:backoffice:local`.");
-  process.exit(1);
+  // The seed only upserts the fictional Demo Freight LLC; it never touches other companies.
+  // Seeding a remote database is allowed only with an explicit, loud opt-in (used for the live demo).
+  if (process.env.SEED_ALLOW_REMOTE !== "yes") {
+    console.error("Refusing to seed: DATABASE_URL is not localhost. Use `npm run db:seed:backoffice:local`, or set SEED_ALLOW_REMOTE=yes to seed Demo Freight LLC on a remote database.");
+    process.exit(1);
+  }
+  console.warn(`SEED_ALLOW_REMOTE=yes: seeding Demo Freight LLC on ${DB_URL.replace(/:[^:@]+@/, ":***@")}`);
 }
 
 const prisma = new PrismaClient();
