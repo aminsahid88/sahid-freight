@@ -1,0 +1,4 @@
+# dist/ holds the esbuild bundle that `railway up` uploads (the service root is apps/api and the
+# shared packages are inlined). The root .gitignore excludes dist/; re-include it here so the Railway
+# CLI uploads it. Never `git add` it: it is a build output.
+!dist/
