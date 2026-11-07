@@ -128,7 +128,9 @@ export interface TransactionRow {
     passA?: { model: string; promptVersion: string } | null;
     passB?: { model: string; promptVersion: string } | null;
   };
-  fieldEdits?: Array<{ id: string; field: string; oldValue: string | null; newValue: string | null; reason: string; createdAt: string; userId?: string; user?: { id: string; fullName: string } }>;
+  fieldEdits?: Array<{ id: string; entity?: string; entityId?: string; field: string; oldValue: string | null; newValue: string | null; reason: string; createdAt: string; userId?: string; user?: { id: string; fullName: string } }>;
+  review?: TransactionReview;
+  fieldBoxes?: Record<string, { bbox: number[] | unknown; page: number; pass: string }>;
 }
 
 export interface FieldProvenance {
@@ -306,6 +308,68 @@ export interface MileageChoices {
   mapping?: MileageMapping;
 }
 
+// ── Review queue ──
+export interface ReviewQueueItem {
+  id: string;
+  company: { id: string; legalName: string; dba: string | null };
+  role: CompanyRole;
+  status: TxStatus;
+  date: string | null;
+  vendor: string | null;
+  state: string | null;
+  receiptTotal: string | null;
+  currency: string | null;
+  unitNumber: string | null;
+  document: { id: string; filename: string; receivedAt: string } | null;
+  receivedAt: string;
+  deadline: string;
+  overdue: boolean;
+  worstSeverity: Severity;
+  openIssues: Array<{ code: string; severity: Severity }>;
+  claimedBy: string | null;
+  claimedAt: string | null;
+  claimedByMe: boolean;
+  claimedByName: string | null;
+}
+
+export interface ReviewQueue {
+  companies: Array<{ id: string; legalName: string; dba: string | null; role: CompanyRole }>;
+  items: ReviewQueueItem[];
+  total: number;
+  slaBusinessDays: number;
+}
+
+export type FieldAction = "accept_a" | "accept_b" | "enter" | "unreadable";
+
+export interface FieldActionResult {
+  fieldEditId: string;
+  oldValue: string | null;
+  newValue: string | null;
+  approvalId: string | null;
+  status: TxStatus;
+}
+
+export interface ApprovalRow {
+  id: string;
+  status: "PENDING" | "APPROVED" | "REJECTED";
+  target: string;
+  targetId: string;
+  payload: { transactionId?: string; field?: string; oldValue?: string | null; newValue?: string | null } | null;
+  user: { id: string; fullName: string };
+  createdAt: string;
+  decidedAt?: string | null;
+  note?: string | null;
+  company?: { id: string; legalName: string; dba: string | null };
+}
+
+export interface TransactionReview {
+  claimedBy: string | null;
+  claimedAt: string | null;
+  claimedByName: string | null;
+  seconds: number;
+  pendingApprovals: Array<{ id: string; payload: ApprovalRow["payload"]; userId: string; createdAt: string }>;
+}
+
 export interface MatchSummary {
   receiptsConsidered: number;
   cardRowsConsidered: number;
@@ -445,6 +509,35 @@ export const backoffice = {
     return data.issue;
   },
 
+  // ── Review queue ──
+  async reviewQueue(params: { companyId?: string; mine?: boolean } = {}) {
+    const { data } = await api.get<ReviewQueue>("/review/queue", { params: { ...(params.companyId ? { companyId: params.companyId } : {}), ...(params.mine ? { mine: "true" } : {}) } });
+    return data;
+  },
+  async claim(companyId: string, id: string) {
+    const { data } = await api.post<{ claimedBy: string; claimedAt: string; sessionId: string; startedAt: string }>(`${c(companyId)}/transactions/${id}/claim`);
+    return data;
+  },
+  async release(companyId: string, id: string) {
+    const { data } = await api.post<{ seconds: number }>(`${c(companyId)}/transactions/${id}/release`);
+    return data;
+  },
+  async fieldAction(companyId: string, id: string, input: { field: string; action: FieldAction; value?: string | null; reason?: string | null }) {
+    const { data } = await api.post<{ transaction: TransactionRow; result: FieldActionResult }>(`${c(companyId)}/transactions/${id}/field-action`, input);
+    return data;
+  },
+  async approvals(companyId: string, status: "PENDING" | "APPROVED" | "REJECTED" = "PENDING") {
+    const { data } = await api.get<{ approvals: ApprovalRow[] }>(`${c(companyId)}/approvals`, { params: { status } });
+    return data.approvals;
+  },
+  async allPendingApprovals() {
+    const { data } = await api.get<{ approvals: ApprovalRow[] }>("/review/approvals");
+    return data.approvals;
+  },
+  async decideApproval(companyId: string, id: string, decision: "approve" | "reject", note?: string) {
+    const { data } = await api.post<{ approval: ApprovalRow; status: TxStatus | null }>(`${c(companyId)}/approvals/${id}/${decision}`, note ? { note } : {});
+    return data;
+  },
   // ── Fuel & IFTA ──
   async periodSummary(companyId: string, periodId: string) {
     const { data } = await api.get<PeriodSummary>(`${c(companyId)}/periods/${periodId}/summary`);

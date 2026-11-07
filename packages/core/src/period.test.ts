@@ -55,3 +55,11 @@ test("isInPeriod is inclusive on both ends", () => {
   assert.equal(isInPeriod("2026-12-31", "2026-10-01", "2026-12-31"), true);
   assert.equal(isInPeriod("2027-01-01", "2026-10-01", "2026-12-31"), false);
 });
+
+test("addBusinessDays skips weekends", async () => {
+  const { addBusinessDays } = await import("./period");
+  assert.equal(addBusinessDays("2026-11-06", 1).toISOString().slice(0, 10), "2026-11-09"); // Friday → Monday
+  assert.equal(addBusinessDays("2026-11-07", 1).toISOString().slice(0, 10), "2026-11-09"); // Saturday → Monday
+  assert.equal(addBusinessDays("2026-11-04", 2).toISOString().slice(0, 10), "2026-11-06");
+  assert.equal(addBusinessDays(new Date("2026-11-06T15:30:00Z"), 1).toISOString(), "2026-11-09T15:30:00.000Z");
+});

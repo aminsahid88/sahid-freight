@@ -98,3 +98,15 @@ export function isInPeriod(value: Date | string, start: Date | string, end: Date
   const t = asDate(value).getTime();
   return t >= asDate(start).getTime() && t <= asDate(end).getTime();
 }
+
+/** Add `n` U.S. business days (Mon–Fri; holidays not modelled) to a date, UTC. The review SLA is 1 business day. */
+export function addBusinessDays(from: Date | string, n: number): Date {
+  const d = new Date(typeof from === "string" ? parseIsoDate(from) : from.getTime());
+  let left = n;
+  while (left > 0) {
+    d.setUTCDate(d.getUTCDate() + 1);
+    const day = d.getUTCDay();
+    if (day !== 0 && day !== 6) left -= 1;
+  }
+  return d;
+}

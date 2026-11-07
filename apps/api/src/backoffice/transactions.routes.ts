@@ -94,19 +94,37 @@ function stringify(value: unknown): string | null {
   return String(value);
 }
 
-async function loadDetail(db: TenantClient, id: string) {
+export async function loadDetail(db: TenantClient, id: string, prisma?: PrismaClient) {
   const row = await db.transaction.findUnique({ where: { id }, include: detailInclude });
   if (!row) return null;
   const fieldEdits = await db.fieldEdit.findMany({
-    where: { entity: "Transaction", entityId: id },
+    where: { OR: [{ entity: "Transaction", entityId: id }, { entity: "TransactionLine", entityId: { in: row.lines.map((l) => l.id) } }] },
     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     include: { user: { select: { id: true, fullName: true } } },
   });
+  // Review state: who holds it, how long people have spent on it, corrections awaiting the owner.
+  const sessions = await db.reviewSession.findMany({ where: { transactionId: id }, select: { startedAt: true, endedAt: true, seconds: true } });
+  const now = Date.now();
+  const reviewSeconds = sessions.reduce((acc, s) => acc + (s.seconds ?? Math.max(0, Math.round((now - s.startedAt.getTime()) / 1000))), 0);
+  const pendingApprovals = await db.approval.findMany({ where: { status: "PENDING", target: "correction", payload: { path: ["transactionId"], equals: id } }, select: { id: true, payload: true, userId: true, createdAt: true } });
+  const claimedByName = row.reviewClaimedBy && prisma ? (await prisma.user.findUnique({ where: { id: row.reviewClaimedBy }, select: { fullName: true } }))?.fullName ?? null : null;
+  // Where each field sits on the source image, from the latest finished pass that reported a box (pass A preferred).
+  const fieldBoxes: Record<string, { bbox: unknown; page: number; pass: string }> = {};
+  if (row.regionId) {
+    const fields = await db.extractedField.findMany({
+      where: { run: { regionId: row.regionId, status: "DONE" } },
+      select: { name: true, bbox: true, run: { select: { pass: true, region: { select: { page: true } } } } },
+      orderBy: [{ run: { pass: "asc" } }, { id: "asc" }],
+    });
+    for (const f of fields) if (f.bbox && !fieldBoxes[f.name]) fieldBoxes[f.name] = { bbox: f.bbox, page: f.run.region.page, pass: f.run.pass };
+  }
   const { region, ...rest } = row;
   return {
     ...rest,
     document: region ? { id: region.document.id, filename: region.document.filename, mimeType: region.document.mimeType, status: region.document.status, page: region.page, bbox: region.bbox } : null,
     fieldEdits,
+    review: { claimedBy: row.reviewClaimedBy, claimedAt: row.reviewClaimedAt, claimedByName, seconds: reviewSeconds, pendingApprovals },
+    fieldBoxes,
   };
 }
 
@@ -147,7 +165,7 @@ export function transactionsRouter(prisma: PrismaClient): Router {
     requireCompany(prisma),
     wrap(async (req: CompanyRequest, res) => {
       const { db } = ctx(req);
-      const transaction = await loadDetail(db, req.params.transactionId as string);
+      const transaction = await loadDetail(db, req.params.transactionId as string, prisma);
       if (!transaction) throw notFound("Transaction");
       res.json({ transaction });
     }),
@@ -198,7 +216,7 @@ export function transactionsRouter(prisma: PrismaClient): Router {
         meta: { field: body.field, fieldEditId: fieldEdit.id, oldValue, newValue },
         ip: req.ip,
       });
-      const transaction = await loadDetail(db, current.id);
+      const transaction = await loadDetail(db, current.id, prisma);
       res.json({ transaction, fieldEdit });
     }),
   );

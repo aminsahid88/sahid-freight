@@ -30,6 +30,7 @@ Every rule is deterministic code with a unit test. LLMs may suggest; only rules 
 | I003 | warning | Fuel card purchase with no matching receipt. |
 | I004 | info | Receipt paid by card with no matching card row (statement may be missing). |
 | S001 | warning | Document not attributable to a vehicle. |
+| R001 | error | A reviewer corrected a material field; the owner has not approved the correction yet (system rule raised by the review API, resolved on approve/reject). |
 
 ## Status logic
 - Any open **error** → Needs Attention

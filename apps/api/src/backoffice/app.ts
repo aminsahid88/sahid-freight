@@ -17,6 +17,7 @@ import { iftaRatesRouter } from "./ifta-rates.routes";
 import { issuesRouter } from "./issues.routes";
 import { membersRouter } from "./members.routes";
 import { periodsRouter } from "./periods.routes";
+import { approvalsRouter, reviewActionsRouter, reviewRouter } from "./review.routes";
 import { reportsRouter } from "./reports.routes";
 import { transactionsRouter } from "./transactions.routes";
 
@@ -54,7 +55,9 @@ export function mountBackoffice(app: Express, deps: BackofficeDeps): { storage: 
   const storage = deps.storage ?? createStorage(deps.env);
   const companies = companiesRouter(deps.prisma);
   companies.use("/:companyId/documents", documentsRouter(deps.prisma, storage, deps.env));
+  companies.use("/:companyId/transactions", reviewActionsRouter(deps.prisma));
   companies.use("/:companyId/transactions", transactionsRouter(deps.prisma));
+  companies.use("/:companyId/approvals", approvalsRouter(deps.prisma));
   companies.use("/:companyId/issues", issuesRouter(deps.prisma));
   companies.use("/:companyId/periods", periodMatchRouter(deps.prisma));
   companies.use("/:companyId/periods", periodsRouter(deps.prisma, deps.env));
@@ -63,6 +66,7 @@ export function mountBackoffice(app: Express, deps: BackofficeDeps): { storage: 
   companies.use("/:companyId/reports", reportsRouter(deps.prisma, storage, deps.env));
   companies.use("/:companyId/members", membersRouter(deps.prisma));
   app.use("/companies", companies);
+  app.use("/review", reviewRouter(deps.prisma));
   app.use("/admin/ifta-rates", iftaRatesRouter(deps.prisma));
   app.use(filesRouter(storage, deps.env));
   return { storage };

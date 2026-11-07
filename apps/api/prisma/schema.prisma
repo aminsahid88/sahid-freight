@@ -231,6 +231,7 @@ model User {
   driverProfiles    Driver[]
   fieldEdits        FieldEdit[]
   approvals         Approval[]
+  reviewSessions    ReviewSession[]
   deletionRequests  DeletionRequest[]
 }
 
@@ -737,6 +738,7 @@ model Company {
   settings         Setting[]
   fieldEdits       FieldEdit[]
   approvals        Approval[]
+  reviewSessions   ReviewSession[]
   deletionRequests DeletionRequest[]
   jobs             Job[]
 }
@@ -946,11 +948,15 @@ model Transaction {
   provenance         Json // field -> {passA, passB, final, finalSource, bbox}
   verifiedAt         DateTime?
   verifiedBy         String?
+  /// Reviewer who holds this item (expires after REVIEW_CLAIM_MINUTES); null when free.
+  reviewClaimedBy    String?
+  reviewClaimedAt    DateTime?
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
   lines              TransactionLine[]
   issues             Issue[]
   matches            Match[]
+  reviewSessions     ReviewSession[]
 
   @@index([companyId, date])
   @@index([companyId, state])
@@ -1106,17 +1112,48 @@ model FieldEdit {
   @@index([companyId, entity, entityId])
 }
 
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model Approval {
-  id        String   @id @default(uuid())
+  id        String         @id @default(uuid())
   companyId String
-  company   Company  @relation(fields: [companyId], references: [id])
+  company   Company        @relation(fields: [companyId], references: [id])
   target    String // correction | period | report
   targetId  String
+  /// Who raised it (for a correction: the reviewer whose FieldEdit needs the owner's approval).
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
+  user      User           @relation(fields: [userId], references: [id])
+  status    ApprovalStatus @default(PENDING)
+  /// What is being approved, e.g. {transactionId, field, oldValue, newValue, fieldEditId}.
+  payload   Json?
+  decidedBy String?
+  decidedAt DateTime?
+  note      String?
+  createdAt DateTime       @default(now())
 
   @@index([companyId, target, targetId])
+  @@index([companyId, status])
+}
+
+/// Reviewer time on one transaction (cost metric): opened on claim, closed on release or decision.
+model ReviewSession {
+  id            String      @id @default(uuid())
+  companyId     String
+  company       Company     @relation(fields: [companyId], references: [id])
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+  startedAt     DateTime    @default(now())
+  endedAt       DateTime?
+  seconds       Int?
+
+  @@index([companyId, transactionId])
+  @@index([userId, endedAt])
 }
 
 model DeletionRequest {

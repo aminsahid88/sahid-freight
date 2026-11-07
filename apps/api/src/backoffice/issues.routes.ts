@@ -15,6 +15,7 @@ import { protect } from "../middleware/auth.middleware";
 import type { TenantClient } from "../tenant/client";
 import { badRequest, notFound, parse, wrap } from "./errors";
 import { type CompanyRequest, ctx, requireCompany } from "./middleware";
+import { refreshStatus } from "./review";
 
 const listQuery = z.object({
   status: z.enum(["OPEN", "RESOLVED", "ACCEPTED"]).default("OPEN"),
@@ -86,6 +87,11 @@ export function issuesRouter(prisma: PrismaClient): Router {
       include: issueInclude,
     });
     await audit(db, { action: "edit", userId, target: `Issue:${issue.id}`, meta: { issueId: issue.id, code: issue.code, status }, ip: req.ip });
+    // A person settled this flag: with no ERROR left open the transaction is verified (never for UNABLE_TO_VERIFY).
+    if (issue.transactionId) {
+      const tx = await db.transaction.findUnique({ where: { id: issue.transactionId }, select: { status: true } });
+      if (tx && tx.status === "NEEDS_ATTENTION") await refreshStatus(db, issue.transactionId, userId);
+    }
     return shape(updated as IssueRow);
   }
 
