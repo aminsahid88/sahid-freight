@@ -27,7 +27,12 @@ From `packages/extraction/golden/`:
    With `ANTHROPIC_API_KEY` set, the worker runs two independent passes and the rows flip to Processed within a minute.
 3. **Transactions** — open a receipt: every field shows pass A, pass B, the final value and its source. Correct a field
    (reason required) and show the edit history; the original is never overwritten.
-4. **Review** — open issues sorted by severity. Resolve one with a note, accept one with a reason.
+4. **Review** — the queue across companies, sorted by the one-business-day SLA. Open an item: the receipt image on
+   the left (click a field to highlight where it was read), both reads and the final value on the right. Use "1" or
+   "2" to accept a read, the pencil to type a value with a reason, the crossed eye for unreadable. Every decision
+   lands in the change history; once the last error flag is settled the record turns Verified. A reviewer's change to
+   a material field waits in the owner's Approvals tab (R001) until approved or rejected. The footer shows reviewer time.
+   Locally, `npx dotenv -e .env.local -- npx tsx scripts/seed-review-demo.ts` (in apps/api) seeds one flagged receipt.
 5. **Fuel & IFTA** — import the Comdata CSV: columns are detected, 24 rows imported, matches to receipts shown, I003 for
    card rows without a receipt. Import the ELD file: 15 rows, totals by jurisdiction and by truck. Import the wide file:
    101/102 rows replaced, nothing deleted, history shows "5 of 15 rows in use".
