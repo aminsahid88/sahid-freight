@@ -6,7 +6,7 @@ import path from "node:path";
 import { sniffBinaryMime } from "@tbo/core";
 import { goldenExpected, MATERIAL_FIELDS } from "../contract";
 import { FIXTURES, lineAmount, receiptTotal } from "./fixtures";
-import { GOLDEN_DIR } from "./generate";
+import { GOLDEN_DIR } from "./paths";
 import { buildTextPdf } from "./pdf";
 
 const manifest = JSON.parse(readFileSync(path.join(GOLDEN_DIR, "manifest.json"), "utf8")) as { fixtures: Array<{ id: string; variant: string; file: string; sha256: string }> };

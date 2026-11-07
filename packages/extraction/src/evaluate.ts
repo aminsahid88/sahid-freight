@@ -12,7 +12,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { goldenExpected, type GoldenExpected } from "./contract";
 import { type Extractor, type ExtractableMime, estimateCostUsd } from "./client";
-import { GOLDEN_DIR } from "./golden/generate";
+import { GOLDEN_DIR } from "./golden/paths";
 import { normalizeReceipt, type NormalizedReceipt } from "./normalize";
 import { type PassPrompt } from "./prompts";
 

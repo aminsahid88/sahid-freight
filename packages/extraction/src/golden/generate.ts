@@ -14,7 +14,9 @@ import sharp from "sharp";
 import { expectedFor, FIXTURES, type Fixture, receiptLines, type Variant } from "./fixtures";
 import { buildTextPdf } from "./pdf";
 
-export const GOLDEN_DIR = path.resolve(__dirname, "../../golden");
+import { GOLDEN_DIR } from "./paths";
+
+export { GOLDEN_DIR };
 
 const LINE_H = 22;
 const CHAR_W = 10.2;
@@ -101,7 +103,8 @@ export async function generateGolden(dir = GOLDEN_DIR): Promise<Array<{ id: stri
   return manifest;
 }
 
-if (require.main === module) {
+// Only when run directly (tsx src/golden/generate.ts); inside an esbuild bundle require.main === module is always true.
+if (require.main === module && /generate\.(ts|js)$/.test(process.argv[1] ?? "")) {
   generateGolden()
     .then((m) => console.log(`Golden dataset: ${m.length} fixtures written to ${GOLDEN_DIR}`))
     .catch((err) => {
