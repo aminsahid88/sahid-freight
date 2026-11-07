@@ -97,3 +97,16 @@ test("formatPreflight renders an aligned table", async () => {
   assert.match(text, /OK {4}database/);
   assert.match(text, /WARN {2}storage/);
 });
+
+test("isMountedDir: true only for a path under a listed mount point", async () => {
+  const { isMountedDir } = await import("./preflight");
+  const { writeFileSync, mkdtempSync } = await import("node:fs");
+  const { join } = await import("node:path");
+  const { tmpdir } = await import("node:os");
+  const f = join(mkdtempSync(join(tmpdir(), "mounts-")), "mounts");
+  writeFileSync(f, "overlay / overlay rw 0 0\n/dev/sdb /data ext4 rw 0 0\n");
+  assert.equal(isMountedDir("/data/documents", f), true);
+  assert.equal(isMountedDir("/data", f), true);
+  assert.equal(isMountedDir("/app/.storage", f), false);
+  assert.equal(isMountedDir("/data/documents", "/nonexistent/mounts"), false);
+});

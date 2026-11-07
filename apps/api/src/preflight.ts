@@ -5,6 +5,8 @@
  * so a laptop without S3 or an AI key can still run the inbox.
  */
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import type { PrismaClient } from "@prisma/client";
 import { allowedOrigins, type Env, resolveStorageDriver } from "./config/env";
 import type { Storage } from "./storage";
@@ -40,6 +42,22 @@ export async function verifyAnthropicModels(apiKey: string, ids: string[]): Prom
   return { missing };
 }
 
+/** True when `dir` (or a parent of it) is a mount point listed in /proc/mounts; false where that file does not exist (macOS). */
+export function isMountedDir(dir: string, mountsFile = "/proc/mounts"): boolean {
+  let mounts: string;
+  try {
+    mounts = readFileSync(mountsFile, "utf8");
+  } catch {
+    return false;
+  }
+  const target = resolve(dir);
+  const points = mounts
+    .split("\n")
+    .map((l) => l.split(" ")[1])
+    .filter((p): p is string => !!p && p !== "/");
+  return points.some((p) => target === p || target.startsWith(`${p}/`));
+}
+
 export async function runPreflight(deps: PreflightDeps): Promise<{ results: CheckResult[]; ok: boolean }> {
   const { env, prisma, storage } = deps;
   const prod = env.NODE_ENV === "production";
@@ -69,8 +87,10 @@ export async function runPreflight(deps: PreflightDeps): Promise<{ results: Chec
 
   // Storage
   const driver = resolveStorageDriver(env);
-  if (driver === "local" && prod) {
-    push("storage", "fail", "local disk driver in production; set BACKOFFICE_S3_BUCKET");
+  if (driver === "local" && prod && !env.STORAGE_LOCAL_PERSISTENT) {
+    push("storage", "fail", "local disk driver in production; set BACKOFFICE_S3_BUCKET, or STORAGE_LOCAL_PERSISTENT=true with LOCAL_STORAGE_DIR on a mounted volume");
+  } else if (driver === "local" && prod && !isMountedDir(env.LOCAL_STORAGE_DIR)) {
+    push("storage", "fail", `STORAGE_LOCAL_PERSISTENT=true but ${env.LOCAL_STORAGE_DIR} is not on a mounted volume (checked /proc/mounts)`);
   } else {
     const key = `preflight/${randomUUID()}.txt`;
     try {

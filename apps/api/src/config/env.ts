@@ -45,6 +45,11 @@ export const envSchema = z.object({
   AWS_ACCESS_KEY_ID: optionalString,
   AWS_SECRET_ACCESS_KEY: optionalString,
   LOCAL_STORAGE_DIR: z.string().default(".storage"),
+  /** "true" states that LOCAL_STORAGE_DIR is a mounted persistent volume (Railway volume); only then may the local driver run in production. */
+  STORAGE_LOCAL_PERSISTENT: z
+    .string()
+    .default("false")
+    .transform((v) => v.trim().toLowerCase() === "true"),
   SIGNED_URL_TTL_SECONDS: z.coerce.number().int().positive().default(300),
 
   // ── Email ──
