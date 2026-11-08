@@ -189,6 +189,6 @@ export function snapshotHash(csv: string): string {
   return createHash("sha256").update(Buffer.from(csv, "utf8")).digest("hex");
 }
 
-export function reportStorageKey(companyId: string, reportId: string): string {
-  return `companies/${companyId}/reports/${reportId}.csv`;
+export function reportStorageKey(companyId: string, reportId: string, ext = "csv"): string {
+  return `companies/${companyId}/reports/${reportId}.${ext}`;
 }

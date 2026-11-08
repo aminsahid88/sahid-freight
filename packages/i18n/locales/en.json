@@ -269,7 +269,16 @@
     "system": "Automatic",
     "about": "This app",
     "pendingUploads": "{count} upload(s) waiting on this phone",
-    "takeTour": "Take the tour again"
+    "takeTour": "Take the tour again",
+    "rates": "IFTA rate tables (platform admin)",
+    "ratesHint": "Load the official quarterly rate matrix. Rows: jurisdiction, rate, surcharge (optional). Rates are never estimated.",
+    "ratesQuarter": "Quarter",
+    "ratesSource": "Source URL",
+    "ratesCsv": "Rows (CSV or tab-separated)",
+    "ratesLoad": "Load table",
+    "ratesLoaded": "{rows} rates loaded for {quarter}.",
+    "ratesExisting": "{quarter}: {rows} jurisdictions loaded",
+    "ratesNone": "No table loaded for this quarter yet."
   },
   "auth": {
     "signInRequired": "Please sign in to continue.",
@@ -418,14 +427,18 @@
     "history": "Generated files",
     "historyHint": "Each file records the data snapshot it was built from.",
     "empty": "No reports yet",
-    "emptyHint": "Generate a transactions CSV or an IFTA worksheet for a period.",
+    "emptyHint": "Generate the period PDF, a transactions CSV, the IFTA worksheet or the supporting ZIP for a period.",
     "snapshot": "snapshot"
   },
   "reportType": {
     "TRANSACTIONS_CSV": "Transactions CSV",
     "TRANSACTIONS_CSV_hint": "Every transaction in the period with status, source document and open issues. 31 columns.",
     "IFTA_WORKSHEET": "IFTA worksheet",
-    "IFTA_WORKSHEET_hint": "Per-jurisdiction miles, gallons, net gallons and tax due, labeled Preliminary or Reviewed."
+    "IFTA_WORKSHEET_hint": "Per-jurisdiction miles, gallons, net gallons and tax due, labeled Preliminary or Reviewed.",
+    "PERIOD_PDF": "Period report (PDF)",
+    "PERIOD_PDF_hint": "Cover, summary, fuel by state, mileage and MPG, exceptions, the IFTA worksheet and a transaction appendix.",
+    "SUPPORT_ZIP": "Supporting package (ZIP)",
+    "SUPPORT_ZIP_hint": "Every original receipt renamed by date, state and vendor, with index.csv, the CSVs, the PDF and a manifest of fingerprints."
   },
   "role": {
     "OWNER": "Owner",

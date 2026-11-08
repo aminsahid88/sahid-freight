@@ -121,7 +121,7 @@ test("validation, roles and tenancy for reports", async () => {
   const a = await companyWithOwner();
   const b = await companyWithOwner();
   const period = await seedPeriod(a.company.id);
-  assert.equal((await s.api("POST", `/companies/${a.company.id}/reports`, a.token, { type: "PERIOD_PDF", periodId: period.id })).status, 400, "only CSV types for now");
+  assert.equal((await s.api("POST", `/companies/${a.company.id}/reports`, a.token, { type: "AUDIT_BINDER", periodId: period.id })).status, 400, "unknown report type");
   assert.equal((await s.api("POST", `/companies/${a.company.id}/reports`, a.token, { type: "TRANSACTIONS_CSV", periodId: "00000000-0000-4000-8000-000000000000" })).status, 404);
   const reviewer = await createUser();
   await addMember(reviewer.id, a.company.id, "REVIEWER");
@@ -134,4 +134,57 @@ test("validation, roles and tenancy for reports", async () => {
   assert.equal((await s.api("GET", `/companies/${b.company.id}/reports/${id}`, b.token)).status, 404);
   assert.equal((await s.api("POST", `/companies/${b.company.id}/reports`, b.token, { type: "TRANSACTIONS_CSV", periodId: period.id })).status, 404, "A's period is invisible to B");
   assert.deepEqual((await s.api("GET", `/companies/${b.company.id}/reports`, b.token)).json.reports, []);
+});
+
+test("period PDF and supporting ZIP: PDF has cover/summary/worksheet notice and an appendix; ZIP holds renamed originals, index, CSVs, PDF and manifest", async () => {
+  const { unzipSync } = await import("fflate");
+  const a = await companyWithOwner();
+  const period = await seedPeriod(a.company.id);
+  const vehicle = await seedVehicle(a.company.id, "101");
+  const t1 = await seedTransaction(a.company.id, { periodId: period.id, vehicleId: vehicle.id, date: "2026-10-15", vendor: "Fictional Fuel Stop / Exit 4", state: "OH", receiptTotal: "412.50" });
+  const t2 = await seedTransaction(a.company.id, { periodId: period.id, date: "2026-10-02", vendor: "Fictional Truck Stop", state: "IN", lines: [{ category: "MOTOR_FUEL", quantity: "50.000", unitPrice: "4.0000", amount: "200.00" }, { category: "NON_FUEL", amount: "12.00" }] });
+  await seedIssue(a.company.id, { transactionId: t1.tx.id, code: "F002" });
+  // Give the two seeded documents real bytes in storage so the ZIP can include them.
+  const docs = await prisma.document.findMany({ where: { id: { in: [t1.documentId!, t2.documentId!] } } });
+  for (const d of docs) await s.storage.put(d.storageKey, Buffer.from(`PNG-bytes-${d.id}`), "image/png");
+
+  const pdfRes = await s.api("POST", `/companies/${a.company.id}/reports`, a.token, { type: "PERIOD_PDF", periodId: period.id });
+  assert.equal(pdfRes.status, 201, pdfRes.text);
+  const pdfReport = pdfRes.json.report as { id: string; type: string; status: string; fileKey: string; snapshotHash: string };
+  assert.equal(pdfReport.type, "PERIOD_PDF");
+  assert.equal(pdfReport.fileKey, `companies/${a.company.id}/reports/${pdfReport.id}.pdf`);
+  const pdf = await s.storage.get(pdfReport.fileKey);
+  const text = pdf.toString("latin1");
+  assert.ok(text.startsWith("%PDF-1.4"));
+  for (const needle of ["Summary", "Fuel by state", "Exceptions", "IFTA worksheet", "Appendix", "PRELIMINARY", "Fictional Fuel Stop / Exit 4"]) {
+    assert.ok(text.includes(needle), `PDF mentions "${needle}"`);
+  }
+  // The shared test database may already hold a 2026Q4 rate table from another test: either the worksheet or the I001 notice is present.
+  const hasRates = (await prisma.iftaRate.count({ where: { quarter: "2026Q4" } })) > 0;
+  assert.ok(hasRates ? text.includes("Fleet MPG") : text.includes("\\(I001\\)"), hasRates ? "worksheet rendered" : "I001 notice rendered");
+  assert.ok((text.match(/\/Type \/Page\b/g) ?? []).length >= 2, "more than one page");
+
+  const zipRes = await s.api("POST", `/companies/${a.company.id}/reports`, a.token, { type: "SUPPORT_ZIP", periodId: period.id });
+  assert.equal(zipRes.status, 201, zipRes.text);
+  const zipReport = zipRes.json.report as { id: string; fileKey: string };
+  assert.equal(zipReport.fileKey, `companies/${a.company.id}/reports/${zipReport.id}.zip`);
+  const entries = unzipSync(new Uint8Array(await s.storage.get(zipReport.fileKey)));
+  const names = Object.keys(entries).sort();
+  assert.ok(names.includes("index.csv") && names.includes("transactions.csv") && names.includes("period-report.pdf") && names.includes("manifest.json") && names.includes("README.txt"), names.join(","));
+  assert.equal(names.includes("ifta-worksheet.csv"), hasRates, "worksheet CSV only with a rate table");
+  const originals = names.filter((n) => n.startsWith("documents/"));
+  assert.equal(originals.length, 2);
+  assert.ok(originals.some((n) => n.startsWith(`documents/2026-10-15_OH_Fictional_Fuel_Stop_Exit_4_${t1.tx.id.slice(0, 8)}.png`)), originals.join(","));
+  assert.equal(Buffer.from(entries[originals.find((n) => n.includes("2026-10-02"))!]!).toString(), `PNG-bytes-${t2.documentId}`, "original bytes unchanged");
+  const index = Buffer.from(entries["index.csv"]!).toString();
+  assert.ok(index.startsWith("file,transaction_id,date,state,vendor,receipt_total,source_document_id,source_filename,sha256"));
+  assert.equal(index.trim().split("\r\n").length, 3);
+  const manifest = JSON.parse(Buffer.from(entries["manifest.json"]!).toString()) as { snapshotId: string; files: Array<{ file: string; sha256: string }> };
+  assert.equal(manifest.snapshotId, zipReport.id);
+  assert.equal(manifest.files.find((f) => f.file === "period-report.pdf")!.sha256.length, 64);
+
+  // Roles: a driver cannot generate deliverables.
+  const driver = await createUser("DRIVER");
+  await addMember(driver.id, a.company.id, "DRIVER");
+  assert.equal((await s.api("POST", `/companies/${a.company.id}/reports`, accessToken(driver.id, "DRIVER"), { type: "PERIOD_PDF", periodId: period.id })).status, 403);
 });

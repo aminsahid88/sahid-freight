@@ -5,7 +5,7 @@
  * GET  /companies/:companyId/reports        newest first (optional periodId filter)
  * GET  /companies/:companyId/reports/:id    report + short-lived signed URL (audited as export)
  */
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import type { PrismaClient } from "@prisma/client";
 import { Router } from "express";
 import { z } from "zod";
@@ -17,10 +17,11 @@ import type { TenantClient } from "../tenant/client";
 import { notFound, parse, wrap } from "./errors";
 import { buildIftaWorksheet, type PeriodRow, reviewStatus } from "./ifta";
 import { type CompanyRequest, ctx, requireCompany } from "./middleware";
-import { buildIftaWorksheetCsv, buildTransactionsCsv, reportStorageKey, snapshotHash, type TransactionCsvRow } from "./reports";
+import { buildIftaWorksheetCsv, buildTransactionsCsv, reportStorageKey, type TransactionCsvRow } from "./reports";
+import { buildPeriodPdf, buildSupportZip, gatherPeriod } from "./period-report";
 
 const createSchema = z.object({
-  type: z.enum(["TRANSACTIONS_CSV", "IFTA_WORKSHEET"]),
+  type: z.enum(["TRANSACTIONS_CSV", "IFTA_WORKSHEET", "PERIOD_PDF", "SUPPORT_ZIP"]),
   periodId: z.string().uuid(),
 });
 
@@ -94,27 +95,47 @@ export function reportsRouter(prisma: PrismaClient, storage: Storage, env: Env):
       if (!period) throw notFound("Period");
       const status = await reviewStatus(db, period);
 
-      let csv: string;
+      const reportId = randomUUID();
+      let bytes: Buffer;
+      let contentType: string;
+      let ext: string;
       if (body.type === "TRANSACTIONS_CSV") {
-        csv = buildTransactionsCsv(await loadTransactionCsvRows(db, period.id));
-      } else {
+        bytes = Buffer.from(buildTransactionsCsv(await loadTransactionCsvRows(db, period.id)), "utf8");
+        contentType = "text/csv";
+        ext = "csv";
+      } else if (body.type === "IFTA_WORKSHEET") {
         const built = await buildIftaWorksheet(db, period);
         if (!built.ok) {
           res.status(409).json({ error: "ifta_rates_missing", code: "I001", quarter: built.quarter, message: `No IFTA rate table is loaded for ${built.quarter}.` });
           return;
         }
-        csv = buildIftaWorksheetCsv(built.worksheet, status, built.quarter);
+        bytes = Buffer.from(buildIftaWorksheetCsv(built.worksheet, status, built.quarter), "utf8");
+        contentType = "text/csv";
+        ext = "csv";
+      } else {
+        // PDF and ZIP: the worksheet section is withheld (not estimated) when the rate table is missing.
+        const input = { prisma, db, companyId: company.id, period, status, snapshotId: reportId, generatedAt: new Date() };
+        const gathered = await gatherPeriod(input);
+        const pdf = buildPeriodPdf(input, gathered);
+        if (body.type === "PERIOD_PDF") {
+          bytes = pdf;
+          contentType = "application/pdf";
+          ext = "pdf";
+        } else {
+          bytes = await buildSupportZip({ ...input, storage, periodPdf: pdf }, gathered);
+          contentType = "application/zip";
+          ext = "zip";
+        }
       }
 
-      const reportId = randomUUID();
-      const fileKey = reportStorageKey(company.id, reportId);
-      const hash = snapshotHash(csv);
-      await storage.put(fileKey, Buffer.from(csv, "utf8"), "text/csv");
+      const fileKey = reportStorageKey(company.id, reportId, ext);
+      const hash = createHash("sha256").update(bytes).digest("hex");
+      await storage.put(fileKey, bytes, contentType);
       const report = await db.report.create({
         data: { id: reportId, periodId: period.id, type: body.type, status, snapshotHash: hash, fileKey, generatedBy: userId } as never,
       });
       await audit(db, { action: "export", userId, target: `Report:${report.id}`, meta: { reportId: report.id, type: body.type, snapshotHash: hash, periodId: period.id, status }, ip: req.ip });
-      res.status(201).json({ report, sizeBytes: Buffer.byteLength(csv, "utf8") });
+      res.status(201).json({ report, sizeBytes: bytes.length });
     }),
   );
 

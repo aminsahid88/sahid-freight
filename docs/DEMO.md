@@ -38,7 +38,10 @@ From `packages/extraction/golden/`:
    101/102 rows replaced, nothing deleted, history shows "5 of 15 rows in use".
 6. **Worksheet** — with the 2026Q4 rate table loaded, the per-jurisdiction worksheet with fleet MPG, labelled
    PRELIMINARY with the preparer disclaimer. Without the table it shows the I001 block (we never guess rates).
-7. **Reports** — generate the transactions CSV and the IFTA worksheet CSV; each has a snapshot hash.
+7. **Reports** — generate the period PDF (cover, summary, fuel by state, mileage and MPG, exceptions, worksheet,
+   appendix), the transactions CSV, the IFTA worksheet CSV and the supporting ZIP (originals renamed by date, state
+   and vendor, with index.csv and a manifest of SHA-256s). Each file records its snapshot hash.
+   The rate table is loaded by a platform admin in Settings → "IFTA rate tables": quarter, source URL, pasted rows.
 8. **Settings / Vehicles** — Somali toggle; trucks with tank capacity and ELD provider.
 9. **Phone** — the capture app (Expo) is not in the store yet; show the camera flow on a simulator if needed.
 

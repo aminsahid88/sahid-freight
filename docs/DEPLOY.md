@@ -16,7 +16,11 @@ office goes live for the demo). `newmain` still holds the marketplace, tagged `m
   only allows the local driver in production when the directory is on a mounted volume. Move to a U.S. S3 bucket
   when a working AWS key exists.
 - The service is also connected to GitHub: a push to its configured branch redeploys from git. Do not push the
-  marketplace branch (`newmain`) while the live service runs the back office.
+  marketplace branch (`newmain`) while the live service runs the back office. To deploy from git instead of the CLI,
+  set the service's Source branch to `backoffice` and its Root Directory to `/` (the repo root `railway.json` then
+  builds the bundle on Railway).
+- An empty `worker` service exists for the queue split; it can only take over once storage is on S3, because it
+  cannot read the API's volume. Until then keep `WORKER_IN_PROCESS=true` on `sahid-freight`.
 - The API is bundled (`apps/api/dist/index.js`, `dist/worker.js`); `prisma generate` runs before the build and
   `prisma migrate deploy` runs at start. Every migration since the pivot is additive.
 - The API runs a preflight at boot and refuses to start in production when a required credential is missing.

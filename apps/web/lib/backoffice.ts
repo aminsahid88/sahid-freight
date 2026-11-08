@@ -9,7 +9,7 @@ export type DocumentStatus = "RECEIVED" | "PROCESSING" | "PROCESSED" | "FAILED" 
 export type TxStatus = "VERIFIED" | "NEEDS_ATTENTION" | "UNABLE_TO_VERIFY";
 export type Severity = "ERROR" | "WARNING" | "INFO";
 export type IssueStatus = "OPEN" | "RESOLVED" | "ACCEPTED";
-export type ReportType = "TRANSACTIONS_CSV" | "IFTA_WORKSHEET";
+export type ReportType = "PERIOD_PDF" | "TRANSACTIONS_CSV" | "SUPPORT_ZIP" | "IFTA_WORKSHEET";
 export type ReportStatus = "PRELIMINARY" | "REVIEWED";
 
 export interface CompanySummary {
@@ -536,6 +536,15 @@ export const backoffice = {
   },
   async decideApproval(companyId: string, id: string, decision: "approve" | "reject", note?: string) {
     const { data } = await api.post<{ approval: ApprovalRow; status: TxStatus | null }>(`${c(companyId)}/approvals/${id}/${decision}`, note ? { note } : {});
+    return data;
+  },
+  // ── Platform admin: IFTA rate tables ──
+  async iftaRates(quarter: string) {
+    const { data } = await api.get<{ quarter: string; rates: Array<{ jurisdiction: string; rate: string; surcharge: string | null; fuelType: string; sourceUrl: string; importedAt: string }> }>(`/admin/ifta-rates/${quarter}`);
+    return data.rates;
+  },
+  async loadIftaRates(input: { quarter: string; sourceUrl: string; rows: Array<{ jurisdiction: string; rate: string; surcharge?: string }> }) {
+    const { data } = await api.post<{ quarter: string; rows: number }>("/admin/ifta-rates", input);
     return data;
   },
   // ── Fuel & IFTA ──

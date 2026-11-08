@@ -269,7 +269,16 @@
     "system": "Otomaatig",
     "about": "App-kan",
     "pendingUploads": "{count} soo gelin ayaa taleefankan ku sugaya",
-    "takeTour": "Mar kale dalxiiska qaado"
+    "takeTour": "Mar kale dalxiiska qaado",
+    "rates": "Shaxda qiimaha IFTA (maamulaha)",
+    "ratesHint": "Soo geli shaxda rasmiga ah ee qiimaha rubuc kasta. Safafka: gobol, qiime, kharash dheeri (ikhtiyaari). Qiimaha marnaba lama qiyaaso.",
+    "ratesQuarter": "Rubuc",
+    "ratesSource": "URL-ka isha",
+    "ratesCsv": "Safafka (CSV ama tab)",
+    "ratesLoad": "Soo geli shaxda",
+    "ratesLoaded": "{rows} qiime ayaa loo soo geliyay {quarter}.",
+    "ratesExisting": "{quarter}: {rows} gobol ayaa la soo geliyay",
+    "ratesNone": "Weli shax looma soo gelin rubucan."
   },
   "auth": {
     "signInRequired": "Fadlan gal si aad u sii wadato.",
@@ -418,14 +427,18 @@
     "history": "Faylasha la sameeyay",
     "historyHint": "Fayl kastaa wuxuu diiwaangelinayaa xogta uu ka samaysmay.",
     "empty": "Weli warbixin ma jirto",
-    "emptyHint": "Samee CSV dhaqdhaqaaq ama warqadda xisaabta IFTA ee muddo.",
+    "emptyHint": "Samee PDF-ga muddada, CSV-ga dhaqdhaqaaqyada, warqadda IFTA ama ZIP-ga caddaynta ee muddo.",
     "snapshot": "xog"
   },
   "reportType": {
     "TRANSACTIONS_CSV": "CSV dhaqdhaqaaqa",
     "TRANSACTIONS_CSV_hint": "Dhaqdhaqaaq kasta oo muddadan ah oo leh xaaladda, dukumentiga asalka iyo arrimaha furan. 31 tiir.",
     "IFTA_WORKSHEET": "Warqadda xisaabta IFTA",
-    "IFTA_WORKSHEET_hint": "Mayl, galaan, galaan saafi iyo cashuur gobol kasta, oo lagu calaamadeeyay Hordhac ama Dib loo eegay."
+    "IFTA_WORKSHEET_hint": "Mayl, galaan, galaan saafi iyo cashuur gobol kasta, oo lagu calaamadeeyay Hordhac ama Dib loo eegay.",
+    "PERIOD_PDF": "Warbixinta muddada (PDF)",
+    "PERIOD_PDF_hint": "Daboolka, kooban, shidaal gobol kasta, masaafo iyo MPG, calaamadaha, warqadda IFTA iyo lifaaqa dhaqdhaqaaqyada.",
+    "SUPPORT_ZIP": "Xirmada caddaynta (ZIP)",
+    "SUPPORT_ZIP_hint": "Rasiid kasta oo asal ah oo lagu magacaabay taariikh, gobol iyo iibiye, oo leh index.csv, CSV-yada, PDF-ga iyo liiska faraha."
   },
   "role": {
     "OWNER": "Mulkiile",

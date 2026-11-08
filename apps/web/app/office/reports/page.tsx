@@ -4,7 +4,7 @@
  * snapshot it was built from (hash), so it can be regenerated identically.
  */
 import { useEffect, useState } from "react";
-import { Download, FileBarChart, FileSpreadsheet } from "lucide-react";
+import { Archive, Download, FileBarChart, FileSpreadsheet, FileText } from "lucide-react";
 import { backoffice, formatDateTime, type Period, periodLabel, type Report, type ReportType, shortHash } from "@/lib/backoffice";
 import { useCompanyStore } from "@/lib/company";
 import { formatApiError } from "@/lib/errors";
@@ -18,8 +18,10 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Pill, REPORT_TONES } from "@/components/ui/Pill";
 
 const TYPES: Array<{ type: ReportType; icon: React.ReactNode }> = [
+  { type: "PERIOD_PDF", icon: <FileText size={18} /> },
   { type: "TRANSACTIONS_CSV", icon: <FileSpreadsheet size={18} /> },
   { type: "IFTA_WORKSHEET", icon: <FileBarChart size={18} /> },
+  { type: "SUPPORT_ZIP", icon: <Archive size={18} /> },
 ];
 
 export default function ReportsPage() {
