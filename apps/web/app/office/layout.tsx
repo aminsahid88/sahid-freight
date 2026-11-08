@@ -136,6 +136,25 @@ export default function OfficeLayout({ children }: { children: React.ReactNode }
 
   const isActive = (href: string) => (href === "/office" ? pathname === "/office" : pathname.startsWith(href));
   const role = selected ? primaryRole(selected.roles) : null;
+
+  // No company yet: a focused setup screen instead of an empty back office.
+  if (loaded && list.length === 0) {
+    return (
+      <div className="min-h-screen bg-surface">
+        <header className="flex h-16 items-center justify-between px-6">
+          <Logo size={26} />
+          <button onClick={() => logout()} className="inline-flex h-9 items-center gap-2 rounded-control px-3 text-[13px] font-medium text-ink-2 hover:bg-surface2 hover:text-ink">
+            <LogOut size={15} />
+            {t("nav.signOut")}
+          </button>
+        </header>
+        <main className="mx-auto max-w-xl px-5 pb-16 pt-6">
+          {error && <Banner tone="danger" className="mb-4">{error}</Banner>}
+          {children}
+        </main>
+      </div>
+    );
+  }
   const content = (
     <>
       {error && <Banner tone="danger" className="mb-4">{error}</Banner>}

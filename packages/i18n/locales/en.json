@@ -174,8 +174,9 @@
     "timezone": "Time zone",
     "createButton": "Create company",
     "created": "Company created",
-    "noCompany": "You are not a member of any company yet.",
-    "role": "Your role"
+    "noCompany": "Set up your company",
+    "role": "Your role",
+    "createHint": "Tell us about your carrier. You can add trucks, drivers and your team right after."
   },
   "inbox": {
     "title": "Inbox",

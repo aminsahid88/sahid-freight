@@ -174,8 +174,9 @@
     "timezone": "Waqtiga aagga",
     "createButton": "Abuur shirkad",
     "created": "Shirkadda waa la abuuray",
-    "noCompany": "Weli xubin kama tihid shirkad.",
-    "role": "Doorkaaga"
+    "noCompany": "Dejiso shirkaddaada",
+    "role": "Doorkaaga",
+    "createHint": "Noo sheeg wax ku saabsan shirkaddaada gaadiidka. Gawaarida, darawallada iyo kooxdaada isla markiiba ayaad ku dari kartaa."
   },
   "inbox": {
     "title": "Sanduuqa",

@@ -46,8 +46,8 @@ export default function NewCompanyPage() {
   };
 
   return (
-    <div className="max-w-xl">
-      <PageHeader title={t("company.create")} description={t("app.tagline")} />
+    <div>
+      <PageHeader title={t("company.create")} description={t("company.createHint")} />
       {error && <Banner tone="danger" className="mb-4">{error}</Banner>}
       <Card>
         <CardBody className="pt-5">

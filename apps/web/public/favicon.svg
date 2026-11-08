@@ -1,1 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#0A1F44"/><g transform="translate(123.59,112.99) scale(2.6483)"><path d="M70 6 Q14 6 14 33 Q14 58 50 58 Q86 58 86 82 Q86 104 30 104" fill="none" stroke="#3D7BFF" stroke-width="13.3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="30" cy="104" r="7.88" fill="#5BE3C4"/><circle cx="70" cy="6" r="7.58" fill="#0A1F44" stroke="#5BE3C4" stroke-width="4.24"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3B6CF0"/>
+      <stop offset="1" stop-color="#1C3FBF"/>
+    </linearGradient>
+  </defs>
+  <rect x="16" y="16" width="480" height="480" rx="136" fill="url(#tile)"/>
+  <path d="M128 360 L256 152 L384 360" stroke="#FFFFFF" stroke-width="42" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M184 296 H328" stroke="rgba(255,255,255,0.75)" stroke-width="35" stroke-linecap="round"/>
+  <circle cx="256" cy="368" r="26" fill="#FFFFFF"/>
+</svg>
