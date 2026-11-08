@@ -16,6 +16,8 @@ import { errorHandler } from "./backoffice/errors";
 import { allowedOrigins, getEnv } from "./config/env";
 import { preflightOrExit } from "./preflight";
 import { startWorker } from "./jobs/worker-core";
+import { describeBundled, loadBundledRates } from "./backoffice/ifta-rates-bundled";
+import { join } from "path";
 
 // Fails at boot with a readable list of problems instead of `undefined` deep in a request.
 const env = getEnv();
@@ -79,6 +81,10 @@ preflightOrExit({ env, prisma, storage }).then(() => {
     console.log(`API running on port ${env.PORT} (${env.NODE_ENV})`);
   });
   if (env.WORKER_IN_PROCESS) startWorker(prisma, env, storage);
+  // Rate tables shipped with the release (apps/api/rates). Never overrides a table an admin loaded.
+  loadBundledRates(prisma, join(__dirname, "..", "rates"))
+    .then((r) => console.log(describeBundled(r)))
+    .catch((e) => console.error("Rate tables: load failed", e));
 });
 
 export default app;

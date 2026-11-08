@@ -1,9 +1,19 @@
-# IFTA rate tables (paste-ready)
+# IFTA rate tables
 
 Source: IFTA, Inc. tax rate matrix, https://www.iftach.org/taxmatrix4/Taxmatrix.php, Special Diesel column, U.S. line.
-Load from Settings → "IFTA rate tables" (platform admin) or `POST /admin/ifta-rates`. Rates never come from anywhere else.
+Rates never come from anywhere else.
 
-## 2026Q4 — `2026Q4-special-diesel.csv`
+Two ways a table gets into the database:
+
+1. **Shipped with the release.** Files in `apps/api/rates/<quarter>-<fuelType>.csv` are loaded on API boot by
+   `apps/api/src/backoffice/ifta-rates-bundled.ts`. Each file carries `# source=` and `# version=` lines; rows are
+   `jurisdiction,rate[,surcharge]`. A quarter already loaded from a bundle is replaced only when the file's version
+   changes. A table a platform admin loaded by hand is never touched. Every row keeps `#bundle=<version>` on its
+   source URL so its origin is visible, and the load is written to the audit log.
+2. **By hand.** A platform admin pastes rows into Settings → "IFTA rate tables" (`POST /admin/ifta-rates`). An admin
+   table wins over the bundle from then on.
+
+## 2026Q4 — `apps/api/rates/2026Q4-diesel.csv`
 
 Read from the matrix on 2026-11-08 (matrix last updated 11/05/26). **The matrix is not final until December 4, 2026**; re-read it after that date and reload.
 

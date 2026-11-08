@@ -55,3 +55,7 @@ The production database is not reachable from the dev machine, so the seed runs 
 - The official IFTA rate table for 2026Q4 must be loaded by a platform admin through
   `POST /admin/ifta-rates` (iftach.org is unreachable from the dev machine). Until then the worksheet shows I001.
 - No worker/API split, no U.S.-region S3 bucket yet (open decision), PDF/ZIP reports not built.
+
+## Rate tables
+
+Official IFTA rate tables live in `apps/api/rates/<quarter>-<fuelType>.csv` and load themselves on API boot (see `docs/ifta-rates/README.md`). To update a quarter, edit the file, bump `# version=`, build and `railway up`. The boot log prints `Rate tables: 2026Q4/diesel inserted (47)` (or `unchanged`, `updated`, `admin_table_kept`).
