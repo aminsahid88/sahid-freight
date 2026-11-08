@@ -170,8 +170,20 @@ export default function TransactionsPage() {
 
 function TransactionDrawer({ companyId, id, onClose, onChanged }: { companyId: string; id: string; onClose: () => void; onChanged: (tx: TransactionRow) => void }) {
   const { t, locale } = useT();
+  /** Readable name for a provenance / edit-history key ("cardLast4", "line_items.0.quantity"). */
+  const fieldLabel = (field: string) => {
+    const line = /^line_items\.(\d+)\.(.+)$/.exec(field);
+    if (line) {
+      const inner = `provField.${line[2]}`;
+      return t("provField.line", { n: Number(line[1]) + 1, field: t(inner) === inner ? line[2] : t(inner) });
+    }
+    for (const key of [`provField.${field}`, `transactions.${field}`]) if (t(key) !== key) return t(key);
+    return field;
+  };
   const intl = locale === "so" ? "so" : "en-US";
   const [tx, setTx] = useState<TransactionRow | null>(null);
+  const openIssues = (tx?.issues ?? []).filter((i) => i.status === "OPEN");
+  const closedIssues = (tx?.issues ?? []).filter((i) => i.status !== "OPEN");
   const [error, setError] = useState("");
   const [editing, setEditing] = useState<EditableField | null>(null);
   const [value, setValue] = useState("");
@@ -295,7 +307,7 @@ function TransactionDrawer({ companyId, id, onClose, onChanged }: { companyId: s
                       .filter(([, p]) => p.passA !== null || p.passB !== null)
                       .map(([field, p]) => (
                         <tr key={field} className={`border-t border-line ${!p.agree && p.passB !== null ? "bg-[#FFFBEB] dark:bg-[rgba(251,191,36,0.08)]" : ""}`}>
-                          <td className="py-1.5 pr-2 font-medium text-ink">{t(`transactions.${field}`) === `transactions.${field}` ? field : t(`transactions.${field}`)}</td>
+                          <td className="py-1.5 pr-2 font-medium text-ink">{fieldLabel(field)}</td>
                           <td className="py-1.5 pr-2 tnum text-ink-2">{p.passA ?? "—"}</td>
                           <td className="py-1.5 pr-2 tnum text-ink-2">{p.passB ?? "—"}</td>
                           <td className="py-1.5 pr-2 tnum font-semibold text-ink">{p.final ?? "—"}</td>
@@ -308,14 +320,27 @@ function TransactionDrawer({ companyId, id, onClose, onChanged }: { companyId: s
             </>
           )}
 
-          {tx.issues && tx.issues.length > 0 && (
+          {openIssues.length > 0 && (
             <>
               <div className="mt-5 mb-2 text-[13px] font-semibold text-ink">{t("inbox.issues")}</div>
-              {tx.issues.map((i) => (
+              {openIssues.map((i) => (
                 <Banner key={i.id} tone={i.severity === "ERROR" ? "danger" : i.severity === "WARNING" ? "warning" : "info"} className="mb-2">
-                  <strong>{i.code}</strong> · {i.message} {i.status !== "OPEN" && <span className="text-xs">({t(`issueStatus.${i.status}`)})</span>}
+                  <strong>{i.code}</strong> · {i.message}
                 </Banner>
               ))}
+            </>
+          )}
+
+          {closedIssues.length > 0 && (
+            <>
+              <div className="mt-5 mb-2 text-[13px] font-semibold text-ink">{t("transactions.resolvedIssues")}</div>
+              <ul className="text-[13px]">
+                {closedIssues.map((i) => (
+                  <li key={i.id} className="border-t border-line py-2 text-ink-3">
+                    <span className="font-semibold text-ink-2">{i.code}</span> · {i.message} <span className="text-xs">({t(`issueStatus.${i.status}`)})</span>
+                  </li>
+                ))}
+              </ul>
             </>
           )}
 
@@ -327,7 +352,7 @@ function TransactionDrawer({ companyId, id, onClose, onChanged }: { companyId: s
               <ul className="text-[13px]">
                 {tx.fieldEdits.map((e) => (
                   <li key={e.id} className="border-t border-line py-2">
-                    <span className="font-semibold">{t(`transactions.${e.field}`) === `transactions.${e.field}` ? e.field : t(`transactions.${e.field}`)}</span>: <span className="text-ink-3 line-through">{e.oldValue ?? "—"}</span> → <span className="text-ink">{e.newValue ?? "—"}</span>
+                    <span className="font-semibold">{fieldLabel(e.field)}</span>: <span className="text-ink-3 line-through">{e.oldValue ?? "—"}</span> → <span className="text-ink">{e.newValue ?? "—"}</span>
                     <div className="text-xs text-ink-3">{e.reason} · {formatDate(e.createdAt, intl)}</div>
                   </li>
                 ))}

@@ -348,7 +348,8 @@
     "paymentMethod": "Lacag bixinta",
     "sellerAddress": "Cinwaanka iibiyaha",
     "allPeriods": "Dhammaan muddooyinka",
-    "emptyPeriodHint": "Rasiidada aan taariikhdoodu akhrismi karin weli looma qoondeyn rubuc. Waxay weli ka muuqdaan Dib-u-eegista iyo dhammaan muddooyinka."
+    "emptyPeriodHint": "Rasiidada aan taariikhdoodu akhrismi karin weli looma qoondeyn rubuc. Waxay weli ka muuqdaan Dib-u-eegista iyo dhammaan muddooyinka.",
+    "resolvedIssues": "Hore loo xalliyay"
   },
   "txStatus": {
     "VERIFIED": "La xaqiijiyay",
@@ -673,5 +674,27 @@
       "title": "Diyaar baad tahay",
       "body": "Ku bilow ku darista gawaaridaada, kadibna soo geli rasiidhada toddobaadkan. Liiska hubinta ee Guriga ayaa raadraacaya."
     }
+  },
+  "provField": {
+    "line": "Sadar {n} · {field}",
+    "date": "Taariikh",
+    "time": "Waqti",
+    "vendor": "Iibiye",
+    "sellerAddress": "Cinwaanka iibiyaha",
+    "state": "Gobol",
+    "unitNumber": "Gaari",
+    "odometer": "Odometer",
+    "driverName": "Darawal",
+    "purchaserName": "Iibsade",
+    "paymentMethod": "Lacag-bixin",
+    "cardLast4": "Kaadh (4-ta u dambeysa)",
+    "pumpNumber": "Bamka",
+    "receiptTotal": "Wadar",
+    "currency": "Lacag",
+    "quantity": "Tiro",
+    "unitPrice": "Qiimaha halbeegga",
+    "amount": "Lacagta",
+    "count": "Tirada sadarrada",
+    "category": "Nooc"
   }
 }

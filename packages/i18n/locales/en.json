@@ -348,7 +348,8 @@
     "paymentMethod": "Payment",
     "sellerAddress": "Seller address",
     "allPeriods": "All periods",
-    "emptyPeriodHint": "Receipts without a readable date are not assigned to a quarter yet. They still show in Review and under all periods."
+    "emptyPeriodHint": "Receipts without a readable date are not assigned to a quarter yet. They still show in Review and under all periods.",
+    "resolvedIssues": "Fixed earlier"
   },
   "txStatus": {
     "VERIFIED": "Verified",
@@ -673,5 +674,27 @@
       "title": "You are set",
       "body": "Start by adding your trucks, then upload this week's receipts. The checklist on Home keeps track."
     }
+  },
+  "provField": {
+    "line": "Line {n} · {field}",
+    "date": "Date",
+    "time": "Time",
+    "vendor": "Vendor",
+    "sellerAddress": "Seller address",
+    "state": "State",
+    "unitNumber": "Unit",
+    "odometer": "Odometer",
+    "driverName": "Driver",
+    "purchaserName": "Purchaser",
+    "paymentMethod": "Payment",
+    "cardLast4": "Card (last 4)",
+    "pumpNumber": "Pump",
+    "receiptTotal": "Total",
+    "currency": "Currency",
+    "quantity": "Quantity",
+    "unitPrice": "Unit price",
+    "amount": "Amount",
+    "count": "Line count",
+    "category": "Category"
   }
 }
