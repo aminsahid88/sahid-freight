@@ -8,6 +8,7 @@ import { PrismaClient } from "@prisma/client";
 import { getEnv } from "./config/env";
 import { createStorage } from "./storage";
 import { buildExtractor, buildProcessors, startWorker, workerLoop } from "./jobs/worker-core";
+import { startHealthServer } from "./jobs/health";
 
 export { buildExtractor, buildProcessors, workerLoop };
 
@@ -15,10 +16,19 @@ if (require.main === module) {
   const env = getEnv();
   const prisma = new PrismaClient();
   const storage = createStorage(env);
+  console.log(`Worker storage: ${storage.driver} (${storage.location})`);
   const controller = startWorker(prisma, env, storage);
-  const stop = () => {
+  // Liveness for the platform healthcheck (GET /health). The worker has no other HTTP surface.
+  const health = startHealthServer(Number(env.PORT), { startedAt: new Date(), lastPollAt: null });
+  let stopping = false;
+  const stop = (signal: string) => {
+    if (stopping) return;
+    stopping = true;
+    console.log(`Worker stopping (${signal})`);
     controller.abort();
-    void prisma.$disconnect();
+    health.close();
+    void prisma.$disconnect().finally(() => process.exit(0));
   };
-  process.on("exit", stop);
+  process.on("SIGTERM", () => stop("SIGTERM"));
+  process.on("SIGINT", () => stop("SIGINT"));
 }
