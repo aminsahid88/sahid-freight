@@ -66,9 +66,12 @@ Official IFTA rate tables live in `apps/api/rates/<quarter>-<fuelType>.csv` and 
   at `/data` stays attached but is no longer the document store; it held no files when the switch was made.
 - The AWS account had been frozen when its free plan ended, which made the key look dead ("does not exist"). Upgrading the
   account to pay-as-you-go restored the existing IAM user `sahidfreight-s3` and its key; no new key was needed.
-- Two Railway services run the same uploaded bundle from `apps/api` (`railway up --service <name>`). `railway.json`'s start
-  command branches on `SERVICE_ROLE`: the API service runs migrations (and the optional demo seed) then `dist/index.js`;
-  the `worker` service (`SERVICE_ROLE=worker`) runs `dist/worker.js`, which polls the job queue and serves `GET /health`
-  on `PORT` for the platform healthcheck. The API has `WORKER_IN_PROCESS=false`.
+- Two Railway services run the same uploaded bundle from `apps/api`. The API service has Root Directory `apps/api` set in the
+  dashboard and reads `railway.json`; the `worker` service has no root directory and ignores config-as-code, so it is
+  deployed with `railway up --service worker --path-as-root .` from `apps/api` and builds with Railway's defaults
+  (`npm install`, `npm run build`, `npm run start`). Both paths work because `scripts/build.js` keeps a prebuilt `dist/`
+  when the shared packages are absent, and `scripts/start.sh` branches on `SERVICE_ROLE`: the API runs migrations (and
+  the optional demo seed) then `dist/index.js`; the worker (`SERVICE_ROLE=worker`) runs `dist/worker.js`, which polls the
+  job queue and serves `GET /health` on `PORT`. The API has `WORKER_IN_PROCESS=false`.
 - The worker's secrets are Railway reference variables (`${{sahid-freight.DATABASE_URL}}` etc.), so there is one place to
-  rotate a key. Deploy order after a change: `railway up --service sahid-freight`, then `railway up --service worker`.
+  rotate a key. Deploy order after a change (from `apps/api`, after `npm run build`): `railway up --service sahid-freight --detach`, then `railway up --service worker --detach --path-as-root .`.
