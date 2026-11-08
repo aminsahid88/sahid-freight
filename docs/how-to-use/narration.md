@@ -1,6 +1,6 @@
 # How to use — narration script
 
-Voice: Samantha (macOS), 172 words per minute. One section per scene; the on-screen caption is in italics.
+Voice: Daniel (macOS), 165 words per minute. One section per scene; the on-screen caption is in italics.
 
 ## 0. Sahid Freight Back Office
 

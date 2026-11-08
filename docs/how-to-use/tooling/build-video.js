@@ -46,7 +46,9 @@ function duration(file) {
 
     const aiff = path.join(AUDIO, `${sc.id}.aiff`);
     const m4a = path.join(AUDIO, `${sc.id}.m4a`);
-    execFileSync("say", ["-v", VOICE, "-r", RATE, "-o", aiff, sc.narration]);
+    // Spoken pacing: a breath after each sentence and a short pause after colons/semicolons reads less like a machine.
+    const spoken = sc.narration.replace(/([.!?])\s+/g, "$1 [[slnc 380]] ").replace(/([:;])\s+/g, "$1 [[slnc 220]] ");
+    execFileSync("say", ["-v", VOICE, "-r", RATE, "-o", aiff, "[[slnc 250]] " + spoken]);
     execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", aiff, "-af", "afftdn=nf=-30,loudnorm=I=-16:TP=-1.5:LRA=11,apad=pad_dur=0.9", "-ar", "48000", "-ac", "2", "-c:a", "aac", "-b:a", "160k", m4a]);
     const dur = duration(m4a);
 
