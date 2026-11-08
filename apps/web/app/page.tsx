@@ -44,7 +44,6 @@ const FAQ = [
   { q: "Do you file my IFTA return?", a: "No. We prepare a worksheet with every number traced to its receipt and mileage record. You or your preparer file it. Nothing is filed, sent or paid without your approval." },
   { q: "What if a receipt is blurry or missing a field?", a: "The value is left empty and flagged. Our reviewer or you fill it in from the source. We never guess a number." },
   { q: "Which fuel cards and ELDs do you support?", a: "Any fuel-card statement export (Comdata, WEX/EFS, AtoB, TCS or a generic CSV) and any ELD jurisdiction-mileage report. Direct integrations come later." },
-  { q: "Is it available in Somali?", a: "Yes. The owner screens, notifications and report summaries are available in English and Somali." },
 ];
 
 /** Fictional fleet, the same figures as docs/05. */
@@ -93,7 +92,7 @@ export default function LandingPage() {
                   See how a quarter gets done
                 </LinkButton>
               </div>
-              <p className="mt-5 font-mono text-[12px] uppercase tracking-[0.1em] text-ink-3">1–10 truck fleets · English and Somali · nothing filed without your approval</p>
+              <p className="mt-5 font-mono text-[12px] uppercase tracking-[0.1em] text-ink-3">1–10 truck fleets · nothing filed without your approval</p>
             </Reveal>
 
             {/* Product proof card: what a quarter looks like inside */}

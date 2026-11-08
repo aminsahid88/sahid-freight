@@ -9,7 +9,7 @@ import { Plus, Truck, Users } from "lucide-react";
 import { backoffice, type Driver, type Vehicle } from "@/lib/backoffice";
 import { useCompanyStore } from "@/lib/company";
 import { formatApiError } from "@/lib/errors";
-import { useT } from "@/lib/useT";
+import { SOMALI_ENABLED, useT } from "@/lib/useT";
 import { Banner } from "@/components/ui/Banner";
 import { Button } from "@/components/ui/Button";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
@@ -157,10 +157,12 @@ function VehiclesContent() {
                       <option key={x.id} value={x.id}>#{x.unitNumber}</option>
                     ))}
                   </Select>
+                  {SOMALI_ENABLED && (
                   <Select label={t("vehicles.language")} value={d.language} onChange={(e) => setD({ ...d, language: e.target.value as "EN" | "SO" })}>
                     <option value="EN">English</option>
                     <option value="SO">Soomaali</option>
                   </Select>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <Button type="submit" loading={saving}>{t("common.save")}</Button>

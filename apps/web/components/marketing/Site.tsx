@@ -61,7 +61,6 @@ export function SiteFooter() {
       <div className="border-t border-line">
         <div className="mx-auto flex max-w-content flex-wrap items-center justify-between gap-2 px-5 py-4 text-xs text-ink-3">
           <span>© {new Date().getFullYear()} Sahid Freight</span>
-          <span>English · Soomaali</span>
         </div>
       </div>
     </footer>

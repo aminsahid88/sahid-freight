@@ -5,7 +5,8 @@
  */
 import { useEffect, useState } from "react";
 import { Plus, Sparkles, UserPlus } from "lucide-react";
-import { LOCALE_NAMES, LOCALES } from "@tbo/i18n";
+import { LOCALE_NAMES } from "@tbo/i18n";
+import { AVAILABLE_LOCALES } from "@/lib/useT";
 import { backoffice, type CompanyDetail, type CompanyRole, type Member } from "@/lib/backoffice";
 import { primaryRole, useCompanyStore } from "@/lib/company";
 import { formatApiError } from "@/lib/errors";
@@ -130,16 +131,18 @@ export default function SettingsPage() {
           </CardBody>
         </Card>
 
+        {AVAILABLE_LOCALES.length > 1 && (
         <Card>
           <CardHeader title={t("settings.language")} description={t("settings.languageHint")} />
           <CardBody className="flex gap-2">
-            {LOCALES.map((l) => (
+            {AVAILABLE_LOCALES.map((l) => (
               <button key={l} className={pill(locale === l)} onClick={() => setLocale(l)} aria-pressed={locale === l}>
                 {LOCALE_NAMES[l]}
               </button>
             ))}
           </CardBody>
         </Card>
+        )}
 
         <Card>
           <CardHeader title={t("settings.theme")} action={<Button size="sm" variant="ghost" icon={<Sparkles size={14} />} onClick={startTour}>{t("settings.takeTour")}</Button>} />

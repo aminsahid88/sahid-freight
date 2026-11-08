@@ -31,7 +31,6 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             ))}
           </ul>
         </div>
-        <p className="relative font-mono text-[11px] uppercase tracking-[0.12em] text-white/50">English · Soomaali</p>
       </aside>
       <main className="flex items-start justify-center px-5 py-10 lg:items-center lg:py-16">
         <div className="w-full max-w-[440px]">
