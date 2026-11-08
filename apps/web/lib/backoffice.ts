@@ -655,11 +655,15 @@ export function formatNumber(value: string | number | null | undefined, places =
   return new Intl.NumberFormat("en-US", { minimumFractionDigits: places, maximumFractionDigits: places }).format(n);
 }
 
+/** A calendar date with no time of day: "2026-10-02" or the API's midnight-UTC form of it. Shown as that day everywhere, never shifted by the viewer's time zone. */
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}(T00:00:00(\.000)?Z)?$/;
+
 export function formatDate(value: string | null | undefined, locale = "en-US"): string {
   if (!value) return "—";
+  const dateOnly = DATE_ONLY.test(value);
   const d = new Date(value.length === 10 ? `${value}T00:00:00Z` : value);
   if (Number.isNaN(d.getTime())) return value;
-  return d.toLocaleDateString(locale, { month: "short", day: "numeric", year: "numeric", timeZone: value.length === 10 ? "UTC" : undefined });
+  return d.toLocaleDateString(locale, { month: "short", day: "numeric", year: "numeric", timeZone: dateOnly ? "UTC" : undefined });
 }
 
 export function formatDateTime(value: string | null | undefined, locale = "en-US"): string {
