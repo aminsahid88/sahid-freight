@@ -7,10 +7,10 @@ export interface TabOption<T extends string> {
   count?: number;
 }
 
-/** Segmented filter pills (36px tall on desktop, 40px on touch). */
+/** Segmented control: a grey track with a raised white active segment. */
 export function Tabs<T extends string>({ value, options, onChange, ariaLabel }: { value: T; options: TabOption<T>[]; onChange: (v: T) => void; ariaLabel: string }) {
   return (
-    <div role="tablist" aria-label={ariaLabel} className="flex flex-wrap gap-2">
+    <div role="tablist" aria-label={ariaLabel} className="inline-flex max-w-full flex-wrap gap-1 rounded-[12px] bg-surface2 p-1">
       {options.map((o) => {
         const active = o.value === value;
         return (
@@ -19,10 +19,10 @@ export function Tabs<T extends string>({ value, options, onChange, ariaLabel }: 
             role="tab"
             aria-selected={active}
             onClick={() => onChange(o.value)}
-            className={`inline-flex h-9 items-center gap-1.5 rounded-full border px-3.5 text-[13px] font-semibold transition-colors ${active ? "border-accent bg-accent-dim text-accent" : "border-line bg-canvas text-ink-2 hover:bg-surface"}`}
+            className={`inline-flex h-8 items-center gap-1.5 rounded-[9px] px-3 text-[13px] font-semibold transition-[background-color,box-shadow,color] ${active ? "bg-canvas text-ink shadow-card" : "text-ink-2 hover:text-ink"}`}
           >
             {o.label}
-            {o.count !== undefined && <span className={`rounded-full px-1.5 text-[11px] tnum ${active ? "bg-accent text-white" : "bg-surface2 text-ink-3"}`}>{o.count}</span>}
+            {o.count !== undefined && <span className={`rounded-full px-1.5 text-[11px] tnum ${active ? "bg-accent-dim text-accent" : "bg-canvas/70 text-ink-3"}`}>{o.count}</span>}
           </button>
         );
       })}

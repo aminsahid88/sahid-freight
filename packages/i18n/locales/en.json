@@ -10,7 +10,10 @@
     "settings": "Settings",
     "signOut": "Sign out",
     "comingSoon": "Coming in Phase 1",
-    "more": "More"
+    "more": "More",
+    "groupWork": "Work",
+    "groupCompliance": "Compliance",
+    "groupSetup": "Setup"
   },
   "status": {
     "verified": "Verified",
@@ -44,7 +47,22 @@
     "reviewItems": "Review {count} item(s)",
     "uploadReceipts": "Upload this week's receipts",
     "openIfta": "Open the IFTA workspace",
-    "fleet": "Fleet"
+    "fleet": "Fleet",
+    "gettingStarted": "Getting started",
+    "gettingStartedHint": "Five steps and your first quarter runs itself.",
+    "stepTrucks": "Add your trucks",
+    "stepTrucksHint": "Unit numbers so receipts land on the right truck",
+    "stepReceipts": "Upload the first receipts",
+    "stepReceiptsHint": "Drop a batch in the Inbox or send from the phone",
+    "stepCard": "Import a fuel-card statement",
+    "stepCardHint": "Card rows corroborate the receipts",
+    "stepMileage": "Import ELD mileage",
+    "stepMileageHint": "Jurisdiction miles for the IFTA worksheet",
+    "stepTeam": "Invite your office or reviewer",
+    "stepTeamHint": "Office staff, a reviewer, drivers",
+    "dismiss": "Hide this",
+    "completed": "{done} of {total} done",
+    "takeTour": "Take the tour"
   },
   "upload": {
     "title": "Upload documents",
@@ -249,7 +267,8 @@
     "languageHint": "Applies to your screens and notifications.",
     "system": "Automatic",
     "about": "This app",
-    "pendingUploads": "{count} upload(s) waiting on this phone"
+    "pendingUploads": "{count} upload(s) waiting on this phone",
+    "takeTour": "Take the tour again"
   },
   "auth": {
     "signInRequired": "Please sign in to continue.",
@@ -595,5 +614,45 @@
     "quantity": "Quantity",
     "unit_price": "Unit price",
     "amount": "Amount"
+  },
+  "tour": {
+    "progress": "{n} of {total}",
+    "next": "Next",
+    "back": "Back",
+    "skip": "Skip the tour",
+    "finish": "Done",
+    "again": "Take the tour again",
+    "welcome": {
+      "title": "Welcome to your back office",
+      "body": "Two minutes to see where things live. Receipts come in, we read and check them, you approve what needs you, and the quarter's IFTA numbers are ready for your preparer."
+    },
+    "inbox": {
+      "title": "Inbox: where paperwork arrives",
+      "body": "Drop receipts here, or let drivers send them from their phone. Each one is stored unchanged with a fingerprint and read twice by AI."
+    },
+    "transactions": {
+      "title": "Transactions: the ledger",
+      "body": "Every fuel purchase and expense, linked to its receipt. Open one to see both reads, the final value and who changed what."
+    },
+    "review": {
+      "title": "Review: only what needs you",
+      "body": "Anything the checks flagged waits here, sorted by deadline. Accept a read, type a value, or mark it unreadable. Nothing is invented."
+    },
+    "ifta": {
+      "title": "Fuel & IFTA: the quarter",
+      "body": "Import your fuel-card statement and ELD mileage. Fuel by state, miles by jurisdiction and the worksheet live here."
+    },
+    "reports": {
+      "title": "Reports: what you hand over",
+      "body": "Transactions CSV and the IFTA worksheet, each stamped with a snapshot hash and labelled preliminary until reviewed."
+    },
+    "vehicles": {
+      "title": "Vehicles & Drivers: set up once",
+      "body": "Add your trucks and the drivers who send receipts so every purchase lands on the right unit."
+    },
+    "done": {
+      "title": "You are set",
+      "body": "Start by adding your trucks, then upload this week's receipts. The checklist on Home keeps track."
+    }
   }
 }

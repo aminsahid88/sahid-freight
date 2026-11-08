@@ -77,7 +77,7 @@ export default function SignUpPage() {
       });
       setAuth(res.data.user, res.data.accessToken, res.data.refreshToken);
       await backoffice.createCompany({ legalName: form.companyName.trim(), iftaBaseJurisdiction: form.state, language: locale === "so" ? "SO" : "EN" });
-      router.replace("/office/vehicles?welcome=1");
+      router.replace("/office?welcome=1");
     } catch (err) {
       setError(formatApiError(err, t("common.error"), "auth"));
     } finally {
@@ -87,7 +87,7 @@ export default function SignUpPage() {
 
   return (
     <>
-      <h1 className="text-2xl font-extrabold tracking-tight text-ink">{t("auth.signUpTitle")}</h1>
+      <h1 className="text-[24px] font-semibold text-ink display">{t("auth.signUpTitle")}</h1>
       <p className="mt-1 text-sm text-ink-2">{t("auth.signUpSubtitle")}</p>
       <ol className="mt-5 flex items-center gap-2 text-xs font-semibold text-ink-3" aria-label="Steps">
         {(["email", "code", "details"] as Step[]).map((s, i) => (

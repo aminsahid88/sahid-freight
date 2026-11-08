@@ -138,7 +138,7 @@ export default function InboxPage() {
       >
         <input ref={inputRef} type="file" multiple accept={ACCEPT} className="hidden" onChange={(e) => e.target.files && onFiles(e.target.files)} />
         <UploadCloud size={28} className="mx-auto mb-2 text-accent" />
-        <div className="text-[15px] font-bold text-ink">{uploading ? t("inbox.uploading", { count: uploading }) : t("inbox.dropHere")}</div>
+        <div className="text-[15px] font-semibold text-ink">{uploading ? t("inbox.uploading", { count: uploading }) : t("inbox.dropHere")}</div>
         <div className="mt-1 text-xs text-ink-3">{t("inbox.accepted", { max: MAX_MB })}</div>
         {uploading > 0 && (
           <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-surface2" aria-label={`${progress}%`}>
@@ -236,7 +236,7 @@ function DocumentDrawer({ companyId, id, onClose }: { companyId: string; id: str
             <Pill label={t(`docStatus.${d.status}`)} tone={DOCUMENT_TONES[d.status] ?? "grey"} />
             {d.isExactDuplicateOf && <Pill label={t("inbox.duplicate")} tone="amber" />}
           </div>
-          <div className="mb-4 flex min-h-[240px] items-center justify-center overflow-hidden rounded-card border border-line bg-surface2">
+          <div className="mb-4 flex min-h-[240px] items-center justify-center overflow-hidden rounded-card bg-surface2">
             {previewable && d.mimeType === "application/pdf" ? (
               <iframe title={d.filename} src={data!.signedUrl!} className="h-[480px] w-full border-0 bg-white" />
             ) : previewable ? (
@@ -252,7 +252,7 @@ function DocumentDrawer({ companyId, id, onClose }: { companyId: string; id: str
           <DefinitionRow label={t("inbox.uploadedBy")} value={d.uploadedBy?.fullName ?? "—"} />
           <DefinitionRow label={t("inbox.retention")} value={new Date(d.retentionUntil).toLocaleDateString(intl, { timeZone: "UTC" })} />
 
-          <div className="mt-4 mb-1 text-[13px] font-bold text-ink">{t("inbox.extraction")}</div>
+          <div className="mt-4 mb-1 text-[13px] font-semibold text-ink">{t("inbox.extraction")}</div>
           <p className="mb-2 text-xs text-ink-3">{t("inbox.extractionHint")}</p>
           {!d.regions || d.regions.every((r) => r.runs.length === 0) ? (
             <p className="text-[13px] text-ink-3">{t("inbox.noRuns")}</p>
@@ -281,7 +281,7 @@ function DocumentDrawer({ companyId, id, onClose }: { companyId: string; id: str
           )}
           {d.issues.length > 0 && (
             <div className="mt-4">
-              <div className="mb-2 text-[13px] font-bold text-ink">{t("inbox.issues")}</div>
+              <div className="mb-2 text-[13px] font-semibold text-ink">{t("inbox.issues")}</div>
               {d.issues.map((i, idx) => (
                 <Banner key={idx} tone={i.severity === "ERROR" ? "danger" : i.severity === "WARNING" ? "warning" : "info"} className="mb-2">
                   <span className="inline-flex items-center gap-2">

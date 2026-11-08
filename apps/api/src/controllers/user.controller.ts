@@ -12,6 +12,7 @@ export const getMe = async (req: AuthRequest, res: Response) => {
         status: true, country: true, city: true, preferredLanguage: true,
         profilePhoto: true, isVerified: true, createdAt: true,
         senderProfile: true, truckOwnerProfile: true,
+              onboarding: true,
       },
     });
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -24,15 +25,25 @@ export const getMe = async (req: AuthRequest, res: Response) => {
 
 export const updateMe = async (req: AuthRequest, res: Response) => {
   try {
-    const { fullName, city, country } = req.body;
+    const { fullName, city, country, onboarding } = req.body;
+    // onboarding is a small merge-only JSON object ({tourDoneAt, checklistDismissedAt}); other keys are ignored.
+    let onboardingPatch: Record<string, string | null> | undefined;
+    if (onboarding && typeof onboarding === "object") {
+      const current = ((await prisma.user.findUnique({ where: { id: req.user!.userId }, select: { onboarding: true } }))?.onboarding ?? {}) as Record<string, string | null>;
+      onboardingPatch = { ...current };
+      for (const key of ["tourDoneAt", "checklistDismissedAt"]) {
+        if (key in onboarding) onboardingPatch[key] = onboarding[key] === null ? null : String(onboarding[key]).slice(0, 40);
+      }
+    }
     const user = await prisma.user.update({
       where: { id: req.user!.userId },
       data: {
         ...(fullName && { fullName }),
         ...(city && { city }),
         ...(country && { country }),
+        ...(onboardingPatch && { onboarding: onboardingPatch }),
       },
-      select: { id: true, fullName: true, phone: true, role: true, status: true, country: true, city: true },
+      select: { id: true, fullName: true, phone: true, role: true, status: true, country: true, city: true, onboarding: true },
     });
     return res.status(200).json({ message: "Profile updated", user });
   } catch (error) {

@@ -10,7 +10,10 @@
     "settings": "Dejinta",
     "signOut": "Ka bax",
     "comingSoon": "Wuxuu imanayaa Marxaladda 1",
-    "more": "Kale"
+    "more": "Kale",
+    "groupWork": "Shaqo",
+    "groupCompliance": "Waafaqsanaan",
+    "groupSetup": "Dejin"
   },
   "status": {
     "verified": "La xaqiijiyay",
@@ -44,7 +47,22 @@
     "reviewItems": "Dib u eeg {count} shay",
     "uploadReceipts": "Soo geli rasiidhada toddobaadkan",
     "openIfta": "Fur goobta shaqada IFTA",
-    "fleet": "Gawaarida"
+    "fleet": "Gawaarida",
+    "gettingStarted": "Bilowga",
+    "gettingStartedHint": "Shan tallaabo, rubucaaga koowaadna iskiis ayuu u socdaa.",
+    "stepTrucks": "Ku dar gawaaridaada",
+    "stepTrucksHint": "Lambarrada gawaarida si rasiidhadu ugu dhacaan gaariga saxda ah",
+    "stepReceipts": "Soo geli rasiidhada ugu horreeya",
+    "stepReceiptsHint": "Ku rid koox Inbox-ka ama taleefanka ka dir",
+    "stepCard": "Soo geli warbixinta kaadhka shidaalka",
+    "stepCardHint": "Safafka kaadhku waxay xaqiijiyaan rasiidhada",
+    "stepMileage": "Soo geli masaafada ELD",
+    "stepMileageHint": "Maylka xukun kasta ee warqadda IFTA",
+    "stepTeam": "Ku casuumo xafiiskaaga ama dib-u-eegaha",
+    "stepTeamHint": "Shaqaalaha xafiiska, dib-u-eege, darawallo",
+    "dismiss": "Qari tan",
+    "completed": "{done} ka mid ah {total} ayaa la dhammeeyay",
+    "takeTour": "Dalxiiska qaado"
   },
   "upload": {
     "title": "Soo geli dukumentiyo",
@@ -249,7 +267,8 @@
     "languageHint": "Waxay khuseysaa shaashadahaaga iyo ogeysiisyadaada.",
     "system": "Otomaatig",
     "about": "App-kan",
-    "pendingUploads": "{count} soo gelin ayaa taleefankan ku sugaya"
+    "pendingUploads": "{count} soo gelin ayaa taleefankan ku sugaya",
+    "takeTour": "Mar kale dalxiiska qaado"
   },
   "auth": {
     "signInRequired": "Fadlan gal si aad u sii wadato.",
@@ -595,5 +614,45 @@
     "quantity": "Tiro",
     "unit_price": "Qiimaha halbeegga",
     "amount": "Lacagta"
+  },
+  "tour": {
+    "progress": "{n} ka mid ah {total}",
+    "next": "Xiga",
+    "back": "Dib",
+    "skip": "Ka bood dalxiiska",
+    "finish": "Dhammaystir",
+    "again": "Mar kale dalxiiska qaado",
+    "welcome": {
+      "title": "Ku soo dhawoow xafiiskaaga",
+      "body": "Laba daqiiqo si aad u aragto meesha wax kastaa ku yaal. Rasiidhadu way imaanayaan, annagaa akhrinna oo hubinna, adigaa oggolaanaya waxa kuu baahan, tirooyinka IFTA ee rubucuna diyaar bay u yihiin diyaariyahaaga."
+    },
+    "inbox": {
+      "title": "Inbox: halka warqaduhu yimaadaan",
+      "body": "Halkan ku rid rasiidhada, ama u oggolow darawallada inay taleefankooda ka soo diraan. Mid kastaa waa la kaydiyaa isagoo aan la beddelin, faraha ayaa lagu saaraa, laba jeerna AI ayaa akhriya."
+    },
+    "transactions": {
+      "title": "Dhaqdhaqaaqyada: buugga xisaabta",
+      "body": "Shidaal kasta iyo kharash kasta, oo ku xiran rasiidkiisa. Fur mid si aad u aragto labada akhris, qiimaha kama dambaysta ah iyo cidda wax beddeshay."
+    },
+    "review": {
+      "title": "Dib-u-eegis: waxa kuu baahan oo keliya",
+      "body": "Wax kasta oo hubinnadu calaamadeeyeen halkan ayay ku sugayaan, waqtiga ugu dambeeya ayaa lagu kala horreysiiyaa. Aqbal akhris, qor qiime, ama calaamadee inaan la akhrin karin. Waxba lama hindiso."
+    },
+    "ifta": {
+      "title": "Shidaal & IFTA: rubuc-sanadka",
+      "body": "Soo geli warbixinta kaadhka shidaalka iyo masaafada ELD. Shidaalka gobol kasta, maylka xukun kasta iyo warqadda xisaabta halkan ayay ku jiraan."
+    },
+    "reports": {
+      "title": "Warbixinno: waxa aad gacanta ku dhiibto",
+      "body": "CSV-ga dhaqdhaqaaqyada iyo warqadda IFTA, mid kastaa wuxuu leeyahay hash sawir-qaad ah waxaana lagu calaamadeeyaa horudhac ilaa la eego."
+    },
+    "vehicles": {
+      "title": "Gawaarida & Darawallada: hal mar dejiso",
+      "body": "Ku dar gawaaridaada iyo darawallada rasiidhada soo dira si iibsasho kastaa ugu dhacdo gaariga saxda ah."
+    },
+    "done": {
+      "title": "Diyaar baad tahay",
+      "body": "Ku bilow ku darista gawaaridaada, kadibna soo geli rasiidhada toddobaadkan. Liiska hubinta ee Guriga ayaa raadraacaya."
+    }
   }
 }

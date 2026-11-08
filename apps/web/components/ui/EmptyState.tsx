@@ -2,11 +2,11 @@ import type { ReactNode } from "react";
 
 export function EmptyState({ icon, title, description, action, className = "" }: { icon?: ReactNode; title: ReactNode; description?: ReactNode; action?: ReactNode; className?: string }) {
   return (
-    <div className={`flex flex-col items-center justify-center text-center px-6 py-14 ${className}`}>
-      {icon && <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-surface2 text-ink-2">{icon}</div>}
-      <div className="text-[15px] font-bold text-ink">{title}</div>
-      {description && <p className="mt-1 max-w-sm text-[13px] text-ink-2">{description}</p>}
-      {action && <div className="mt-4">{action}</div>}
+    <div className={`flex flex-col items-center justify-center px-6 py-16 text-center ${className}`}>
+      {icon && <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-[14px] bg-gradient-to-b from-surface2 to-canvas text-accent shadow-card">{icon}</div>}
+      <div className="text-[15px] font-semibold text-ink display">{title}</div>
+      {description && <p className="mt-1.5 max-w-sm text-[13px] leading-relaxed text-ink-2">{description}</p>}
+      {action && <div className="mt-5">{action}</div>}
     </div>
   );
 }

@@ -4,13 +4,14 @@
  * and the inbound email address for forwarding receipts.
  */
 import { useEffect, useState } from "react";
-import { Plus, UserPlus } from "lucide-react";
+import { Plus, Sparkles, UserPlus } from "lucide-react";
 import { LOCALE_NAMES, LOCALES } from "@tbo/i18n";
 import { backoffice, type CompanyDetail, type CompanyRole, type Member } from "@/lib/backoffice";
 import { primaryRole, useCompanyStore } from "@/lib/company";
 import { formatApiError } from "@/lib/errors";
 import { useSettingsStore } from "@/lib/store";
 import { useT } from "@/lib/useT";
+import { startTour } from "@/components/office/Tour";
 import { Banner } from "@/components/ui/Banner";
 import { Button } from "@/components/ui/Button";
 import { Card, CardBody, CardHeader, DefinitionRow } from "@/components/ui/Card";
@@ -102,7 +103,7 @@ export default function SettingsPage() {
           <CardHeader title={t("settings.team")} description={t("settings.teamHint")} action={canManage ? <Button size="sm" icon={<Plus size={14} />} onClick={() => setShowInvite((s) => !s)}>{t("settings.addMember")}</Button> : undefined} />
           <CardBody>
             {showInvite && (
-              <form onSubmit={addMember} className="mb-4 grid gap-3 rounded-card border border-line bg-surface p-4">
+              <form onSubmit={addMember} className="mb-4 grid gap-3 rounded-card bg-surface p-4">
                 <Input label={t("auth.email")} type="email" required value={invite.email} onChange={(e) => setInvite({ ...invite, email: e.target.value })} hint={t("settings.memberHint")} />
                 <Select label={t("company.role")} value={invite.role} onChange={(e) => setInvite({ ...invite, role: e.target.value as CompanyRole })}>
                   {ROLES.map((r) => (
@@ -119,7 +120,7 @@ export default function SettingsPage() {
               {members.map((m) => (
                 <li key={m.id} className="flex items-center justify-between gap-3 border-t border-line py-3 first:border-t-0">
                   <div className="min-w-0">
-                    <div className="text-sm font-bold text-ink">{m.user.fullName}</div>
+                    <div className="text-sm font-semibold text-ink">{m.user.fullName}</div>
                     <div className="truncate text-xs text-ink-3">{m.user.email ?? "—"}</div>
                   </div>
                   <Pill label={t(`role.${m.role}`)} tone={m.role === "OWNER" ? "blue" : "grey"} />
@@ -141,7 +142,7 @@ export default function SettingsPage() {
         </Card>
 
         <Card>
-          <CardHeader title={t("settings.theme")} />
+          <CardHeader title={t("settings.theme")} action={<Button size="sm" variant="ghost" icon={<Sparkles size={14} />} onClick={startTour}>{t("settings.takeTour")}</Button>} />
           <CardBody className="flex gap-2">
             <button className={pill(theme === "light")} onClick={() => setTheme("light")} aria-pressed={theme === "light"}>{t("settings.light")}</button>
             <button className={pill(theme === "dark")} onClick={() => setTheme("dark")} aria-pressed={theme === "dark"}>{t("settings.dark")}</button>

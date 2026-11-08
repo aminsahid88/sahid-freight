@@ -59,7 +59,7 @@ export default function LandingPage() {
               <CalendarClock size={14} className="text-accent" />
               Q4 2026 IFTA returns are due February 1, 2027
             </div>
-            <h1 className="text-[40px] font-extrabold leading-[1.05] tracking-[-0.02em] md:text-[60px]">
+            <h1 className="text-[40px] font-semibold leading-[1.05] display md:text-[60px]">
               Send us your paperwork.
               <br />
               <span className="text-accent">Get clean books and IFTA-ready numbers.</span>
@@ -86,9 +86,9 @@ export default function LandingPage() {
         <section className="border-y border-line bg-surface">
           <div className="mx-auto grid max-w-content gap-5 px-5 py-14 md:grid-cols-3">
             {PROMISES.map((p) => (
-              <div key={p.title} className="rounded-card border border-line bg-canvas p-6">
+              <div key={p.title} className="rounded-card bg-canvas shadow-card p-6">
                 <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-control bg-accent-dim text-accent">{p.icon}</div>
-                <h3 className="text-[17px] font-bold">{p.title}</h3>
+                <h3 className="text-[17px] font-semibold">{p.title}</h3>
                 <p className="mt-2 text-sm text-ink-2">{p.body}</p>
               </div>
             ))}
@@ -99,14 +99,14 @@ export default function LandingPage() {
         <section id="how" className="mx-auto max-w-content px-5 py-20">
           <div className="max-w-2xl">
             <div className="text-xs font-semibold uppercase tracking-wider text-accent">How it works</div>
-            <h2 className="mt-2 text-3xl font-extrabold tracking-tight md:text-4xl">A quarter, done in four steps</h2>
+            <h2 className="mt-2 text-3xl font-semibold display md:text-4xl">A quarter, done in four steps</h2>
             <p className="mt-3 text-ink-2">You spend minutes, not weekends. We handle the sorting, the checking and the math.</p>
           </div>
           <ol className="mt-10 grid gap-5 md:grid-cols-4">
             {STEPS.map((s) => (
-              <li key={s.n} className="rounded-card border border-line p-6">
+              <li key={s.n} className="rounded-card bg-canvas shadow-card p-6">
                 <div className="font-mono text-xs font-semibold text-ink-3">{s.n}</div>
-                <div className="mt-2 text-lg font-bold">{s.title}</div>
+                <div className="mt-2 text-lg font-semibold">{s.title}</div>
                 <p className="mt-2 text-sm text-ink-2">{s.body}</p>
               </li>
             ))}
@@ -118,7 +118,7 @@ export default function LandingPage() {
           <div className="mx-auto grid max-w-content items-center gap-10 px-5 py-20 md:grid-cols-2">
             <div>
               <div className="text-xs font-semibold uppercase tracking-wider text-[#9BB8FF]">IFTA quarters</div>
-              <h2 className="mt-2 text-3xl font-extrabold tracking-tight md:text-4xl">Preparer-ready, every quarter</h2>
+              <h2 className="mt-2 text-3xl font-semibold display md:text-4xl">Preparer-ready, every quarter</h2>
               <p className="mt-4 text-[15px] text-[#C7D2E6]">
                 We combine verified fuel purchases with your ELD mileage by jurisdiction, apply the official rate table for the
                 quarter, and show every formula and rounding step. Reefer fuel and DEF are kept out of your taxable gallons.
@@ -166,14 +166,14 @@ export default function LandingPage() {
         {/* Who it's for */}
         <section className="mx-auto max-w-content px-5 py-20">
           <div className="grid gap-8 md:grid-cols-2">
-            <div className="rounded-card border border-line p-7">
+            <div className="rounded-card bg-canvas shadow-card p-7">
               <Inbox size={22} className="text-accent" />
-              <h3 className="mt-4 text-xl font-bold">Owner-operators and small fleets</h3>
+              <h3 className="mt-4 text-xl font-semibold">Owner-operators and small fleets</h3>
               <p className="mt-2 text-ink-2">Interstate carriers with 1–10 power units who do the paperwork themselves and would rather drive.</p>
             </div>
-            <div className="rounded-card border border-line p-7">
+            <div className="rounded-card bg-canvas shadow-card p-7">
               <BadgeCheck size={22} className="text-accent" />
-              <h3 className="mt-4 text-xl font-bold">Bookkeepers and IFTA services</h3>
+              <h3 className="mt-4 text-xl font-semibold">Bookkeepers and IFTA services</h3>
               <p className="mt-2 text-ink-2">Manage many carriers with clean, traceable paperwork. Partner access is coming after the pilot.</p>
             </div>
           </div>
@@ -184,18 +184,18 @@ export default function LandingPage() {
           <div className="mx-auto max-w-content px-5 py-20">
             <div className="max-w-2xl">
               <div className="text-xs font-semibold uppercase tracking-wider text-accent">Pilot pricing</div>
-              <h2 className="mt-2 text-3xl font-extrabold tracking-tight md:text-4xl">Priced like software, delivered like a service</h2>
+              <h2 className="mt-2 text-3xl font-semibold display md:text-4xl">Priced like software, delivered like a service</h2>
               <p className="mt-3 text-ink-2">Simple monthly plans during the pilot. No contracts. Cancel any time.</p>
             </div>
             <div className="mt-10 grid gap-5 md:grid-cols-3">
               {PLANS.map((p) => (
                 <div key={p.name} className={`rounded-card border bg-canvas p-6 ${p.featured ? "border-accent ring-1 ring-accent" : "border-line"}`}>
                   <div className="flex items-center justify-between">
-                    <div className="text-lg font-bold">{p.name}</div>
+                    <div className="text-lg font-semibold">{p.name}</div>
                     <div className="text-xs font-semibold text-ink-3">{p.who}</div>
                   </div>
                   <div className="mt-4 flex items-baseline gap-1">
-                    <span className="text-4xl font-extrabold tracking-tight tnum">{p.price}</span>
+                    <span className="text-4xl font-semibold display tnum">{p.price}</span>
                     <span className="text-sm text-ink-2">{p.per}</span>
                   </div>
                   <p className="mt-3 text-sm text-ink-2">{p.note}</p>
@@ -211,11 +211,11 @@ export default function LandingPage() {
 
         {/* FAQ */}
         <section id="faq" className="mx-auto max-w-content px-5 py-20">
-          <h2 className="text-3xl font-extrabold tracking-tight md:text-4xl">Questions</h2>
+          <h2 className="text-3xl font-semibold display md:text-4xl">Questions</h2>
           <dl className="mt-8 grid gap-6 md:grid-cols-2">
             {FAQ.map((f) => (
-              <div key={f.q} className="rounded-card border border-line p-6">
-                <dt className="font-bold">{f.q}</dt>
+              <div key={f.q} className="rounded-card bg-canvas shadow-card p-6">
+                <dt className="font-semibold">{f.q}</dt>
                 <dd className="mt-2 text-sm text-ink-2">{f.a}</dd>
               </div>
             ))}
@@ -226,7 +226,7 @@ export default function LandingPage() {
         <section className="border-t border-line">
           <div className="mx-auto flex max-w-content flex-wrap items-center justify-between gap-6 px-5 py-16">
             <div>
-              <h2 className="text-2xl font-extrabold tracking-tight md:text-3xl">Start now and your quarter is ready before the deadline.</h2>
+              <h2 className="text-2xl font-semibold display md:text-3xl">Start now and your quarter is ready before the deadline.</h2>
               <p className="mt-2 text-ink-2">Set up takes ten minutes: your trucks, your drivers, and the first batch of receipts.</p>
             </div>
             <LinkButton href="/auth/sign-up" size="lg" icon={<ArrowRight size={18} />}>

@@ -39,7 +39,7 @@ function SignInForm() {
 
   return (
     <>
-      <h1 className="text-2xl font-extrabold tracking-tight text-ink">{t("auth.signInTitle")}</h1>
+      <h1 className="text-[24px] font-semibold text-ink display">{t("auth.signInTitle")}</h1>
       <p className="mt-1 text-sm text-ink-2">{t("auth.signInSubtitle")}</p>
       {reset && <Banner tone="success" className="mt-5">{t("auth.resetDone")}</Banner>}
       {error && <Banner tone="danger" className="mt-5">{error}</Banner>}

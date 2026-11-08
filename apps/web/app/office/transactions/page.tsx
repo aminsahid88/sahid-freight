@@ -118,7 +118,7 @@ export default function TransactionsPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-[13px]">
-              <thead className="bg-surface text-left text-xs font-semibold uppercase tracking-wide text-ink-3">
+              <thead className="thead">
                 <tr>
                   <th className="px-4 py-2.5">{t("transactions.date")}</th>
                   <th className="px-4 py-2.5">{t("transactions.vendor")}</th>
@@ -229,8 +229,8 @@ function TransactionDrawer({ companyId, id, onClose, onChanged }: { companyId: s
             <Pill label={t(`corroboration.${tx.corroboration}`)} tone="grey" />
           </div>
           {editing ? (
-            <form onSubmit={save} className="mb-4 flex flex-col gap-3 rounded-card border border-line bg-surface p-4">
-              <div className="text-[13px] font-bold text-ink">{t("review.correct")}: {t(`transactions.${editing}`)}</div>
+            <form onSubmit={save} className="mb-4 flex flex-col gap-3 rounded-card bg-surface p-4">
+              <div className="text-[13px] font-semibold text-ink">{t("review.correct")}: {t(`transactions.${editing}`)}</div>
               <Input label={t("review.newValue")} value={value} onChange={(e) => setValue(e.target.value)} autoFocus />
               <Textarea label={t("review.reason")} required minLength={3} value={reason} onChange={(e) => setReason(e.target.value)} />
               <div className="flex gap-2">
@@ -249,14 +249,14 @@ function TransactionDrawer({ companyId, id, onClose, onChanged }: { companyId: s
           {row("cardLast4", t("transactions.cardLast4"), tx.cardLast4 ? `****${tx.cardLast4}` : "—")}
           <DefinitionRow label={t("transactions.source")} value={tx.document ? <a className="font-semibold text-accent hover:underline" href={`/office/inbox?document=${tx.document.id}`}>{tx.document.filename}</a> : "—"} />
 
-          <div className="mt-5 mb-2 text-[13px] font-bold text-ink">{t("transactions.lines")}</div>
+          <div className="mt-5 mb-2 text-[13px] font-semibold text-ink">{t("transactions.lines")}</div>
           {tx.lines.length === 0 ? (
             <p className="text-[13px] text-ink-3">{t("transactions.noLines")}</p>
           ) : (
             <table className="w-full text-[13px]">
               <tbody>
                 {tx.lines.map((l) => (
-                  <tr key={l.id} className="border-t border-line">
+                  <tr key={l.id} className="row">
                     <td className="py-2 pr-2">
                       <div className="font-medium text-ink">{l.descriptionRaw}</div>
                       <div className="text-xs text-ink-3">{t(`lineCategory.${l.category}`)}</div>
@@ -271,11 +271,11 @@ function TransactionDrawer({ companyId, id, onClose, onChanged }: { companyId: s
 
           {tx.provenance?.fields && (
             <>
-              <div className="mt-5 mb-1 text-[13px] font-bold text-ink">{t("provenance.title")}</div>
+              <div className="mt-5 mb-1 text-[13px] font-semibold text-ink">{t("provenance.title")}</div>
               <p className="mb-2 text-xs text-ink-3">{t("provenance.hint")}</p>
               <div className="overflow-x-auto">
                 <table className="w-full text-xs">
-                  <thead className="text-left uppercase tracking-wide text-ink-3">
+                  <thead className="thead">
                     <tr>
                       <th className="py-1 pr-2">{t("provenance.field")}</th>
                       <th className="py-1 pr-2">{t("provenance.passA")}</th>
@@ -304,7 +304,7 @@ function TransactionDrawer({ companyId, id, onClose, onChanged }: { companyId: s
 
           {tx.issues && tx.issues.length > 0 && (
             <>
-              <div className="mt-5 mb-2 text-[13px] font-bold text-ink">{t("inbox.issues")}</div>
+              <div className="mt-5 mb-2 text-[13px] font-semibold text-ink">{t("inbox.issues")}</div>
               {tx.issues.map((i) => (
                 <Banner key={i.id} tone={i.severity === "ERROR" ? "danger" : i.severity === "WARNING" ? "warning" : "info"} className="mb-2">
                   <strong>{i.code}</strong> · {i.message} {i.status !== "OPEN" && <span className="text-xs">({t(`issueStatus.${i.status}`)})</span>}
@@ -315,7 +315,7 @@ function TransactionDrawer({ companyId, id, onClose, onChanged }: { companyId: s
 
           {tx.fieldEdits && tx.fieldEdits.length > 0 && (
             <>
-              <div className="mt-5 mb-2 flex items-center gap-2 text-[13px] font-bold text-ink">
+              <div className="mt-5 mb-2 flex items-center gap-2 text-[13px] font-semibold text-ink">
                 <History size={14} /> {t("transactions.history")}
               </div>
               <ul className="text-[13px]">

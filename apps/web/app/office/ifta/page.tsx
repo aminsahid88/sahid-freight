@@ -134,7 +134,7 @@ export default function IftaPage() {
                   <EmptyState icon={<Fuel size={18} />} title={t("ifta.noFuel")} description={t("ifta.noFuelHint")} className="py-8" />
                 ) : (
                   <table className="w-full text-[13px]">
-                    <thead className="text-left text-xs uppercase tracking-wide text-ink-3">
+                    <thead className="thead">
                       <tr>
                         <th className="py-1.5">{t("transactions.state")}</th>
                         <th className="py-1.5 text-right">{t("ifta.gallons")}</th>
@@ -144,7 +144,7 @@ export default function IftaPage() {
                     </thead>
                     <tbody>
                       {summary.fuelByState.map((s) => (
-                        <tr key={s.state} className="border-t border-line">
+                        <tr key={s.state} className="row">
                           <td className="py-2 font-semibold">{s.state}</td>
                           <td className="py-2 text-right tnum">{formatNumber(s.motorFuelGallons)}</td>
                           <td className="py-2 text-right tnum">{formatMoney(s.motorFuelAmount)}</td>
@@ -176,7 +176,7 @@ export default function IftaPage() {
                   <EmptyState icon={<Route size={18} />} title={t("ifta.noMileage")} description={t("ifta.noMileageHint")} className="py-8" />
                 ) : mileageView === "jurisdiction" ? (
                   <table className="w-full text-[13px]">
-                    <thead className="text-left text-xs uppercase tracking-wide text-ink-3">
+                    <thead className="thead">
                       <tr>
                         <th className="py-1.5">{t("ifta.jurisdiction")}</th>
                         <th className="py-1.5 text-right">{t("ifta.totalMiles")}</th>
@@ -185,7 +185,7 @@ export default function IftaPage() {
                     </thead>
                     <tbody>
                       {mileageByJur.map((j) => (
-                        <tr key={j.jurisdiction} className="border-t border-line">
+                        <tr key={j.jurisdiction} className="row">
                           <td className="py-2 font-semibold">{j.jurisdiction}</td>
                           <td className="py-2 text-right tnum">{formatNumber(j.totalMiles, 0)}</td>
                           <td className="py-2 text-right tnum">{formatNumber(j.taxableMiles, 0)}</td>
@@ -195,7 +195,7 @@ export default function IftaPage() {
                   </table>
                 ) : (
                   <table className="w-full text-[13px]">
-                    <thead className="text-left text-xs uppercase tracking-wide text-ink-3">
+                    <thead className="thead">
                       <tr>
                         <th className="py-1.5">{t("mileage.truck")}</th>
                         <th className="py-1.5">{t("mileage.states")}</th>
@@ -205,7 +205,7 @@ export default function IftaPage() {
                     </thead>
                     <tbody>
                       {mileageByVehicle.map((v) => (
-                        <tr key={v.vehicleId} className="border-t border-line">
+                        <tr key={v.vehicleId} className="row">
                           <td className="py-2 font-semibold">{v.unitNumber}</td>
                           <td className="py-2 text-ink-2">{v.jurisdictions.join(", ")}</td>
                           <td className="py-2 text-right tnum">{formatNumber(v.totalMiles, 0)}</td>
@@ -246,7 +246,7 @@ export default function IftaPage() {
                 <>
                   <div className="overflow-x-auto">
                     <table className="w-full text-[13px]">
-                      <thead className="text-left text-xs uppercase tracking-wide text-ink-3">
+                      <thead className="thead">
                         <tr>
                           <th className="py-1.5">{t("ifta.jurisdiction")}</th>
                           <th className="py-1.5 text-right">{t("ifta.taxableMiles")}</th>
@@ -259,7 +259,7 @@ export default function IftaPage() {
                       </thead>
                       <tbody>
                         {ws.data.worksheet.rows.map((r) => (
-                          <tr key={r.jurisdiction} className="border-t border-line">
+                          <tr key={r.jurisdiction} className="row">
                             <td className="py-2 font-semibold">{r.jurisdiction}</td>
                             <td className="py-2 text-right tnum">{formatNumber(r.taxableMiles, 0)}</td>
                             <td className="py-2 text-right tnum">{formatNumber(r.gallonsConsumed)}</td>
@@ -271,7 +271,7 @@ export default function IftaPage() {
                         ))}
                       </tbody>
                       <tfoot>
-                        <tr className="border-t-2 border-line font-bold">
+                        <tr className="border-t-2 border-line font-semibold">
                           <td className="py-2">{t("ifta.fleet")}</td>
                           <td className="py-2 text-right tnum">{formatNumber(ws.data.worksheet.totals.totalMiles, 0)}</td>
                           <td className="py-2 text-right tnum" colSpan={2}>{t("ifta.mpg", { mpg: ws.data.worksheet.fleetMpg ?? "—" })}</td>

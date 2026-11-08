@@ -1,58 +1,89 @@
 "use client";
 /**
- * Back-office shell. Desktop: fixed sidebar with the eight sections from the
- * brief. Phone: top bar with the company picker and a five-item bottom tab bar
+ * Back-office shell. Desktop: light sidebar with the sections grouped
+ * (Work / Compliance / Setup), company switcher, and the signed-in user.
+ * Phone: top bar with the company picker and a five-item bottom tab bar
  * (the rest under "More"). One primary action per screen lives in the pages.
+ * Elements carry data-tour ids for the first-run tour.
  */
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Building2, ChevronDown, ClipboardCheck, FileBarChart, FileSearch, Fuel, Home, Inbox, LogOut, Menu, Settings, Truck, X } from "lucide-react";
 import { useAuthStore } from "@/lib/store";
-import { type SelectedCompany, useCompanyStore } from "@/lib/company";
+import { primaryRole, type SelectedCompany, useCompanyStore } from "@/lib/company";
 import { backoffice } from "@/lib/backoffice";
 import { useT } from "@/lib/useT";
 import { useIsClient, useIsMobile } from "@/lib/useViewport";
 import { formatApiError } from "@/lib/errors";
 import { Logo } from "@/components/ui/Logo";
 import { Banner } from "@/components/ui/Banner";
+import { Tour } from "@/components/office/Tour";
 
 interface NavItem {
   href: string;
   key: string;
   icon: React.ReactNode;
+  tour: string;
 }
 
-const NAV: NavItem[] = [
-  { href: "/office", key: "nav.home", icon: <Home size={18} /> },
-  { href: "/office/inbox", key: "nav.inbox", icon: <Inbox size={18} /> },
-  { href: "/office/transactions", key: "nav.transactions", icon: <FileSearch size={18} /> },
-  { href: "/office/review", key: "nav.review", icon: <ClipboardCheck size={18} /> },
-  { href: "/office/ifta", key: "nav.fuelIfta", icon: <Fuel size={18} /> },
-  { href: "/office/reports", key: "nav.reports", icon: <FileBarChart size={18} /> },
-  { href: "/office/vehicles", key: "nav.vehicles", icon: <Truck size={18} /> },
-  { href: "/office/settings", key: "nav.settings", icon: <Settings size={18} /> },
+const GROUPS: Array<{ key: string; items: NavItem[] }> = [
+  {
+    key: "nav.groupWork",
+    items: [
+      { href: "/office", key: "nav.home", icon: <Home size={17} />, tour: "nav-home" },
+      { href: "/office/inbox", key: "nav.inbox", icon: <Inbox size={17} />, tour: "nav-inbox" },
+      { href: "/office/transactions", key: "nav.transactions", icon: <FileSearch size={17} />, tour: "nav-transactions" },
+      { href: "/office/review", key: "nav.review", icon: <ClipboardCheck size={17} />, tour: "nav-review" },
+    ],
+  },
+  {
+    key: "nav.groupCompliance",
+    items: [
+      { href: "/office/ifta", key: "nav.fuelIfta", icon: <Fuel size={17} />, tour: "nav-ifta" },
+      { href: "/office/reports", key: "nav.reports", icon: <FileBarChart size={17} />, tour: "nav-reports" },
+    ],
+  },
+  {
+    key: "nav.groupSetup",
+    items: [
+      { href: "/office/vehicles", key: "nav.vehicles", icon: <Truck size={17} />, tour: "nav-vehicles" },
+      { href: "/office/settings", key: "nav.settings", icon: <Settings size={17} />, tour: "nav-settings" },
+    ],
+  },
 ];
+const NAV: NavItem[] = GROUPS.flatMap((g) => g.items);
 const MOBILE_PRIMARY = ["/office", "/office/inbox", "/office/review", "/office/ifta"];
 
-function CompanyPicker({ selected, list, loaded, onSelect, dark }: { selected: SelectedCompany | null; list: SelectedCompany[]; loaded: boolean; onSelect: (id: string) => void; dark?: boolean }) {
+function initials(name: string | undefined): string {
+  return (name ?? "")
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0]!.toUpperCase())
+    .join("");
+}
+
+function CompanyPicker({ selected, list, loaded, onSelect }: { selected: SelectedCompany | null; list: SelectedCompany[]; loaded: boolean; onSelect: (id: string) => void }) {
   const { t } = useT();
   const [open, setOpen] = useState(false);
   const label = selected ? selected.company.dba || selected.company.legalName : loaded ? t("company.noCompany") : t("common.loading");
   return (
-    <div className="relative">
+    <div className="relative" data-tour="company">
       <button
         onClick={() => list.length > 1 && setOpen((v) => !v)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className={`flex w-full items-center gap-2.5 rounded-control border px-3 py-2.5 text-left text-[13px] font-semibold ${dark ? "border-sidebar-line bg-sidebar-active text-sidebar-text" : "border-line bg-canvas text-ink"}`}
+        className="flex w-full items-center gap-2.5 rounded-control bg-surface2 px-3 py-2.5 text-left text-[13px] font-semibold text-ink transition-colors hover:bg-line"
       >
-        <Building2 size={16} className="shrink-0" />
+        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-canvas text-ink-2 shadow-card">
+          <Building2 size={13} />
+        </span>
         <span className="min-w-0 flex-1 truncate">{label}</span>
-        {list.length > 1 && <ChevronDown size={14} className="shrink-0" />}
+        {list.length > 1 && <ChevronDown size={14} className="shrink-0 text-ink-3" />}
       </button>
       {open && (
-        <div role="listbox" className="absolute left-0 right-0 top-[calc(100%+6px)] z-[300] overflow-hidden rounded-control border border-line bg-canvas shadow-dropdown">
+        <div role="listbox" className="absolute left-0 right-0 top-[calc(100%+6px)] z-[300] overflow-hidden rounded-control bg-canvas p-1 shadow-dropdown">
           {list.map((c) => (
             <button
               key={c.company.id}
@@ -62,7 +93,7 @@ function CompanyPicker({ selected, list, loaded, onSelect, dark }: { selected: S
                 onSelect(c.company.id);
                 setOpen(false);
               }}
-              className={`block w-full px-3 py-2.5 text-left text-[13px] text-ink hover:bg-surface ${selected?.company.id === c.company.id ? "bg-accent-dim" : ""}`}
+              className={`block w-full rounded-[8px] px-3 py-2 text-left text-[13px] text-ink hover:bg-surface ${selected?.company.id === c.company.id ? "bg-accent-dim font-semibold text-accent" : ""}`}
             >
               {c.company.dba || c.company.legalName}
               {c.company.isDemo && <span className="ml-2 text-[11px] text-ink-3">{t("app.demo")}</span>}
@@ -104,10 +135,16 @@ export default function OfficeLayout({ children }: { children: React.ReactNode }
   if (!isClient) return null;
 
   const isActive = (href: string) => (href === "/office" ? pathname === "/office" : pathname.startsWith(href));
+  const role = selected ? primaryRole(selected.roles) : null;
   const content = (
     <>
       {error && <Banner tone="danger" className="mb-4">{error}</Banner>}
       {children}
+      {selected && (
+        <Suspense fallback={null}>
+          <Tour />
+        </Suspense>
+      )}
     </>
   );
 
@@ -116,39 +153,39 @@ export default function OfficeLayout({ children }: { children: React.ReactNode }
     const more = NAV.filter((n) => !MOBILE_PRIMARY.includes(n.href));
     return (
       <div className="min-h-screen bg-surface">
-        <header className="fixed inset-x-0 top-0 z-[200] flex h-14 items-center gap-2 bg-sidebar px-3 text-sidebar-text">
+        <header className="fixed inset-x-0 top-0 z-[200] flex h-14 items-center gap-2 border-b border-line bg-canvas px-3">
           <div className="min-w-0 flex-1">
-            <CompanyPicker selected={selected} list={list} loaded={loaded} onSelect={select} dark />
+            <CompanyPicker selected={selected} list={list} loaded={loaded} onSelect={select} />
           </div>
-          <button aria-label={t("nav.settings")} onClick={() => router.push("/office/settings")} className="flex h-9 w-9 items-center justify-center rounded-control bg-accent text-sm font-bold text-white">
-            {user?.fullName?.charAt(0)}
+          <button aria-label={t("nav.settings")} onClick={() => router.push("/office/settings")} className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-dim text-[12px] font-bold text-accent">
+            {initials(user?.fullName)}
           </button>
         </header>
         <main className="px-4 pb-24 pt-[72px]">{content}</main>
-        <nav className="fixed inset-x-0 bottom-0 z-[200] flex h-16 items-center justify-around border-t border-sidebar-line bg-sidebar pb-[env(safe-area-inset-bottom)]" aria-label="Main">
+        <nav className="fixed inset-x-0 bottom-0 z-[200] flex h-16 items-center justify-around border-t border-line bg-canvas pb-[env(safe-area-inset-bottom)]" aria-label="Main">
           {primary.map((item) => (
-            <Link key={item.href} href={item.href} aria-current={isActive(item.href) ? "page" : undefined} className={`flex min-h-12 min-w-14 flex-col items-center justify-center gap-0.5 ${isActive(item.href) ? "text-white" : "text-sidebar-muted"}`}>
+            <Link key={item.href} href={item.href} data-tour={item.tour} aria-current={isActive(item.href) ? "page" : undefined} className={`flex min-h-12 min-w-14 flex-col items-center justify-center gap-0.5 ${isActive(item.href) ? "text-accent" : "text-ink-3"}`}>
               {item.icon}
               <span className={`text-[10px] ${isActive(item.href) ? "font-bold" : "font-medium"}`}>{t(item.key)}</span>
             </Link>
           ))}
-          <button onClick={() => setMoreOpen(true)} className={`flex min-h-12 min-w-14 flex-col items-center justify-center gap-0.5 ${more.some((m) => isActive(m.href)) ? "text-white" : "text-sidebar-muted"}`} aria-haspopup="dialog">
+          <button onClick={() => setMoreOpen(true)} className={`flex min-h-12 min-w-14 flex-col items-center justify-center gap-0.5 ${more.some((m) => isActive(m.href)) ? "text-accent" : "text-ink-3"}`} aria-haspopup="dialog">
             <Menu size={18} />
             <span className="text-[10px] font-medium">{t("nav.more")}</span>
           </button>
         </nav>
         {moreOpen && (
-          <div role="dialog" aria-modal className="fixed inset-0 z-[300] flex items-end bg-[rgba(15,23,42,0.5)]" onClick={() => setMoreOpen(false)}>
-            <div className="w-full rounded-t-2xl bg-canvas p-4 pb-[calc(16px+env(safe-area-inset-bottom))]" onClick={(e) => e.stopPropagation()}>
+          <div role="dialog" aria-modal className="fixed inset-0 z-[300] flex items-end bg-[rgba(12,18,34,0.45)] backdrop-blur-[2px]" onClick={() => setMoreOpen(false)}>
+            <div className="w-full rounded-t-card bg-canvas p-4 pb-[calc(16px+env(safe-area-inset-bottom))] shadow-panel" onClick={(e) => e.stopPropagation()}>
               <div className="mb-2 flex items-center justify-between">
-                <div className="text-sm font-bold text-ink">{t("nav.more")}</div>
-                <button onClick={() => setMoreOpen(false)} aria-label="Close" className="flex h-9 w-9 items-center justify-center rounded-control border border-line text-ink-2">
+                <div className="text-sm font-semibold text-ink">{t("nav.more")}</div>
+                <button onClick={() => setMoreOpen(false)} aria-label="Close" className="flex h-9 w-9 items-center justify-center rounded-control text-ink-2 hover:bg-surface2">
                   <X size={16} />
                 </button>
               </div>
               {more.map((item) => (
                 <Link key={item.href} href={item.href} onClick={() => setMoreOpen(false)} className="flex min-h-12 items-center gap-3 rounded-control px-3 text-[15px] font-medium text-ink hover:bg-surface">
-                  {item.icon}
+                  <span className="text-ink-3">{item.icon}</span>
                   {t(item.key)}
                 </Link>
               ))}
@@ -165,30 +202,49 @@ export default function OfficeLayout({ children }: { children: React.ReactNode }
 
   return (
     <div className="flex min-h-screen bg-surface">
-      <aside className="sticky top-0 flex h-screen w-60 min-w-60 flex-col bg-sidebar text-sidebar-text">
-        <div className="border-b border-sidebar-line px-4 pb-4 pt-5">
-          <Link href="/office" className="mb-4 block" aria-label="Sahid Freight">
-            <Logo light size={26} />
+      <aside className="sticky top-0 flex h-screen w-64 min-w-64 flex-col border-r border-sidebar-line bg-sidebar text-sidebar-text">
+        <div className="px-4 pb-3 pt-5">
+          <Link href="/office" className="mb-5 block px-1" aria-label="Sahid Freight">
+            <Logo size={26} />
           </Link>
-          <CompanyPicker selected={selected} list={list} loaded={loaded} onSelect={select} dark />
+          <CompanyPicker selected={selected} list={list} loaded={loaded} onSelect={select} />
         </div>
-        <nav className="flex-1 overflow-y-auto px-2.5 py-3" aria-label="Main">
-          {NAV.map((item) => (
-            <Link key={item.href} href={item.href} aria-current={isActive(item.href) ? "page" : undefined} className={`mb-0.5 flex items-center gap-2.5 rounded-control px-3 py-2.5 text-[13px] ${isActive(item.href) ? "bg-sidebar-active font-bold text-white" : "font-medium text-sidebar-muted hover:bg-sidebar-active hover:text-white"}`}>
-              {item.icon}
-              {t(item.key)}
-            </Link>
+        <nav className="flex-1 overflow-y-auto px-3 pb-3 pt-1" aria-label="Main">
+          {GROUPS.map((g) => (
+            <div key={g.key} className="mb-4">
+              <div className="mb-1 px-3 label-caps">{t(g.key)}</div>
+              {g.items.map((item) => {
+                const active = isActive(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    data-tour={item.tour}
+                    aria-current={active ? "page" : undefined}
+                    className={`mb-0.5 flex h-9 items-center gap-2.5 rounded-control px-3 text-[13px] transition-colors ${active ? "bg-sidebar-active font-semibold text-accent" : "font-medium text-sidebar-muted hover:bg-surface2 hover:text-ink"}`}
+                  >
+                    <span className={active ? "text-accent" : "text-ink-3"}>{item.icon}</span>
+                    {t(item.key)}
+                  </Link>
+                );
+              })}
+            </div>
           ))}
         </nav>
-        <div className="border-t border-sidebar-line px-2.5 pb-4 pt-2.5">
-          <div className="truncate px-3 pb-2 text-xs text-sidebar-muted">{user?.fullName}</div>
-          <button onClick={() => logout()} className="flex w-full items-center gap-2.5 rounded-control px-3 py-2.5 text-left text-[13px] text-sidebar-muted hover:bg-sidebar-active hover:text-white">
-            <LogOut size={16} />
-            {t("nav.signOut")}
-          </button>
+        <div className="border-t border-sidebar-line p-3">
+          <div className="flex items-center gap-3 rounded-control px-2 py-2">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-dim text-[12px] font-bold text-accent">{initials(user?.fullName)}</span>
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[13px] font-semibold text-ink">{user?.fullName}</span>
+              {role && <span className="block truncate text-[11px] text-ink-3">{t(`role.${role}`)}</span>}
+            </span>
+            <button onClick={() => logout()} aria-label={t("nav.signOut")} title={t("nav.signOut")} className="flex h-8 w-8 items-center justify-center rounded-control text-ink-3 hover:bg-surface2 hover:text-ink">
+              <LogOut size={15} />
+            </button>
+          </div>
         </div>
       </aside>
-      <main className="min-w-0 flex-1 px-10 py-8">
+      <main className="min-w-0 flex-1 px-10 py-9">
         <div className="mx-auto max-w-content">{content}</div>
       </main>
     </div>

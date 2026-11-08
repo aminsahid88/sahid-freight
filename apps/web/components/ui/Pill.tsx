@@ -8,11 +8,11 @@ import type { CSSProperties, ReactNode } from "react";
 export type PillTone = "green" | "amber" | "red" | "grey" | "blue";
 
 const TONES: Record<PillTone, string> = {
-  green: "bg-[#F0FDF4] text-[#15803D] border-[#BBF7D0] dark:bg-[rgba(74,222,128,0.12)] dark:text-[#86efac] dark:border-[rgba(74,222,128,0.3)]",
-  amber: "bg-[#FFFBEB] text-[#B45309] border-[#FDE68A] dark:bg-[rgba(251,191,36,0.12)] dark:text-[#fcd34d] dark:border-[rgba(251,191,36,0.3)]",
-  red: "bg-[#FEF2F2] text-[#B91C1C] border-[#FECACA] dark:bg-[rgba(248,113,113,0.12)] dark:text-[#fca5a5] dark:border-[rgba(248,113,113,0.3)]",
-  grey: "bg-surface text-ink-2 border-line",
-  blue: "bg-[#EFF6FF] text-[#1D4ED8] border-[#BFDBFE] dark:bg-[rgba(91,140,255,0.14)] dark:text-[#93c5fd] dark:border-[rgba(91,140,255,0.3)]",
+  green: "bg-success-soft text-success",
+  amber: "bg-warning-soft text-warning",
+  red: "bg-danger-soft text-danger",
+  grey: "bg-surface2 text-ink-2",
+  blue: "bg-accent-dim text-accent",
 };
 
 export const DOCUMENT_TONES: Record<string, PillTone> = { RECEIVED: "blue", PROCESSING: "amber", PROCESSED: "green", FAILED: "red", UNREADABLE: "grey" };
@@ -23,8 +23,8 @@ export const REPORT_TONES: Record<string, PillTone> = { PRELIMINARY: "amber", RE
 
 export function Pill({ label, tone, className = "", style }: { label: ReactNode; tone: PillTone; className?: string; style?: CSSProperties }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-semibold leading-[18px] ${TONES[tone]} ${className}`} style={style}>
-      <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-current" />
+    <span className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-[3px] text-[12px] font-semibold leading-4 ${TONES[tone]} ${className}`} style={style}>
+      <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-current opacity-80" />
       {label}
     </span>
   );

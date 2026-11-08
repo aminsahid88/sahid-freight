@@ -180,6 +180,8 @@ enum OtpPurpose {
 model User {
   id                String     @id @default(uuid())
   fullName          String
+  /// First-run state for the web app: {tourDoneAt, checklistDismissedAt}. Additive, 2026-11-08.
+  onboarding        Json?
   email             String?    @unique
   phone             String?     @unique // optional since 2026-11: U.S. owners sign up by email
   passwordHash      String?

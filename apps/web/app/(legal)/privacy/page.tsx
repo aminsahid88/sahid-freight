@@ -15,11 +15,11 @@ const SECTIONS: Array<[string, string]> = [
 export default function PrivacyPage() {
   return (
     <article>
-      <h1 className="text-3xl font-extrabold tracking-tight">Privacy policy</h1>
+      <h1 className="text-3xl font-semibold display">Privacy policy</h1>
       <p className="mt-2 text-sm text-ink-3">Pilot version, November 2026. This page will be reviewed by counsel before general availability.</p>
       {SECTIONS.map(([h, p]) => (
         <section key={h} className="mt-8">
-          <h2 className="text-lg font-bold">{h}</h2>
+          <h2 className="text-lg font-semibold">{h}</h2>
           <p className="mt-2 text-[15px] text-ink-2">{p}</p>
         </section>
       ))}

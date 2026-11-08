@@ -144,8 +144,8 @@ export function MileageImport({ companyId, periodId, onImported }: { companyId: 
         </div>
 
         {preview && choices && (
-          <div className="rounded-card border border-line bg-surface p-4">
-            <div className="text-[13px] font-bold text-ink">{t("mileage.columns")}</div>
+          <div className="rounded-card bg-surface p-4">
+            <div className="text-[13px] font-semibold text-ink">{t("mileage.columns")}</div>
             <p className="mb-3 text-xs text-ink-3">{t("mileage.columnsHint")}</p>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <Select label={t("mileage.layout")} value={choices.layout} onChange={(e) => update({ layout: e.target.value as MileageLayout, mapping: {} })}>
@@ -176,12 +176,12 @@ export function MileageImport({ companyId, periodId, onImported }: { companyId: 
               <div className="mt-4 overflow-x-auto">
                 <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-3">{t("mileage.sample")}</div>
                 <table className="w-full text-xs">
-                  <thead className="text-left text-ink-3">
+                  <thead className="thead">
                     <tr>{preview.headers.map((h, i) => <th key={`${h}-${i}`} className="py-1 pr-3 font-medium">{h}</th>)}</tr>
                   </thead>
                   <tbody>
                     {preview.sampleRows.map((r, i) => (
-                      <tr key={i} className="border-t border-line text-ink-2">
+                      <tr key={i} className="row text-ink-2">
                         {r.map((cell, j) => <td key={j} className="py-1 pr-3 whitespace-nowrap">{cell}</td>)}
                       </tr>
                     ))}
@@ -223,7 +223,7 @@ export function MileageImport({ companyId, periodId, onImported }: { companyId: 
         )}
 
         <div>
-          <div className="mb-1 text-[13px] font-bold text-ink">{t("mileage.history")}</div>
+          <div className="mb-1 text-[13px] font-semibold text-ink">{t("mileage.history")}</div>
           {history.length === 0 ? (
             <p className="text-[13px] text-ink-3">{t("mileage.none")}</p>
           ) : (

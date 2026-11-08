@@ -37,7 +37,7 @@ export default function NewCompanyPage() {
         language: locale === "so" ? "SO" : "EN",
       });
       setList(await backoffice.myCompanies());
-      router.replace("/office/vehicles?welcome=1");
+      router.replace("/office?welcome=1");
     } catch (err) {
       setError(formatApiError(err, t("common.error")));
     } finally {

@@ -63,7 +63,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <>
-      <h1 className="text-2xl font-extrabold tracking-tight text-ink">{t("auth.resetTitle")}</h1>
+      <h1 className="text-[24px] font-semibold text-ink display">{t("auth.resetTitle")}</h1>
       <p className="mt-1 text-sm text-ink-2">{t("auth.resetSubtitle")}</p>
       {error && <Banner tone="danger" className="mt-5">{error}</Banner>}
 

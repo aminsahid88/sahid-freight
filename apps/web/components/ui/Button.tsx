@@ -7,16 +7,16 @@ export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 export type ButtonSize = "sm" | "md" | "lg";
 
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-control font-semibold whitespace-nowrap select-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none";
+  "inline-flex items-center justify-center gap-2 rounded-control font-semibold whitespace-nowrap select-none transition-[background-color,box-shadow,color] duration-150 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent";
 const variants: Record<ButtonVariant, string> = {
-  primary: "bg-accent text-white hover:bg-accent-hover",
-  secondary: "bg-canvas text-ink border border-line hover:bg-surface",
-  ghost: "bg-transparent text-ink-2 hover:bg-surface hover:text-ink",
-  danger: "bg-canvas text-danger border border-line hover:bg-surface",
+  primary: "bg-accent text-white shadow-button hover:bg-accent-hover",
+  secondary: "bg-canvas text-ink shadow-card hover:shadow-card-hover hover:bg-surface",
+  ghost: "bg-transparent text-ink-2 hover:bg-surface2 hover:text-ink",
+  danger: "bg-canvas text-danger shadow-card hover:bg-danger-soft",
 };
 const sizes: Record<ButtonSize, string> = {
   sm: "h-9 px-3 text-[13px]",
-  md: "h-11 px-4 text-sm",
+  md: "h-10 px-4 text-sm",
   lg: "h-12 px-5 text-[15px]",
 };
 

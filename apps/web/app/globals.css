@@ -2,74 +2,95 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Design tokens (Sahid Freight back-office) ─────────────────────────────
-   Restrained, Linear/Stripe-like. Inter, Lucide icons, no emoji. Consumed by
-   tailwind.config.ts (bg-surface, text-ink, border-line, …). */
+/* ── Design tokens (Sahid Freight back office, 2026-11 refresh) ─────────────
+   Finance-grade: calm grey canvas, white raised surfaces with real depth,
+   one brand blue, Inter with a tight display scale, tabular numbers.
+   Token names are consumed by tailwind.config.ts:
+     bg-canvas  = --bg       (white: cards, panels, inputs)
+     bg-surface = --surface  (page canvas, inner wells, row hover)
+     bg-surface2= --surface2 (chips, tracks)
+     border-line= --border   (hairlines) */
 :root,
 [data-theme="light"] {
   --bg: #ffffff;
-  --surface: #f8fafc;
-  --surface2: #f1f5f9;
-  --border: #e2e8f0;
-  --text: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
-  --primary: #0f172a;
-  --accent: #2f6bff;
-  --accent-hover: #2457d6;
-  --accent-dim: rgba(47, 107, 255, 0.08);
-  --navy: #0a1f44;
-  --success: #15803d;
-  --warning: #b45309;
-  --danger: #b91c1c;
+  --surface: #f4f5f7;
+  --surface2: #eceef2;
+  --border: #e4e6eb;
+  --border-strong: #d3d7df;
+  --text: #0c1222;
+  --text-secondary: #4a5363;
+  --text-muted: #8b93a3;
+  --primary: #0c1222;
+  --accent: #2b5ce6;
+  --accent-hover: #1f4ac9;
+  --accent-dim: #eaf0ff;
+  --accent-ring: rgba(43, 92, 230, 0.18);
+  --navy: #0b1733;
+  --success: #137a4a;
+  --success-soft: #e8f6ee;
+  --warning: #b25e09;
+  --warning-soft: #fdf3e3;
+  --danger: #c0303a;
+  --danger-soft: #fdecee;
   --input-bg: #ffffff;
-  --input-text: #0f172a;
-  --input-border: #e2e8f0;
-  --input-placeholder: #94a3b8;
-  --sidebar: #0f172a;
-  --sidebar-text: #f8fafc;
-  --sidebar-muted: rgba(248, 250, 252, 0.55);
-  --sidebar-active-bg: rgba(248, 250, 252, 0.1);
-  --sidebar-border: rgba(248, 250, 252, 0.08);
-  --card-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-  --dropdown-shadow: 0 16px 48px rgba(15, 23, 42, 0.14);
-  --shimmer-from: #f1f5f9;
-  --shimmer-mid: #e2e8f0;
-  --shimmer-to: #f1f5f9;
+  --input-text: #0c1222;
+  --input-border: #d3d7df;
+  --input-placeholder: #9aa2b1;
+  --sidebar: #ffffff;
+  --sidebar-text: #0c1222;
+  --sidebar-muted: #5b6474;
+  --sidebar-active-bg: #eaf0ff;
+  --sidebar-border: #e4e6eb;
+  --card-shadow: 0 0 0 1px rgba(12, 18, 34, 0.05), 0 1px 2px rgba(12, 18, 34, 0.04), 0 2px 6px rgba(12, 18, 34, 0.04);
+  --card-shadow-hover: 0 0 0 1px rgba(12, 18, 34, 0.06), 0 2px 4px rgba(12, 18, 34, 0.05), 0 10px 24px rgba(12, 18, 34, 0.08);
+  --panel-shadow: 0 24px 64px rgba(12, 18, 34, 0.22), 0 0 0 1px rgba(12, 18, 34, 0.06);
+  --dropdown-shadow: 0 12px 32px rgba(12, 18, 34, 0.14), 0 0 0 1px rgba(12, 18, 34, 0.06);
+  --button-shadow: 0 1px 2px rgba(43, 92, 230, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  --shimmer-from: #eceef2;
+  --shimmer-mid: #e4e6eb;
+  --shimmer-to: #eceef2;
   --font: var(--font-inter), Inter, system-ui, sans-serif;
   color-scheme: light;
 }
 
 [data-theme="dark"] {
-  --bg: #0b1220;
-  --surface: #111a2b;
-  --surface2: #1b2639;
+  --bg: #121826;
+  --surface: #0b101b;
+  --surface2: #1a2232;
   --border: #243044;
-  --text: #f1f5f9;
-  --text-secondary: #c3cddb;
-  --text-muted: #8a97ab;
-  --primary: #f1f5f9;
-  --accent: #5b8cff;
-  --accent-hover: #7aa2ff;
-  --accent-dim: rgba(91, 140, 255, 0.14);
-  --navy: #0a1f44;
+  --border-strong: #2f3c52;
+  --text: #f1f4f9;
+  --text-secondary: #b9c2d0;
+  --text-muted: #7f8a9c;
+  --primary: #f1f4f9;
+  --accent: #6b93ff;
+  --accent-hover: #86a8ff;
+  --accent-dim: rgba(107, 147, 255, 0.16);
+  --accent-ring: rgba(107, 147, 255, 0.28);
+  --navy: #0b1733;
   --success: #4ade80;
+  --success-soft: rgba(74, 222, 128, 0.12);
   --warning: #fbbf24;
+  --warning-soft: rgba(251, 191, 36, 0.12);
   --danger: #f87171;
-  --input-bg: #111a2b;
-  --input-text: #f1f5f9;
-  --input-border: #243044;
-  --input-placeholder: #64748b;
-  --sidebar: #070d18;
-  --sidebar-text: #f1f5f9;
-  --sidebar-muted: rgba(241, 245, 249, 0.5);
-  --sidebar-active-bg: rgba(91, 140, 255, 0.16);
-  --sidebar-border: rgba(241, 245, 249, 0.06);
-  --card-shadow: none;
-  --dropdown-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
-  --shimmer-from: #1b2639;
+  --danger-soft: rgba(248, 113, 113, 0.12);
+  --input-bg: #121826;
+  --input-text: #f1f4f9;
+  --input-border: #2f3c52;
+  --input-placeholder: #64708a;
+  --sidebar: #0f1522;
+  --sidebar-text: #f1f4f9;
+  --sidebar-muted: #8a95a8;
+  --sidebar-active-bg: rgba(107, 147, 255, 0.16);
+  --sidebar-border: #243044;
+  --card-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --card-shadow-hover: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 10px 24px rgba(0, 0, 0, 0.4);
+  --panel-shadow: 0 24px 64px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --dropdown-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --button-shadow: none;
+  --shimmer-from: #1a2232;
   --shimmer-mid: #243044;
-  --shimmer-to: #1b2639;
+  --shimmer-to: #1a2232;
   color-scheme: dark;
 }
 
@@ -80,14 +101,15 @@ body {
 }
 
 body {
-  background: var(--bg);
+  background: var(--surface);
   color: var(--text);
   font-family: var(--font);
-  font-size: 16px; /* iOS will not zoom inputs at 16px+ */
+  font-size: 15px; /* iOS will not zoom inputs at 16px+; inputs are forced to 16px below */
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -webkit-text-size-adjust: 100%;
   text-rendering: optimizeLegibility;
+  font-feature-settings: "cv11", "ss01", "ss03";
 }
 
 input,
@@ -118,7 +140,26 @@ button {
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
-  border-radius: 6px;
+  border-radius: 8px;
+}
+
+/* ── Shared table styling: one look for every ledger-style table ── */
+@layer components {
+  .thead {
+    @apply text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-3;
+  }
+  .thead th {
+    @apply border-b border-line px-4 py-2.5 font-semibold;
+  }
+  tbody tr.row {
+    @apply border-t border-line transition-colors hover:bg-surface;
+  }
+  .display {
+    letter-spacing: -0.02em;
+  }
+  .label-caps {
+    @apply text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-3;
+  }
 }
 
 /* ── Loading shimmer ── */
@@ -134,12 +175,22 @@ button {
   background: linear-gradient(90deg, var(--shimmer-from) 25%, var(--shimmer-mid) 50%, var(--shimmer-to) 75%);
   background-size: 2000px 100%;
   animation: shimmer 1.5s infinite;
-  border-radius: 8px;
+  border-radius: 10px;
 }
 
 /* Tabular figures for money, gallons and hashes. */
 .tnum {
   font-variant-numeric: tabular-nums;
+}
+
+/* ── First-run tour spotlight ── */
+.tour-spotlight {
+  position: fixed;
+  z-index: 600;
+  border-radius: 12px;
+  box-shadow: 0 0 0 9999px rgba(12, 18, 34, 0.55), 0 0 0 4px rgba(43, 92, 230, 0.45);
+  pointer-events: none;
+  transition: top 0.25s ease, left 0.25s ease, width 0.25s ease, height 0.25s ease;
 }
 
 @media (prefers-reduced-motion: reduce) {

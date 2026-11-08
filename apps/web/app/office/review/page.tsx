@@ -419,7 +419,7 @@ function ReviewWorkspace({ companyId, id, role, onClose }: { companyId: string; 
         <div className="grid gap-4 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
           <div>
             <div className="mb-2 flex items-center justify-between">
-              <span className="text-[13px] font-bold text-ink">{t("review.sourceImage")}</span>
+              <span className="text-[13px] font-semibold text-ink">{t("review.sourceImage")}</span>
               {isImage && (
                 <span className="inline-flex gap-1">
                   <button aria-label={t("review.zoomOut")} onClick={() => setZoom((z) => Math.max(0.5, z - 0.25))} className="rounded-control border border-line p-1 text-ink"><Minus size={12} /></button>
@@ -428,7 +428,7 @@ function ReviewWorkspace({ companyId, id, role, onClose }: { companyId: string; 
                 </span>
               )}
             </div>
-            <div className="max-h-[70vh] overflow-auto rounded-card border border-line bg-surface">
+            <div className="max-h-[70vh] overflow-auto rounded-card bg-surface">
               {!signedUrl ? (
                 <p className="p-4 text-[13px] text-ink-3">{t("review.noSource")}</p>
               ) : isImage ? (
@@ -459,9 +459,9 @@ function ReviewWorkspace({ companyId, id, role, onClose }: { companyId: string; 
                   e.preventDefault();
                   void act(entering.field, "enter", { value: value.trim(), reason: reason.trim() });
                 }}
-                className="mb-3 flex flex-col gap-2 rounded-card border border-line bg-surface p-3"
+                className="mb-3 flex flex-col gap-2 rounded-card bg-surface p-3"
               >
-                <div className="text-[13px] font-bold text-ink">{t("review.enterValue", { field: entering.label })}</div>
+                <div className="text-[13px] font-semibold text-ink">{t("review.enterValue", { field: entering.label })}</div>
                 <Input value={value} onChange={(e) => setValue(e.target.value)} autoFocus />
                 <Textarea label={t("review.reason")} required minLength={3} value={reason} onChange={(e) => setReason(e.target.value)} />
                 <div className="flex gap-2">
@@ -474,7 +474,7 @@ function ReviewWorkspace({ companyId, id, role, onClose }: { companyId: string; 
 
             <div className="overflow-x-auto">
               <table className="w-full text-[13px]">
-                <thead className="text-left text-xs uppercase tracking-wide text-ink-3">
+                <thead className="thead">
                   <tr>
                     <th className="py-1.5 pr-2">{t("review.field")}</th>
                     <th className="py-1.5 pr-2">{t("review.read1")}</th>
@@ -491,7 +491,7 @@ function ReviewWorkspace({ companyId, id, role, onClose }: { companyId: string; 
                   })}
                   {tx.lines.map((line, n) => (
                     <Fragment key={line.id}>
-                      <tr className="border-t border-line bg-surface">
+                      <tr className="row bg-surface">
                         <td colSpan={5} className="py-1.5 text-xs font-semibold uppercase tracking-wide text-ink-3">{t("review.lineItem", { n: n + 1 })} · {line.descriptionRaw} · {t(`lineCategory.${line.category}`)}</td>
                       </tr>
                       {LINE_FIELDS.map((lf) => {
@@ -507,7 +507,7 @@ function ReviewWorkspace({ companyId, id, role, onClose }: { companyId: string; 
 
             {tx.review && tx.review.pendingApprovals.length > 0 && (
               <div className="mt-4 rounded-card border border-warning/40 bg-warning/5 p-3">
-                <div className="mb-1 text-[13px] font-bold text-ink">{t("review.pending")}</div>
+                <div className="mb-1 text-[13px] font-semibold text-ink">{t("review.pending")}</div>
                 <ul className="flex flex-col gap-2 text-[13px]">
                   {tx.review.pendingApprovals.map((a) => (
                     <li key={a.id} className="flex flex-wrap items-center justify-between gap-2">
@@ -525,7 +525,7 @@ function ReviewWorkspace({ companyId, id, role, onClose }: { companyId: string; 
               </div>
             )}
 
-            <div className="mt-4 mb-1 text-[13px] font-bold text-ink">{t("review.issues")}</div>
+            <div className="mt-4 mb-1 text-[13px] font-semibold text-ink">{t("review.issues")}</div>
             {(tx.issues ?? []).filter((i) => i.status === "OPEN").length === 0 ? (
               <p className="text-[13px] text-ink-3">{t("review.noIssues")}</p>
             ) : (
@@ -533,7 +533,7 @@ function ReviewWorkspace({ companyId, id, role, onClose }: { companyId: string; 
                 {(tx.issues ?? [])
                   .filter((i) => i.status === "OPEN")
                   .map((i) => (
-                    <li key={i.id} className="rounded-card border border-line p-3 text-[13px]">
+                    <li key={i.id} className="rounded-card bg-canvas shadow-card p-3 text-[13px]">
                       <div className="flex items-start gap-2">
                         <Pill label={t(`severity.${i.severity}`)} tone={SEVERITY_TONES[i.severity]} className="mt-0.5 shrink-0" />
                         <span className="min-w-0 flex-1 text-ink"><code className="mr-1.5 text-xs text-ink-3">{i.code}</code>{i.message}</span>
@@ -550,7 +550,7 @@ function ReviewWorkspace({ companyId, id, role, onClose }: { companyId: string; 
               </ul>
             )}
 
-            <div className="mt-4 mb-1 text-[13px] font-bold text-ink">{t("review.history")}</div>
+            <div className="mt-4 mb-1 text-[13px] font-semibold text-ink">{t("review.history")}</div>
             {edits.length === 0 ? (
               <p className="text-[13px] text-ink-3">{t("review.noHistory")}</p>
             ) : (

@@ -106,7 +106,7 @@ function VehiclesContent() {
           <CardHeader title={t("vehicles.trucks")} description={t("vehicles.trucksHint")} action={<Button size="sm" icon={<Plus size={14} />} onClick={() => setShowVehicle((s) => !s)}>{t("vehicles.addVehicle")}</Button>} />
           <CardBody>
             {showVehicle && (
-              <form onSubmit={saveVehicle} className="mb-4 grid gap-3 rounded-card border border-line bg-surface p-4">
+              <form onSubmit={saveVehicle} className="mb-4 grid gap-3 rounded-card bg-surface p-4">
                 <Input label={t("vehicles.unitNumber")} required value={v.unitNumber} onChange={(e) => setV({ ...v, unitNumber: e.target.value })} placeholder="101" />
                 <Input label={t("vehicles.vin")} maxLength={17} value={v.vin} onChange={(e) => setV({ ...v, vin: e.target.value })} />
                 <div className="grid grid-cols-2 gap-3">
@@ -132,7 +132,7 @@ function VehiclesContent() {
                 {vehicles.map((x) => (
                   <li key={x.id} className="flex items-center justify-between gap-3 border-t border-line py-3 first:border-t-0">
                     <div className="min-w-0">
-                      <div className="text-sm font-bold text-ink">#{x.unitNumber}</div>
+                      <div className="text-sm font-semibold text-ink">#{x.unitNumber}</div>
                       <div className="truncate text-xs text-ink-3">{[x.plate, x.vin, x.eldProvider, x.tankCapacityGal ? `${Number(x.tankCapacityGal)} gal` : null].filter(Boolean).join(" · ") || "—"}</div>
                     </div>
                     <Pill label={x.iftaQualified ? t("vehicles.iftaQualified") : t("vehicles.inactive")} tone={x.iftaQualified ? "green" : "grey"} />
@@ -147,7 +147,7 @@ function VehiclesContent() {
           <CardHeader title={t("vehicles.drivers")} description={t("vehicles.driversHint")} action={<Button size="sm" icon={<Plus size={14} />} onClick={() => setShowDriver((s) => !s)}>{t("vehicles.addDriver")}</Button>} />
           <CardBody>
             {showDriver && (
-              <form onSubmit={saveDriver} className="mb-4 grid gap-3 rounded-card border border-line bg-surface p-4">
+              <form onSubmit={saveDriver} className="mb-4 grid gap-3 rounded-card bg-surface p-4">
                 <Input label={t("vehicles.driverName")} required value={d.name} onChange={(e) => setD({ ...d, name: e.target.value })} />
                 <Input label={t("vehicles.driverPhone")} type="tel" inputMode="tel" placeholder="+16125550100" value={d.phone} onChange={(e) => setD({ ...d, phone: e.target.value })} />
                 <div className="grid grid-cols-2 gap-3">
@@ -177,7 +177,7 @@ function VehiclesContent() {
                 {drivers.map((x) => (
                   <li key={x.id} className="flex items-center justify-between gap-3 border-t border-line py-3 first:border-t-0">
                     <div className="min-w-0">
-                      <div className="text-sm font-bold text-ink">{x.name}</div>
+                      <div className="text-sm font-semibold text-ink">{x.name}</div>
                       <div className="truncate text-xs text-ink-3">{[x.phone, x.defaultVehicle ? `#${x.defaultVehicle.unitNumber}` : null, x.language === "SO" ? "Soomaali" : "English"].filter(Boolean).join(" · ")}</div>
                     </div>
                     <Pill label={x.active ? t("vehicles.active") : t("vehicles.inactive")} tone={x.active ? "green" : "grey"} />
