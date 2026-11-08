@@ -2,95 +2,111 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Design tokens (Sahid Freight back office, 2026-11 refresh) ─────────────
-   Finance-grade: calm grey canvas, white raised surfaces with real depth,
-   one brand blue, Inter with a tight display scale, tabular numbers.
-   Token names are consumed by tailwind.config.ts:
-     bg-canvas  = --bg       (white: cards, panels, inputs)
-     bg-surface = --surface  (page canvas, inner wells, row hover)
+/* ── Design tokens (Sahid Freight back office, 2026 "beyond" refresh) ───────
+   Dark-first startup look that works in both modes: ambient gradient canvas,
+   glass surfaces with a hairline and an inner highlight, one blue→violet
+   accent, the brand mint for success, Inter with a tight display scale,
+   tabular numbers, motion on entry. Token names are consumed by
+   tailwind.config.ts:
+     bg-canvas  = --bg       (glass surfaces: cards, panels, inputs)
+     bg-surface = --surface  (the page itself, inner wells, row hover)
      bg-surface2= --surface2 (chips, tracks)
      border-line= --border   (hairlines) */
 :root,
 [data-theme="light"] {
-  --bg: #ffffff;
-  --surface: #f4f5f7;
-  --surface2: #eceef2;
-  --border: #e4e6eb;
-  --border-strong: #d3d7df;
-  --text: #0c1222;
-  --text-secondary: #4a5363;
-  --text-muted: #8b93a3;
-  --primary: #0c1222;
-  --accent: #2b5ce6;
-  --accent-hover: #1f4ac9;
-  --accent-dim: #eaf0ff;
-  --accent-ring: rgba(43, 92, 230, 0.18);
-  --navy: #0b1733;
-  --success: #137a4a;
-  --success-soft: #e8f6ee;
+  --bg: rgba(255, 255, 255, 0.74);
+  --bg-solid: #ffffff;
+  --surface: #f2f4fb;
+  --surface2: rgba(13, 20, 40, 0.05);
+  --border: rgba(13, 20, 40, 0.08);
+  --border-strong: rgba(13, 20, 40, 0.16);
+  --text: #0b1020;
+  --text-secondary: #4b5672;
+  --text-muted: #8a93ab;
+  --primary: #0b1020;
+  --accent: #3b6cf0;
+  --accent-hover: #2a56d6;
+  --accent-2: #7c5cff;
+  --accent-dim: rgba(59, 108, 240, 0.1);
+  --accent-ring: rgba(59, 108, 240, 0.22);
+  --mint: #0fa98a;
+  --navy: #0a1f44;
+  --success: #0fa98a;
+  --success-soft: rgba(15, 169, 138, 0.12);
   --warning: #b25e09;
-  --warning-soft: #fdf3e3;
+  --warning-soft: rgba(245, 181, 68, 0.18);
   --danger: #c0303a;
-  --danger-soft: #fdecee;
-  --input-bg: #ffffff;
-  --input-text: #0c1222;
-  --input-border: #d3d7df;
-  --input-placeholder: #9aa2b1;
-  --sidebar: #ffffff;
-  --sidebar-text: #0c1222;
-  --sidebar-muted: #5b6474;
-  --sidebar-active-bg: #eaf0ff;
-  --sidebar-border: #e4e6eb;
-  --card-shadow: 0 0 0 1px rgba(12, 18, 34, 0.05), 0 1px 2px rgba(12, 18, 34, 0.04), 0 2px 6px rgba(12, 18, 34, 0.04);
-  --card-shadow-hover: 0 0 0 1px rgba(12, 18, 34, 0.06), 0 2px 4px rgba(12, 18, 34, 0.05), 0 10px 24px rgba(12, 18, 34, 0.08);
-  --panel-shadow: 0 24px 64px rgba(12, 18, 34, 0.22), 0 0 0 1px rgba(12, 18, 34, 0.06);
-  --dropdown-shadow: 0 12px 32px rgba(12, 18, 34, 0.14), 0 0 0 1px rgba(12, 18, 34, 0.06);
-  --button-shadow: 0 1px 2px rgba(43, 92, 230, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.18);
-  --shimmer-from: #eceef2;
-  --shimmer-mid: #e4e6eb;
-  --shimmer-to: #eceef2;
+  --danger-soft: rgba(255, 107, 122, 0.14);
+  --input-bg: rgba(255, 255, 255, 0.9);
+  --input-text: #0b1020;
+  --input-border: rgba(13, 20, 40, 0.14);
+  --input-placeholder: #98a1b8;
+  --sidebar: rgba(255, 255, 255, 0.62);
+  --sidebar-text: #0b1020;
+  --sidebar-muted: #5b6580;
+  --sidebar-active-bg: rgba(59, 108, 240, 0.1);
+  --sidebar-border: rgba(13, 20, 40, 0.08);
+  --card-shadow: 0 0 0 1px rgba(13, 20, 40, 0.06), 0 12px 40px rgba(13, 20, 40, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  --card-shadow-hover: 0 0 0 1px rgba(59, 108, 240, 0.25), 0 18px 50px rgba(13, 20, 40, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --panel-shadow: 0 0 0 1px rgba(13, 20, 40, 0.08), 0 30px 80px rgba(13, 20, 40, 0.25);
+  --dropdown-shadow: 0 0 0 1px rgba(13, 20, 40, 0.08), 0 16px 40px rgba(13, 20, 40, 0.16);
+  --button-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 8px 24px rgba(59, 108, 240, 0.35);
+  --glow-1: rgba(59, 108, 240, 0.22);
+  --glow-2: rgba(124, 92, 255, 0.16);
+  --glow-3: rgba(15, 169, 138, 0.16);
+  --grid: rgba(13, 20, 40, 0.045);
+  --shimmer-from: rgba(13, 20, 40, 0.05);
+  --shimmer-mid: rgba(13, 20, 40, 0.09);
+  --shimmer-to: rgba(13, 20, 40, 0.05);
   --font: var(--font-inter), Inter, system-ui, sans-serif;
   color-scheme: light;
 }
 
 [data-theme="dark"] {
-  --bg: #121826;
-  --surface: #0b101b;
-  --surface2: #1a2232;
-  --border: #243044;
-  --border-strong: #2f3c52;
-  --text: #f1f4f9;
-  --text-secondary: #b9c2d0;
-  --text-muted: #7f8a9c;
-  --primary: #f1f4f9;
-  --accent: #6b93ff;
-  --accent-hover: #86a8ff;
-  --accent-dim: rgba(107, 147, 255, 0.16);
-  --accent-ring: rgba(107, 147, 255, 0.28);
-  --navy: #0b1733;
-  --success: #4ade80;
-  --success-soft: rgba(74, 222, 128, 0.12);
-  --warning: #fbbf24;
-  --warning-soft: rgba(251, 191, 36, 0.12);
-  --danger: #f87171;
-  --danger-soft: rgba(248, 113, 113, 0.12);
-  --input-bg: #121826;
-  --input-text: #f1f4f9;
-  --input-border: #2f3c52;
-  --input-placeholder: #64708a;
-  --sidebar: #0f1522;
-  --sidebar-text: #f1f4f9;
-  --sidebar-muted: #8a95a8;
-  --sidebar-active-bg: rgba(107, 147, 255, 0.16);
-  --sidebar-border: #243044;
-  --card-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
-  --card-shadow-hover: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 10px 24px rgba(0, 0, 0, 0.4);
-  --panel-shadow: 0 24px 64px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06);
-  --dropdown-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.06);
-  --button-shadow: none;
-  --shimmer-from: #1a2232;
-  --shimmer-mid: #243044;
-  --shimmer-to: #1a2232;
+  --bg: rgba(255, 255, 255, 0.045);
+  --bg-solid: #0e1424;
+  --surface: #070b14;
+  --surface2: rgba(255, 255, 255, 0.07);
+  --border: rgba(255, 255, 255, 0.09);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --text: #eef2ff;
+  --text-secondary: #a5b0c8;
+  --text-muted: #6b7690;
+  --primary: #eef2ff;
+  --accent: #5b8cff;
+  --accent-hover: #7aa3ff;
+  --accent-2: #8b5cf6;
+  --accent-dim: rgba(91, 140, 255, 0.16);
+  --accent-ring: rgba(91, 140, 255, 0.3);
+  --mint: #5be3c4;
+  --navy: #0a1f44;
+  --success: #5be3c4;
+  --success-soft: rgba(91, 227, 196, 0.14);
+  --warning: #f5b544;
+  --warning-soft: rgba(245, 181, 68, 0.14);
+  --danger: #ff6b7a;
+  --danger-soft: rgba(255, 107, 122, 0.14);
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --input-text: #eef2ff;
+  --input-border: rgba(255, 255, 255, 0.14);
+  --input-placeholder: #5f6a84;
+  --sidebar: rgba(10, 14, 26, 0.72);
+  --sidebar-text: #eef2ff;
+  --sidebar-muted: #8c97b3;
+  --sidebar-active-bg: rgba(91, 140, 255, 0.16);
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --card-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 24px 60px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --card-shadow-hover: 0 0 0 1px rgba(91, 140, 255, 0.45), 0 24px 70px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --panel-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 40px 100px rgba(0, 0, 0, 0.7);
+  --dropdown-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 20px 50px rgba(0, 0, 0, 0.6);
+  --button-shadow: 0 1px 0 rgba(255, 255, 255, 0.18) inset, 0 10px 30px rgba(91, 140, 255, 0.35);
+  --glow-1: rgba(91, 140, 255, 0.28);
+  --glow-2: rgba(139, 92, 246, 0.22);
+  --glow-3: rgba(91, 227, 196, 0.14);
+  --grid: rgba(255, 255, 255, 0.045);
+  --shimmer-from: rgba(255, 255, 255, 0.05);
+  --shimmer-mid: rgba(255, 255, 255, 0.1);
+  --shimmer-to: rgba(255, 255, 255, 0.05);
   color-scheme: dark;
 }
 
@@ -110,6 +126,28 @@ body {
   -webkit-text-size-adjust: 100%;
   text-rendering: optimizeLegibility;
   font-feature-settings: "cv11", "ss01", "ss03";
+}
+
+/* Ambient canvas: three soft glows and a fine grid, fixed behind everything. */
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60% 50% at 8% 0%, var(--glow-1) 0%, transparent 60%),
+    radial-gradient(50% 45% at 100% 10%, var(--glow-2) 0%, transparent 60%),
+    radial-gradient(45% 40% at 70% 100%, var(--glow-3) 0%, transparent 60%),
+    var(--surface);
+}
+.ambient::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(70% 60% at 50% 0%, #000 0%, transparent 100%);
+  -webkit-mask-image: radial-gradient(70% 60% at 50% 0%, #000 0%, transparent 100%);
 }
 
 input,
@@ -143,22 +181,54 @@ button {
   border-radius: 8px;
 }
 
-/* ── Shared table styling: one look for every ledger-style table ── */
 @layer components {
+  /* Glass surface: translucent fill, blur, hairline ring and inner highlight (via --card-shadow). */
+  .glass {
+    background: var(--bg);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    backdrop-filter: blur(18px) saturate(140%);
+  }
   .thead {
-    @apply text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-3;
+    @apply text-left font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-ink-3;
   }
   .thead th {
-    @apply border-b border-line px-4 py-2.5 font-semibold;
+    @apply border-b border-line px-4 py-2.5;
   }
   tbody tr.row {
-    @apply border-t border-line transition-colors hover:bg-surface;
+    @apply border-t border-line transition-colors hover:bg-surface2;
   }
   .display {
-    letter-spacing: -0.02em;
+    letter-spacing: -0.025em;
   }
   .label-caps {
-    @apply text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-3;
+    @apply font-mono text-[11px] font-medium uppercase tracking-[0.1em] text-ink-3;
+  }
+  /* Gradient ink for hero numbers and headline accents. */
+  .text-gradient {
+    background: linear-gradient(92deg, var(--accent) 0%, var(--accent-2) 55%, var(--mint) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  /* Primary action: blue→violet with a glow. */
+  .btn-gradient {
+    background-image: linear-gradient(135deg, #4f7cff 0%, #7c5cff 100%);
+  }
+  .btn-gradient:hover {
+    background-image: linear-gradient(135deg, #5f8aff 0%, #8d70ff 100%);
+  }
+  /* Thin gradient hairline on top of a surface. */
+  .hairline-gradient {
+    position: relative;
+  }
+  .hairline-gradient::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    border-radius: inherit;
+    background: linear-gradient(90deg, transparent, var(--accent) 30%, var(--accent-2) 70%, transparent);
+    opacity: 0.7;
   }
 }
 
@@ -175,7 +245,24 @@ button {
   background: linear-gradient(90deg, var(--shimmer-from) 25%, var(--shimmer-mid) 50%, var(--shimmer-to) 75%);
   background-size: 2000px 100%;
   animation: shimmer 1.5s infinite;
-  border-radius: 10px;
+  border-radius: 12px;
+}
+
+/* Aurora drift for hero surfaces. */
+@keyframes aurora {
+  0% {
+    transform: translate3d(-4%, -2%, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(4%, 3%, 0) scale(1.08);
+  }
+  100% {
+    transform: translate3d(-4%, -2%, 0) scale(1);
+  }
+}
+.aurora {
+  animation: aurora 18s ease-in-out infinite;
+  will-change: transform;
 }
 
 /* Tabular figures for money, gallons and hashes. */
@@ -187,8 +274,8 @@ button {
 .tour-spotlight {
   position: fixed;
   z-index: 600;
-  border-radius: 12px;
-  box-shadow: 0 0 0 9999px rgba(12, 18, 34, 0.55), 0 0 0 4px rgba(43, 92, 230, 0.45);
+  border-radius: 14px;
+  box-shadow: 0 0 0 9999px rgba(4, 7, 14, 0.66), 0 0 0 3px var(--accent), 0 0 40px var(--glow-1);
   pointer-events: none;
   transition: top 0.25s ease, left 0.25s ease, width 0.25s ease, height 0.25s ease;
 }

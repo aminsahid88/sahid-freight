@@ -120,13 +120,13 @@ export default function OfficeHome() {
             </div>
           </div>
           <div className="mx-6 mt-4 h-1.5 overflow-hidden rounded-full bg-surface2">
-            <div className="h-full rounded-full bg-accent transition-[width]" style={{ width: `${Math.round((doneCount / steps.length) * 100)}%` }} />
+            <div className="h-full rounded-full bg-[linear-gradient(90deg,var(--accent),var(--accent-2),var(--mint))] transition-[width]" style={{ width: `${Math.round((doneCount / steps.length) * 100)}%` }} />
           </div>
-          <ol className="mt-3 grid gap-px bg-line sm:grid-cols-2 lg:grid-cols-5">
+          <ol className="mt-3 grid divide-y divide-line sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-5">
             {steps.map((s) => (
-              <li key={s.key} className="bg-canvas">
-                <Link href={s.href} className="flex h-full items-start gap-3 px-5 py-4 transition-colors hover:bg-surface">
-                  <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${s.done ? "bg-success text-white" : "bg-surface2 text-ink-3"}`}>{s.done ? <Check size={13} /> : s.icon}</span>
+              <li key={s.key} className="border-line sm:border-l first:sm:border-l-0">
+                <Link href={s.href} className="flex h-full items-start gap-3 px-5 py-4 transition-colors hover:bg-surface2">
+                  <span className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full ${s.done ? "bg-[linear-gradient(135deg,var(--accent),var(--mint))] text-white" : "bg-surface2 text-ink-3"}`}>{s.done ? <Check size={13} /> : s.icon}</span>
                   <span className="min-w-0">
                     <span className={`block text-[13px] font-semibold ${s.done ? "text-ink-3 line-through" : "text-ink"}`}>{s.title}</span>
                     <span className="mt-0.5 block text-[12px] leading-snug text-ink-3">{s.hint}</span>

@@ -19,6 +19,7 @@ import { formatApiError } from "@/lib/errors";
 import { Logo } from "@/components/ui/Logo";
 import { Banner } from "@/components/ui/Banner";
 import { Tour } from "@/components/office/Tour";
+import { PageTransition } from "@/components/ui/Motion";
 
 interface NavItem {
   href: string;
@@ -140,9 +141,9 @@ export default function OfficeLayout({ children }: { children: React.ReactNode }
   // No company yet: a focused setup screen instead of an empty back office.
   if (loaded && list.length === 0) {
     return (
-      <div className="min-h-screen bg-surface">
+      <div className="min-h-screen">
         <header className="flex h-16 items-center justify-between px-6">
-          <Logo size={26} />
+          <Logo size={28} glow />
           <button onClick={() => logout()} className="inline-flex h-9 items-center gap-2 rounded-control px-3 text-[13px] font-medium text-ink-2 hover:bg-surface2 hover:text-ink">
             <LogOut size={15} />
             {t("nav.signOut")}
@@ -171,17 +172,17 @@ export default function OfficeLayout({ children }: { children: React.ReactNode }
     const primary = NAV.filter((n) => MOBILE_PRIMARY.includes(n.href));
     const more = NAV.filter((n) => !MOBILE_PRIMARY.includes(n.href));
     return (
-      <div className="min-h-screen bg-surface">
-        <header className="fixed inset-x-0 top-0 z-[200] flex h-14 items-center gap-2 border-b border-line bg-canvas px-3">
+      <div className="min-h-screen">
+        <header className="glass fixed inset-x-0 top-0 z-[200] flex h-14 items-center gap-2 border-b border-line px-3" style={{ background: "var(--sidebar)" }}>
           <div className="min-w-0 flex-1">
             <CompanyPicker selected={selected} list={list} loaded={loaded} onSelect={select} />
           </div>
-          <button aria-label={t("nav.settings")} onClick={() => router.push("/office/settings")} className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-dim text-[12px] font-bold text-accent">
+          <button aria-label={t("nav.settings")} onClick={() => router.push("/office/settings")} className="flex h-9 w-9 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--accent),var(--accent-2))] text-[12px] font-bold text-white">
             {initials(user?.fullName)}
           </button>
         </header>
         <main className="px-4 pb-24 pt-[72px]">{content}</main>
-        <nav className="fixed inset-x-0 bottom-0 z-[200] flex h-16 items-center justify-around border-t border-line bg-canvas pb-[env(safe-area-inset-bottom)]" aria-label="Main">
+        <nav className="glass fixed inset-x-0 bottom-0 z-[200] flex h-16 items-center justify-around border-t border-line pb-[env(safe-area-inset-bottom)]" style={{ background: "var(--sidebar)" }} aria-label="Main">
           {primary.map((item) => (
             <Link key={item.href} href={item.href} data-tour={item.tour} aria-current={isActive(item.href) ? "page" : undefined} className={`flex min-h-12 min-w-14 flex-col items-center justify-center gap-0.5 ${isActive(item.href) ? "text-accent" : "text-ink-3"}`}>
               {item.icon}
@@ -195,7 +196,7 @@ export default function OfficeLayout({ children }: { children: React.ReactNode }
         </nav>
         {moreOpen && (
           <div role="dialog" aria-modal className="fixed inset-0 z-[300] flex items-end bg-[rgba(12,18,34,0.45)] backdrop-blur-[2px]" onClick={() => setMoreOpen(false)}>
-            <div className="w-full rounded-t-card bg-canvas p-4 pb-[calc(16px+env(safe-area-inset-bottom))] shadow-panel" onClick={(e) => e.stopPropagation()}>
+            <div className="w-full rounded-t-card bg-canvas-solid p-4 pb-[calc(16px+env(safe-area-inset-bottom))] shadow-panel" onClick={(e) => e.stopPropagation()}>
               <div className="mb-2 flex items-center justify-between">
                 <div className="text-sm font-semibold text-ink">{t("nav.more")}</div>
                 <button onClick={() => setMoreOpen(false)} aria-label="Close" className="flex h-9 w-9 items-center justify-center rounded-control text-ink-2 hover:bg-surface2">
@@ -220,11 +221,11 @@ export default function OfficeLayout({ children }: { children: React.ReactNode }
   }
 
   return (
-    <div className="flex min-h-screen bg-surface">
-      <aside className="sticky top-0 flex h-screen w-64 min-w-64 flex-col border-r border-sidebar-line bg-sidebar text-sidebar-text">
+    <div className="flex min-h-screen">
+      <aside className="glass sticky top-0 flex h-screen w-64 min-w-64 flex-col border-r border-sidebar-line text-sidebar-text" style={{ background: "var(--sidebar)" }}>
         <div className="px-4 pb-3 pt-5">
           <Link href="/office" className="mb-5 block px-1" aria-label="Sahid Freight">
-            <Logo size={26} />
+            <Logo size={28} glow />
           </Link>
           <CompanyPicker selected={selected} list={list} loaded={loaded} onSelect={select} />
         </div>
@@ -240,8 +241,9 @@ export default function OfficeLayout({ children }: { children: React.ReactNode }
                     href={item.href}
                     data-tour={item.tour}
                     aria-current={active ? "page" : undefined}
-                    className={`mb-0.5 flex h-9 items-center gap-2.5 rounded-control px-3 text-[13px] transition-colors ${active ? "bg-sidebar-active font-semibold text-accent" : "font-medium text-sidebar-muted hover:bg-surface2 hover:text-ink"}`}
+                    className={`relative mb-0.5 flex h-9 items-center gap-2.5 rounded-control px-3 text-[13px] transition-colors ${active ? "bg-sidebar-active font-semibold text-ink" : "font-medium text-sidebar-muted hover:bg-surface2 hover:text-ink"}`}
                   >
+                    {active && <span aria-hidden className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-[linear-gradient(180deg,var(--accent),var(--accent-2))]" />}
                     <span className={active ? "text-accent" : "text-ink-3"}>{item.icon}</span>
                     {t(item.key)}
                   </Link>
@@ -252,7 +254,7 @@ export default function OfficeLayout({ children }: { children: React.ReactNode }
         </nav>
         <div className="border-t border-sidebar-line p-3">
           <div className="flex items-center gap-3 rounded-control px-2 py-2">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-dim text-[12px] font-bold text-accent">{initials(user?.fullName)}</span>
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--accent),var(--accent-2))] text-[12px] font-bold text-white shadow-button">{initials(user?.fullName)}</span>
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[13px] font-semibold text-ink">{user?.fullName}</span>
               {role && <span className="block truncate text-[11px] text-ink-3">{t(`role.${role}`)}</span>}
@@ -264,7 +266,9 @@ export default function OfficeLayout({ children }: { children: React.ReactNode }
         </div>
       </aside>
       <main className="min-w-0 flex-1 px-10 py-9">
-        <div className="mx-auto max-w-content">{content}</div>
+        <div className="mx-auto max-w-content">
+          <PageTransition>{content}</PageTransition>
+        </div>
       </main>
     </div>
   );

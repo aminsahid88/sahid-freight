@@ -3,7 +3,7 @@ import type { Config } from "tailwindcss";
 /**
  * Design tokens come from CSS variables in app/globals.css (light + dark), so
  * Tailwind classes like `bg-surface text-ink border-line` follow the theme.
- * bg-canvas = raised white surfaces (cards, inputs); bg-surface = the page.
+ * bg-canvas = glass surfaces (cards, inputs); bg-surface = the page.
  */
 const config: Config = {
   content: ["./app/**/*.{js,ts,jsx,tsx,mdx}", "./components/**/*.{js,ts,jsx,tsx,mdx}"],
@@ -11,6 +11,7 @@ const config: Config = {
     extend: {
       colors: {
         canvas: "var(--bg)",
+        "canvas-solid": "var(--bg-solid)",
         surface: "var(--surface)",
         surface2: "var(--surface2)",
         line: "var(--border)",
@@ -20,7 +21,9 @@ const config: Config = {
         "ink-3": "var(--text-muted)",
         accent: "var(--accent)",
         "accent-hover": "var(--accent-hover)",
+        "accent-2": "var(--accent-2)",
         "accent-dim": "var(--accent-dim)",
+        mint: "var(--mint)",
         navy: "var(--navy)",
         success: "var(--success)",
         "success-soft": "var(--success-soft)",
@@ -39,8 +42,8 @@ const config: Config = {
         mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
       borderRadius: {
-        card: "16px",
-        control: "10px",
+        card: "18px",
+        control: "11px",
       },
       boxShadow: {
         card: "var(--card-shadow)",
@@ -53,7 +56,7 @@ const config: Config = {
         accent: "var(--accent-ring)",
       },
       maxWidth: {
-        content: "1180px",
+        content: "1200px",
       },
     },
   },

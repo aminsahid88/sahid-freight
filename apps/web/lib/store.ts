@@ -75,7 +75,7 @@ interface SettingsStore {
 
 export const useSettingsStore = create<SettingsStore>((set) => ({
   language: read("language") === "so" ? "so" : "en",
-  theme: read("theme") === "dark" ? "dark" : "light",
+  theme: read("theme") === "dark" ? "dark" : read("theme") === "light" ? "light" : typeof window !== "undefined" && window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light",
   setLanguage: (language) => {
     try {
       localStorage.setItem("language", language);

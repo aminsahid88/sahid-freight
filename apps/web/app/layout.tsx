@@ -34,20 +34,21 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b1220" },
+    { media: "(prefers-color-scheme: light)", color: "#f2f4fb" },
+    { media: "(prefers-color-scheme: dark)", color: "#070b14" },
   ],
   viewportFit: "cover",
 };
 
-// Applies the saved theme and language before first paint (no flash). Static string: safe.
-const bootstrap = `(function(){try{var t=localStorage.getItem('theme')||'light';var l=localStorage.getItem('language')||'en';if(l!=='so')l='en';document.documentElement.setAttribute('data-theme',t);document.documentElement.setAttribute('lang',l);}catch(e){}})();`;
+// Applies the saved theme (else the system preference) and language before first paint (no flash). Static string: safe.
+const bootstrap = `(function(){try{var t=localStorage.getItem('theme');if(t!=='light'&&t!=='dark'){t=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}var l=localStorage.getItem('language')||'en';if(l!=='so')l='en';document.documentElement.setAttribute('data-theme',t);document.documentElement.setAttribute('lang',l);}catch(e){}})();`;
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} font-sans antialiased bg-canvas text-ink`}>
+      <body className={`${inter.variable} font-sans antialiased bg-surface text-ink`}>
         <script dangerouslySetInnerHTML={{ __html: bootstrap }} />
+        <div className="ambient" aria-hidden />
         {children}
       </body>
     </html>

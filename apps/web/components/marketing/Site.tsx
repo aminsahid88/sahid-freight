@@ -4,10 +4,10 @@ import { LinkButton } from "@/components/ui/Button";
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-50 border-b border-line bg-canvas/90 backdrop-blur">
+    <header className="glass sticky top-0 z-50 border-b border-line">
       <div className="mx-auto flex h-16 max-w-content items-center justify-between px-5">
         <Link href="/" aria-label="Sahid Freight home">
-          <Logo />
+          <Logo glow />
         </Link>
         <nav className="hidden items-center gap-7 text-sm font-medium text-ink-2 md:flex" aria-label="Main">
           <a href="#how" className="hover:text-ink">How it works</a>
@@ -30,7 +30,7 @@ export function SiteHeader() {
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-line bg-surface">
+    <footer className="border-t border-line">
       <div className="mx-auto grid max-w-content gap-8 px-5 py-12 md:grid-cols-[1.4fr_1fr_1fr]">
         <div>
           <Logo />
