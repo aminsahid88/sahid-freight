@@ -5,7 +5,7 @@
     "buildCommand": "npm install --include=dev --no-audit --no-fund && npx prisma generate --schema=./prisma/schema.prisma"
   },
   "deploy": {
-    "startCommand": "if [ \"$SERVICE_ROLE\" = \"worker\" ]; then node dist/worker.js; else npx prisma migrate deploy --schema=./prisma/schema.prisma && if [ \"$SEED_DEMO\" = \"yes\" ]; then SEED_ALLOW_REMOTE=yes node dist/seed.backoffice.js; fi && node dist/index.js; fi",
+    "startCommand": "sh scripts/start.sh",
     "restartPolicyType": "ON_FAILURE",
     "healthcheckPath": "/health"
   }
