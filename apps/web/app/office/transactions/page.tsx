@@ -98,6 +98,7 @@ export default function TransactionsPage() {
         actions={
           periods.length > 0 ? (
             <Select aria-label={t("transactions.period")} value={periodId} onChange={(e) => setPeriodId(e.target.value)} className="w-40">
+              <option value="">{t("transactions.allPeriods")}</option>
               {periods.map((p) => (
                 <option key={p.id} value={p.id}>{periodLabel(p)}</option>
               ))}
@@ -114,7 +115,12 @@ export default function TransactionsPage() {
         {loading ? (
           <SkeletonRows rows={5} />
         ) : rows.length === 0 ? (
-          <EmptyState icon={<FileSearch size={20} />} title={t("transactions.emptyTitle")} description={t("transactions.empty")} />
+          <EmptyState
+            icon={<FileSearch size={20} />}
+            title={t("transactions.emptyTitle")}
+            description={periodId ? `${t("transactions.empty")} ${t("transactions.emptyPeriodHint")}` : t("transactions.empty")}
+            action={periodId ? <Button variant="secondary" onClick={() => setPeriodId("")}>{t("transactions.allPeriods")}</Button> : undefined}
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-[13px]">

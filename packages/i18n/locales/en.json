@@ -343,7 +343,9 @@
     "unitNumberRaw": "Unit (as printed)",
     "receiptTotal": "Total",
     "paymentMethod": "Payment",
-    "sellerAddress": "Seller address"
+    "sellerAddress": "Seller address",
+    "allPeriods": "All periods",
+    "emptyPeriodHint": "Receipts without a readable date are not assigned to a quarter yet. They still show in Review and under all periods."
   },
   "txStatus": {
     "VERIFIED": "Verified",

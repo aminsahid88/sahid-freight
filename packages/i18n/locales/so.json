@@ -343,7 +343,9 @@
     "unitNumberRaw": "Gaariga (sida ku qoran)",
     "receiptTotal": "Wadarta",
     "paymentMethod": "Lacag bixinta",
-    "sellerAddress": "Cinwaanka iibiyaha"
+    "sellerAddress": "Cinwaanka iibiyaha",
+    "allPeriods": "Dhammaan muddooyinka",
+    "emptyPeriodHint": "Rasiidada aan taariikhdoodu akhrismi karin weli looma qoondeyn rubuc. Waxay weli ka muuqdaan Dib-u-eegista iyo dhammaan muddooyinka."
   },
   "txStatus": {
     "VERIFIED": "La xaqiijiyay",
