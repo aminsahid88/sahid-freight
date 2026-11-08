@@ -59,8 +59,8 @@ export const envSchema = z.object({
   ANTHROPIC_API_KEY: optionalString,
   EXTRACTION_MODEL_A: z.string().default("claude-opus-5-5"),
   EXTRACTION_MODEL_B: z.string().default("claude-sonnet-5-5"),
-  EXTRACTION_PROMPT_VERSION_A: z.string().default("a-v1"),
-  EXTRACTION_PROMPT_VERSION_B: z.string().default("b-v1"),
+  EXTRACTION_PROMPT_VERSION_A: z.string().default("a-v2"),
+  EXTRACTION_PROMPT_VERSION_B: z.string().default("b-v2"),
   /** Reasoning effort for extraction calls; literal transcription needs little. */
   EXTRACTION_EFFORT: z.enum(["low", "medium", "high"]).default("low"),
   /** Skip pass B entirely (cost control); the transaction is then SINGLE_SOURCE. */

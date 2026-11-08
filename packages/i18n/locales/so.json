@@ -142,7 +142,10 @@
     "noApprovalsHint": "Saxitaannada dib-u-eegayaasha ee goobaha muhiimka ah halkan ayay kuugu soo muuqan doonaan si aad u oggolaato.",
     "correctionBy": "{name} ayaa beddelay {field}",
     "fromTo": "{from} → {to}",
-    "slaHint": "Shayada la calaamadeeyay waa in la go'aamiyo hal maalin shaqo gudaheed."
+    "slaHint": "Shayada la calaamadeeyay waa in la go'aamiyo hal maalin shaqo gudaheed.",
+    "reread": "Dib u akhri rasiidka",
+    "rereadQueued": "Dib-u-akhrinta waa la safeeyey. Labada akhrin ayaa mar kale socda, qiimayaashu halkan ayay ku beddelmi doonaan daqiiqad gudaheed; saxitaannadaadu way sii jiraan.",
+    "rereadCurrent": "Rasiidkan horay ayaa loogu akhriyey nooca hadda jira."
   },
   "messages": {
     "received": "Waa la helay — {count} dukumenti.",

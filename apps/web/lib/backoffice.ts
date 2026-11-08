@@ -456,6 +456,10 @@ export const backoffice = {
     });
     return data;
   },
+  async reprocessDocument(companyId: string, documentId: string) {
+    const { data } = await api.post<{ documentId: string; queued: boolean; jobs: Array<{ step: string; id: string; created: boolean }> }>(`${c(companyId)}/documents/${documentId}/reprocess`);
+    return data;
+  },
   async requestDeletion(companyId: string, documentId: string, reason: string) {
     const { data } = await api.post<{ message: string }>(`${c(companyId)}/documents/${documentId}/deletion-requests`, { reason });
     return data;

@@ -20,6 +20,7 @@ export const AUDIT_ACTIONS = [
   "review_release",
   "approval_requested",
   "approval_decided",
+  "reprocess",
 ] as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];

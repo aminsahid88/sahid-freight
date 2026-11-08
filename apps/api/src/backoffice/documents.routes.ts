@@ -17,6 +17,8 @@ import { audit } from "../audit/log";
 import type { Env } from "../config/env";
 import { enqueue } from "../jobs/queue";
 import { PREPROCESS_STEP, PREPROCESS_VERSION } from "../jobs/processors/preprocess";
+import { EXTRACTABLE_MIMES } from "@tbo/extraction";
+import { requeueExtraction } from "../jobs/extraction";
 import { protect } from "../middleware/auth.middleware";
 import { documentStorageKey, type Storage } from "../storage";
 import { badRequest, notFound, parse, wrap } from "./errors";
@@ -191,6 +193,26 @@ export function documentsRouter(prisma: PrismaClient, storage: Storage, env: Env
       const signedUrl = doc.deletedAt ? null : await storage.getSignedUrl(doc.storageKey, env.SIGNED_URL_TTL_SECONDS);
       await audit(db, { action: "view_document", userId, target: `Document:${doc.id}`, ip: req.ip });
       res.json({ document: doc, signedUrl, signedUrlExpiresInSeconds: env.SIGNED_URL_TTL_SECONDS });
+    }),
+  );
+
+  /** Re-read a receipt with the current models and prompts (e.g. after a prompt fix). Human corrections are never overwritten. */
+  r.post(
+    "/:documentId/reprocess",
+    requireCompany(prisma, "OWNER", "STAFF", "REVIEWER", "PARTNER", "ADMIN"),
+    wrap(async (req: CompanyRequest, res) => {
+      const { db, company, userId } = ctx(req);
+      const doc = await db.document.findUnique({ where: { id: req.params.documentId as string }, select: { id: true, mimeType: true, status: true } });
+      if (!doc) throw notFound("Document");
+      if (!EXTRACTABLE_MIMES.has(doc.mimeType)) throw badRequest("This document type is not read by the extraction pipeline");
+      const edited = await db.fieldEdit.count({ where: { entity: "Transaction", entityId: { in: (await db.transaction.findMany({ where: { region: { documentId: doc.id } }, select: { id: true } })).map((t) => t.id) } } });
+      if (edited > 0) {
+        res.status(409).json({ error: "human_edited", message: "This receipt was corrected by hand; re-reading would not change it. Use the field actions instead." });
+        return;
+      }
+      const jobs = await requeueExtraction(prisma, env, company.id, doc.id);
+      await audit(db, { action: "reprocess", userId, target: `Document:${doc.id}`, meta: { jobs: jobs.map((j) => ({ step: j.step, created: j.created })) }, ip: req.ip });
+      res.status(202).json({ documentId: doc.id, jobs, queued: jobs.some((j) => j.created) });
     }),
   );
 

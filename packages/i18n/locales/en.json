@@ -142,7 +142,10 @@
     "noApprovalsHint": "Reviewer corrections to material fields show up here for your approval.",
     "correctionBy": "{name} changed {field}",
     "fromTo": "{from} → {to}",
-    "slaHint": "Flagged items are due within one business day of receipt."
+    "slaHint": "Flagged items are due within one business day of receipt.",
+    "reread": "Re-read receipt",
+    "rereadQueued": "Re-read queued. Both reads run again with the current models and replace the values here within a minute; your corrections are kept.",
+    "rereadCurrent": "This receipt was already read with the current version."
   },
   "messages": {
     "received": "Got it — {count} document(s) received.",

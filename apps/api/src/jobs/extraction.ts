@@ -33,7 +33,7 @@ import { tenantClient } from "../tenant/client";
 export const EXTRACT_A_STEP = "extract-a";
 export const EXTRACT_B_STEP = "extract-b";
 export const RECONCILE_STEP = "reconcile";
-export const PIPELINE_VERSION = "v1";
+export const PIPELINE_VERSION = "v2"; // v2: prompts a-v2/b-v2 (date convention); bumping re-keys jobs so documents can be re-read
 
 export interface ExtractionDeps {
   env: Env;
@@ -59,6 +59,19 @@ export async function monthSpendUsd(prisma: PrismaClient, now = new Date()): Pro
 async function enqueueExtraction(prisma: PrismaClient, env: Env, companyId: string, documentId: string): Promise<void> {
   await enqueue(prisma, { step: EXTRACT_A_STEP, version: PIPELINE_VERSION, companyId, payload: { documentId } });
   if (!env.EXTRACTION_SKIP_PASS_B) await enqueue(prisma, { step: EXTRACT_B_STEP, version: PIPELINE_VERSION, companyId, payload: { documentId } });
+}
+
+/**
+ * Re-read a document with the current models and prompt versions. Jobs are keyed by PIPELINE_VERSION,
+ * so this is a no-op for a document already processed under the current version (`created: false`).
+ * Reconcile updates the existing transaction and refreshes rule issues; a transaction a human
+ * corrected is never overwritten (reconcile skips it).
+ */
+export async function requeueExtraction(prisma: PrismaClient, env: Env, companyId: string, documentId: string): Promise<Array<{ step: string; id: string; created: boolean }>> {
+  await prisma.document.update({ where: { id: documentId }, data: { status: "PROCESSING" } });
+  const out = [await enqueue(prisma, { step: EXTRACT_A_STEP, version: PIPELINE_VERSION, companyId, payload: { documentId } })].map((j) => ({ step: EXTRACT_A_STEP, ...j }));
+  if (!env.EXTRACTION_SKIP_PASS_B) out.push({ step: EXTRACT_B_STEP, ...(await enqueue(prisma, { step: EXTRACT_B_STEP, version: PIPELINE_VERSION, companyId, payload: { documentId } })) });
+  return out;
 }
 
 /** preprocess: route extractable documents into the pipeline; others are done. */

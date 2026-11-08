@@ -7,7 +7,7 @@
  * for reviewer corrections to material fields.
  */
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Check, CheckCircle2, ClipboardCheck, Clock, Eye, EyeOff, Minus, Pencil, Plus, ShieldCheck, X } from "lucide-react";
+import { Check, CheckCircle2, ClipboardCheck, Clock, Eye, EyeOff, Minus, Pencil, Plus, RefreshCw, ShieldCheck, X } from "lucide-react";
 import {
   type ApprovalRow,
   backoffice,
@@ -408,7 +408,25 @@ function ReviewWorkspace({ companyId, id, role, onClose }: { companyId: string; 
       footer={
         <div className="flex flex-wrap items-center justify-between gap-2">
           <span className="inline-flex items-center gap-1.5 text-xs text-ink-3"><Clock size={12} /> {t("review.time")}: {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, "0")}</span>
-          <Button variant="secondary" onClick={close}>{t("review.release")}</Button>
+          <div className="flex items-center gap-2">
+            {tx?.document && (
+              <Button
+                variant="secondary"
+                icon={<RefreshCw size={14} />}
+                onClick={async () => {
+                  try {
+                    const r = await backoffice.reprocessDocument(companyId, tx.document!.id);
+                    setNotice(r.queued ? t("review.rereadQueued") : t("review.rereadCurrent"));
+                  } catch (e) {
+                    setError(formatApiError(e, t("common.error")));
+                  }
+                }}
+              >
+                {t("review.reread")}
+              </Button>
+            )}
+            <Button variant="secondary" onClick={close}>{t("review.release")}</Button>
+          </div>
         </div>
       }
     >

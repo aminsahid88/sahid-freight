@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { normalizeCurrency, normalizeDate, normalizeDecimal, normalizeReceipt, normalizeState, normalizeTime } from "./normalize";
+import { dateFromRawText, normalizeCurrency, normalizeDate, normalizeDecimal, normalizeReceipt, normalizeState, normalizeTime } from "./normalize";
 import type { Receipt } from "./contract";
 
 test("normalizeDate accepts printed US and ISO formats and rejects impossible dates", () => {
@@ -82,4 +82,18 @@ test("normalizeReceipt produces typed values, derives state from the address, si
   assert.equal(n.rawText.vendor, "NORTHSTAR TRAVEL CENTER #214");
   assert.equal(n.legibility.state, "unreadable");
   assert.equal(n.legibility["line_items.1.amount"], "partial");
+});
+
+test("a date the model left null but transcribed in raw_text is recovered from the printed text (US month/day convention)", () => {
+  assert.equal(dateFromRawText("DATE 10/02/2026 TIME 06:41"), "2026-10-02");
+  assert.equal(dateFromRawText("DATE: 14/10/2026"), "2026-10-14", "day > 12 disambiguates DD/MM");
+  assert.equal(dateFromRawText("2026-10-02 06:41"), "2026-10-02");
+  assert.equal(dateFromRawText("TOTAL 461.72"), null);
+  assert.equal(dateFromRawText(null), null);
+  const r = normalizeReceipt({
+    region_hint: null,
+    fields: { transaction_date: { raw_text: "DATE 10/02/2026", value: null, legibility: "partial" }, receipt_total: { raw_text: "461.72", value: 461.72, legibility: "clear" } },
+    line_items: [],
+  } as never);
+  assert.equal(r.date, "2026-10-02");
 });

@@ -58,6 +58,13 @@ export function normalizeState(value: unknown): string | null {
 }
 
 /** Accepts YYYY-MM-DD, MM/DD/YYYY, M/D/YY, DD-MM-YYYY is rejected as ambiguous unless day > 12. */
+/** Find a date token inside printed text such as "DATE 10/02/2026 TIME 06:41" and normalize it. */
+export function dateFromRawText(raw: unknown): string | null {
+  if (raw === null || raw === undefined) return null;
+  const m = /(\d{4}-\d{1,2}-\d{1,2}|\d{1,2}[\/.-]\d{1,2}[\/.-](?:\d{4}|\d{2})(?!\d))/.exec(String(raw));
+  return m ? normalizeDate(m[1]) : null;
+}
+
 export function normalizeDate(value: unknown): string | null {
   if (value === null || value === undefined) return null;
   const s = String(value).trim();
@@ -174,7 +181,8 @@ export function normalizeReceipt(r: Receipt): NormalizedReceipt {
   const lines = r.line_items.map((l, i) => normalizeLine(l, i, legibility));
   return {
     regionHint: r.region_hint ?? null,
-    date: normalizeDate(f("transaction_date")?.value),
+    // The model transcribes; the month/day convention is applied here (US-first, DD/MM only when unambiguous).
+    date: normalizeDate(f("transaction_date")?.value) ?? dateFromRawText(f("transaction_date")?.raw_text),
     time: normalizeTime(f("time")?.value),
     vendor: str(f("vendor")?.value)?.toUpperCase() ?? null,
     sellerAddress: str(f("seller_address")?.value),
