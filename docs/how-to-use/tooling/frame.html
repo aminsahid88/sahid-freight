@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  :root { --bg: #F4F5FA; --ink: #0F172A; --ink-2: #334155; --ink-3: #64748B; --accent: #4F46E5; --card: #FFFFFF; --line: #E2E8F0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; }
+  body { background: var(--bg); font-family: Inter, -apple-system, "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; position: relative;
+         background-image: radial-gradient(1200px 600px at 80% -10%, rgba(99,102,241,0.10), transparent 60%), radial-gradient(900px 500px at 10% 110%, rgba(20,184,166,0.08), transparent 60%); }
+  section.screen { position: absolute; top: 44px; left: 240px; width: 1440px; height: 900px; border-radius: 14px; overflow: hidden; background: var(--card);
+                   box-shadow: 0 1px 2px rgba(15,23,42,0.06), 0 24px 60px rgba(15,23,42,0.16); border: 1px solid rgba(15,23,42,0.08); }
+  section.screen img { display: block; width: 1440px; height: 900px; object-fit: cover; object-position: top left; }
+  footer { position: absolute; left: 240px; right: 240px; bottom: 30px; height: 84px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; column-gap: 28px; }
+  footer .chapter { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); white-space: nowrap; padding-right: 28px; border-right: 1px solid var(--line); }
+  footer .caption { font-size: 21px; color: var(--ink-2); line-height: 1.35; }
+  footer .step { font-family: "SF Mono", Menlo, monospace; font-size: 15px; color: var(--ink-3); letter-spacing: 0.08em; }
+  section.title { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; padding: 0 240px; }
+  .brand { font-family: "SF Mono", Menlo, monospace; font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin-bottom: 28px; }
+  section.title h1 { font-size: 76px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.05; }
+  section.title .sub { margin-top: 18px; font-size: 30px; color: var(--ink-3); font-weight: 400; }
+  section.title ul { margin-top: 48px; list-style: none; display: grid; gap: 16px; }
+  section.title li { font-size: 28px; color: var(--ink-2); padding-left: 34px; position: relative; line-height: 1.3; }
+  section.title li::before { content: ""; position: absolute; left: 0; top: 14px; width: 12px; height: 12px; border-radius: 50%; background: linear-gradient(135deg, #4F46E5, #14B8A6); }
+</style>
+</head>
+<body>
+{{BODY}}
+{{FOOTER}}
+</body>
+</html>

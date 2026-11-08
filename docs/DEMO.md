@@ -33,6 +33,9 @@ From `packages/extraction/golden/`:
    lands in the change history; once the last error flag is settled the record turns Verified. A reviewer's change to
    a material field waits in the owner's Approvals tab (R001) until approved or rejected. The footer shows reviewer time.
    Locally, `npx dotenv -e .env.local -- npx tsx scripts/seed-review-demo.ts` (in apps/api) seeds one flagged receipt.
+   For a whole quarter without an AI key, `npx dotenv -e .env.local -- npx tsx scripts/seed-golden-quarter.ts --reset`
+   replays all 20 golden receipts through the real pipeline with the fake extractor (20 documents, 23 transactions, flags).
+   The user guide and narrated video are in `docs/how-to-use/`.
 5. **Fuel & IFTA** — import the Comdata CSV: columns are detected, 24 rows imported, matches to receipts shown, I003 for
    card rows without a receipt. Import the ELD file: 15 rows, totals by jurisdiction and by truck. Import the wide file:
    101/102 rows replaced, nothing deleted, history shows "5 of 15 rows in use".

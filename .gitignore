@@ -21,3 +21,6 @@ apps/web/public/_backup_pre_brandpack/
 # Local storage driver (dev/test uploads)
 apps/api/.storage/
 apps/api/.storage-test/
+
+# How-to-use video is built locally (docs/how-to-use/tooling); the rendered file is too large for git
+docs/how-to-use/*.mp4
