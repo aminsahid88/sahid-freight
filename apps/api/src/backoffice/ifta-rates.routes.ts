@@ -7,11 +7,12 @@
  * GET  /admin/ifta-rates/:quarter   list (optional ?fuelType=diesel)
  */
 import type { PrismaClient } from "@prisma/client";
-import { type NextFunction, type Response, Router } from "express";
+import { Router } from "express";
 import { z } from "zod";
 import { auditPlatform } from "../audit/log";
 import { type AuthRequest, protect } from "../middleware/auth.middleware";
-import { badRequest, forbidden, parse, wrap } from "./errors";
+import { badRequest, parse, wrap } from "./errors";
+import { platformAdminOnly } from "./platform-admin";
 
 const rateString = z.string().trim().regex(/^\d{1,5}(\.\d{1,5})?$/, "must be a plain decimal with up to 5 places");
 const quarterLabel = z.string().trim().regex(/^\d{4}Q[1-4]$/, "must look like 2026Q4");
@@ -33,14 +34,6 @@ const loadSchema = z.object({
 });
 
 const listQuery = z.object({ fuelType: z.string().trim().min(1).max(20).optional() });
-
-function platformAdminOnly(req: AuthRequest, _res: Response, next: NextFunction): void {
-  if (req.user?.role !== "ADMIN") {
-    next(forbidden("Only a platform admin can manage IFTA rate tables"));
-    return;
-  }
-  next();
-}
 
 export function iftaRatesRouter(prisma: PrismaClient): Router {
   const r = Router();

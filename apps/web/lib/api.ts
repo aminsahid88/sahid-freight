@@ -5,11 +5,29 @@ const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// Attach token to every request
+/** Platform admin inside a company with a logged reason (see lib/company.ts). Session-only, never persisted across tabs. */
+export const BREAK_GLASS_KEY = "backoffice.breakGlass";
+export interface BreakGlassState {
+  companyId: string;
+  reason: string;
+}
+export function readBreakGlass(): BreakGlassState | null {
+  try {
+    const raw = typeof window !== "undefined" ? sessionStorage.getItem(BREAK_GLASS_KEY) : null;
+    const v = raw ? (JSON.parse(raw) as BreakGlassState) : null;
+    return v && typeof v.companyId === "string" && typeof v.reason === "string" ? v : null;
+  } catch {
+    return null;
+  }
+}
+
+// Attach token to every request (and the break-glass reason on that company's routes)
 api.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
     const token = localStorage.getItem("accessToken");
     if (token) config.headers.Authorization = `Bearer ${token}`;
+    const glass = readBreakGlass();
+    if (glass && (config.url ?? "").startsWith(`/companies/${glass.companyId}`)) config.headers["X-Break-Glass-Reason"] = glass.reason;
   }
   return config;
 });

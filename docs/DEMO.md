@@ -44,7 +44,9 @@ From `packages/extraction/golden/`:
 7. **Reports** — generate the period PDF (cover, summary, fuel by state, mileage and MPG, exceptions, worksheet,
    appendix), the transactions CSV, the IFTA worksheet CSV and the supporting ZIP (originals renamed by date, state
    and vendor, with index.csv and a manifest of SHA-256s). Each file records its snapshot hash.
-   The rate table is loaded by a platform admin in Settings → "IFTA rate tables": quarter, source URL, pasted rows.
+   The rate table is loaded by a platform admin in the Control room → "Rate tables" tab: quarter, source URL, pasted rows.
+   The Control room (`/office/admin`, platform admins only) also shows every company's counts, the job queue (retry a
+   failed read) and the audit log across companies. Entering a company from there asks for a reason that is logged.
 8. **Settings / Vehicles** — Somali toggle; trucks with tank capacity and ELD provider.
 9. **Phone** — the capture app (Expo) is not in the store yet; show the camera flow on a simulator if needed.
 

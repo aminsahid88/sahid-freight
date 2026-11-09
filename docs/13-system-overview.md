@@ -23,7 +23,7 @@ not decide alone.
 | Office staff / bookkeeper | Web dashboard | Uploads batches, works the Review queue, imports fuel card and ELD files, generates reports. |
 | Reviewer (outside bookkeeper) | Web dashboard | Works the Review queue. Changes to important values wait for the owner's approval. |
 | Owner | Web dashboard | Everything above, plus approving reviewer changes and managing the team. |
-| Platform admin (us) | API | Loads official rate tables, supports companies. |
+| Platform admin (us) | Web dashboard: Control room | Sees every company's counts, the job queue and the audit trail; retries failed jobs; loads official rate tables; enters a company only with a logged reason. |
 
 ### 1.3 The eight screens
 
@@ -219,7 +219,7 @@ creation, team changes and re-reads, with the user, company and time.
 
 - **Authentication**: email or phone + password, with email one-time codes for sign-up and reset; JWT access tokens with refresh tokens. Helmet, CORS allow-list and rate limiting on the API.
 - **Tenancy**: every back-office route is mounted under `/companies/:companyId` and passes `requireCompany(...roles)`, which checks the caller's `Membership` for that company. Every data query goes through a tenant client scoped by company. Tests assert that cross-company access fails.
-- **Roles**: OWNER, STAFF, DRIVER, REVIEWER, PARTNER, ADMIN per company membership; platform ADMIN for rate tables and support. A break-glass path exists for admins and is audited.
+- **Roles**: OWNER, STAFF, DRIVER, REVIEWER, PARTNER, ADMIN per company membership; platform ADMIN for the control room (`/office/admin`: counts across companies, job queue with retry, audit log search, rate tables). A platform admin has no access inside a company until they enter it with a reason; that reason travels with every request and each one is written to the company's audit log, which the owner can read.
 - **Documents**: served only through short-lived signed URLs; no public bucket. Originals are written once under immutable keys.
 - **Retention**: a database trigger refuses to delete a document inside its four-year retention window; deletion is a `DeletionRequest` that waits. The audit log cannot be updated or deleted.
 - **Secrets**: only in the hosting providers' environment settings; never in git, chat or browser code. The API runs a preflight at boot that verifies each credential (database, storage read/write/delete, AI key, messaging) and refuses to start in production if one is missing.

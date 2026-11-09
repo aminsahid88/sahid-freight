@@ -9,7 +9,7 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Building2, ChevronDown, ClipboardCheck, FileBarChart, FileSearch, Fuel, Home, Inbox, LogOut, Menu, Settings, Truck, X } from "lucide-react";
+import { Building2, ChevronDown, ClipboardCheck, FileBarChart, FileSearch, Fuel, Home, Inbox, LogOut, Menu, Settings, ShieldAlert, ShieldCheck, Truck, X } from "lucide-react";
 import { useAuthStore } from "@/lib/store";
 import { primaryRole, type SelectedCompany, useCompanyStore } from "@/lib/company";
 import { backoffice } from "@/lib/backoffice";
@@ -53,7 +53,12 @@ const GROUPS: Array<{ key: string; items: NavItem[] }> = [
     ],
   },
 ];
-const NAV: NavItem[] = GROUPS.flatMap((g) => g.items);
+/** Platform admins only (legacy User.role ADMIN): the control room across companies. */
+const PLATFORM_GROUP: { key: string; items: NavItem[] } = {
+  key: "nav.groupPlatform",
+  items: [{ href: "/office/admin", key: "nav.admin", icon: <ShieldCheck size={17} />, tour: "nav-admin" }],
+};
+const NAV: NavItem[] = [...GROUPS, PLATFORM_GROUP].flatMap((g) => g.items);
 const MOBILE_PRIMARY = ["/office", "/office/inbox", "/office/review", "/office/ifta"];
 
 function initials(name: string | undefined): string {
@@ -111,7 +116,10 @@ export default function OfficeLayout({ children }: { children: React.ReactNode }
   const pathname = usePathname();
   const { user, logout } = useAuthStore();
   const { t } = useT();
-  const { selected, list, loaded, setList, select } = useCompanyStore();
+  const { selected, list, loaded, setList, select, leaveBreakGlass } = useCompanyStore();
+  const isPlatformAdmin = user?.role === "ADMIN";
+  const groups = isPlatformAdmin ? [...GROUPS, PLATFORM_GROUP] : GROUPS;
+  const navItems = isPlatformAdmin ? NAV : NAV.filter((n) => n.href !== "/office/admin");
   const isClient = useIsClient();
   const isMobile = useIsMobile();
   const [error, setError] = useState("");
@@ -127,7 +135,9 @@ export default function OfficeLayout({ children }: { children: React.ReactNode }
       .myCompanies()
       .then((cs) => {
         setList(cs);
-        if (cs.length === 0 && pathname !== "/office/new-company") router.replace("/office/new-company");
+        // The store may add a remembered break-glass company (platform admin), so judge on the store, not on memberships alone.
+        const visible = useCompanyStore.getState().list.length;
+        if (visible === 0 && pathname !== "/office/new-company" && !(user.role === "ADMIN" && pathname.startsWith("/office/admin"))) router.replace("/office/new-company");
       })
       .catch((e) => setError(formatApiError(e, t("common.error"))));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -139,7 +149,8 @@ export default function OfficeLayout({ children }: { children: React.ReactNode }
   const role = selected ? primaryRole(selected.roles) : null;
 
   // No company yet: a focused setup screen instead of an empty back office.
-  if (loaded && list.length === 0) {
+  // A platform admin without memberships still gets the control room.
+  if (loaded && list.length === 0 && !(isPlatformAdmin && pathname.startsWith("/office/admin"))) {
     return (
       <div className="min-h-screen">
         <header className="flex h-16 items-center justify-between px-6">
@@ -159,6 +170,17 @@ export default function OfficeLayout({ children }: { children: React.ReactNode }
   const content = (
     <>
       {error && <Banner tone="danger" className="mb-4">{error}</Banner>}
+      {selected?.breakGlass && (
+        <Banner tone="warning" className="mb-4">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <ShieldAlert size={15} className="shrink-0" />
+            <span className="min-w-0 flex-1">
+              <strong>{t("admin.insideCompany", { company: selected.company.dba || selected.company.legalName })}</strong> {t("admin.insideReason", { reason: selected.breakGlass.reason })}
+            </span>
+            <button onClick={() => { leaveBreakGlass(); router.push("/office/admin"); }} className="text-[13px] font-semibold underline underline-offset-2">{t("admin.leave")}</button>
+          </div>
+        </Banner>
+      )}
       {children}
       {selected && (
         <Suspense fallback={null}>
@@ -169,8 +191,8 @@ export default function OfficeLayout({ children }: { children: React.ReactNode }
   );
 
   if (isMobile) {
-    const primary = NAV.filter((n) => MOBILE_PRIMARY.includes(n.href));
-    const more = NAV.filter((n) => !MOBILE_PRIMARY.includes(n.href));
+    const primary = navItems.filter((n) => MOBILE_PRIMARY.includes(n.href));
+    const more = navItems.filter((n) => !MOBILE_PRIMARY.includes(n.href));
     return (
       <div className="min-h-screen">
         <header className="glass fixed inset-x-0 top-0 z-[200] flex h-14 items-center gap-2 border-b border-line px-3" style={{ background: "var(--sidebar)" }}>
@@ -230,7 +252,7 @@ export default function OfficeLayout({ children }: { children: React.ReactNode }
           <CompanyPicker selected={selected} list={list} loaded={loaded} onSelect={select} />
         </div>
         <nav className="flex-1 overflow-y-auto px-3 pb-3 pt-1" aria-label="Main">
-          {GROUPS.map((g) => (
+          {groups.map((g) => (
             <div key={g.key} className="mb-4">
               <div className="mb-1 px-3 label-caps">{t(g.key)}</div>
               {g.items.map((item) => {

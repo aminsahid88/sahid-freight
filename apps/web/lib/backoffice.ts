@@ -12,6 +12,62 @@ export type IssueStatus = "OPEN" | "RESOLVED" | "ACCEPTED";
 export type ReportType = "PERIOD_PDF" | "TRANSACTIONS_CSV" | "SUPPORT_ZIP" | "IFTA_WORKSHEET";
 export type ReportStatus = "PRELIMINARY" | "REVIEWED";
 
+export type JobStatus = "QUEUED" | "RUNNING" | "DONE" | "FAILED";
+
+export interface AdminOverview {
+  companies: number;
+  users: number;
+  documents: { total: number; byStatus: Record<DocumentStatus, number> };
+  transactions: { total: number; byStatus: Record<TxStatus, number> };
+  openErrorIssues: number;
+  jobs: Record<JobStatus, number>;
+  spend: { monthUsd: string; budgetUsd: string };
+  breakGlass: AdminAuditEntry[];
+}
+
+export interface AdminCompany {
+  id: string;
+  legalName: string;
+  dba: string | null;
+  usdot: string | null;
+  language: "EN" | "SO" | "AM";
+  timezone: string;
+  isDemo: boolean;
+  createdAt: string;
+  counts: { members: number; vehicles: number; documents: number; transactions: number; openErrorIssues: number; failedJobs: number };
+  lastDocumentAt: string | null;
+}
+
+export interface AdminJob {
+  id: string;
+  key: string;
+  step: string;
+  status: JobStatus;
+  attempts: number;
+  maxAttempts: number;
+  error: string | null;
+  runAfter: string;
+  lockedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  companyId: string | null;
+  company: { id: string; legalName: string; dba: string | null } | null;
+  documentId: string | null;
+}
+
+export interface AdminAuditEntry {
+  id: string;
+  companyId: string | null;
+  userId: string | null;
+  action: string;
+  target: string | null;
+  meta: Record<string, unknown> | null;
+  ip: string | null;
+  createdAt: string;
+  user: { id: string; fullName: string; email: string | null } | null;
+  company: { id: string; legalName: string; dba: string | null } | null;
+}
+
 export interface CompanySummary {
   id: string;
   legalName: string;
@@ -540,6 +596,31 @@ export const backoffice = {
   },
   async decideApproval(companyId: string, id: string, decision: "approve" | "reject", note?: string) {
     const { data } = await api.post<{ approval: ApprovalRow; status: TxStatus | null }>(`${c(companyId)}/approvals/${id}/${decision}`, note ? { note } : {});
+    return data;
+  },
+  // ── Platform admin: control room ──
+  async adminOverview() {
+    const { data } = await api.get<AdminOverview>("/admin/overview");
+    return data;
+  },
+  async adminCompanies() {
+    const { data } = await api.get<{ companies: AdminCompany[] }>("/admin/companies");
+    return data.companies;
+  },
+  async adminJobs(params: { status?: JobStatus; companyId?: string; limit?: number } = {}) {
+    const { data } = await api.get<{ jobs: AdminJob[]; counts: Record<JobStatus, number> }>("/admin/jobs", { params });
+    return data;
+  },
+  async adminRetryJob(id: string) {
+    const { data } = await api.post<{ job: AdminJob }>(`/admin/jobs/${id}/retry`, {});
+    return data.job;
+  },
+  async adminRetryFailed(companyId?: string) {
+    const { data } = await api.post<{ requeued: number }>("/admin/jobs/retry-failed", companyId ? { companyId } : {});
+    return data.requeued;
+  },
+  async adminAudit(params: { companyId?: string; action?: string; userId?: string; q?: string; before?: string; limit?: number } = {}) {
+    const { data } = await api.get<{ entries: AdminAuditEntry[]; nextBefore: string | null }>("/admin/audit", { params });
     return data;
   },
   // ── Platform admin: IFTA rate tables ──

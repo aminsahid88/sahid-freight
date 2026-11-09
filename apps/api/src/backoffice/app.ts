@@ -9,6 +9,7 @@ import express, { type Express, Router } from "express";
 import { sniffBinaryMime } from "@tbo/core";
 import { type Env } from "../config/env";
 import { createStorage, type Storage, verifyLocalSignature } from "../storage";
+import { adminRouter } from "./admin.routes";
 import { companiesRouter } from "./companies.routes";
 import { documentsRouter } from "./documents.routes";
 import { errorHandler, HttpError, wrap } from "./errors";
@@ -68,6 +69,7 @@ export function mountBackoffice(app: Express, deps: BackofficeDeps): { storage: 
   app.use("/companies", companies);
   app.use("/review", reviewRouter(deps.prisma));
   app.use("/admin/ifta-rates", iftaRatesRouter(deps.prisma));
+  app.use("/admin", adminRouter(deps.prisma, deps.env));
   app.use(filesRouter(storage, deps.env));
   return { storage };
 }
