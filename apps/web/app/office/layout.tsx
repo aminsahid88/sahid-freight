@@ -137,7 +137,14 @@ export default function OfficeLayout({ children }: { children: React.ReactNode }
         setList(cs);
         // The store may add a remembered break-glass company (platform admin), so judge on the store, not on memberships alone.
         const visible = useCompanyStore.getState().list.length;
-        if (visible === 0 && pathname !== "/office/new-company" && !(user.role === "ADMIN" && pathname.startsWith("/office/admin"))) router.replace("/office/new-company");
+        if (visible === 0) {
+          // A platform admin works across companies without belonging to any: land in the control room, not company setup.
+          if (user.role === "ADMIN") {
+            if (!pathname.startsWith("/office/admin") && pathname !== "/office/new-company") router.replace("/office/admin");
+          } else if (pathname !== "/office/new-company") {
+            router.replace("/office/new-company");
+          }
+        }
       })
       .catch((e) => setError(formatApiError(e, t("common.error"))));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -149,8 +156,8 @@ export default function OfficeLayout({ children }: { children: React.ReactNode }
   const role = selected ? primaryRole(selected.roles) : null;
 
   // No company yet: a focused setup screen instead of an empty back office.
-  // A platform admin without memberships still gets the control room.
-  if (loaded && list.length === 0 && !(isPlatformAdmin && pathname.startsWith("/office/admin"))) {
+  // A platform admin without memberships keeps the full shell (sidebar with the control room).
+  if (loaded && list.length === 0 && !isPlatformAdmin) {
     return (
       <div className="min-h-screen">
         <header className="flex h-16 items-center justify-between px-6">
