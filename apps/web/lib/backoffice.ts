@@ -23,6 +23,30 @@ export interface AdminOverview {
   jobs: Record<JobStatus, number>;
   spend: { monthUsd: string; budgetUsd: string };
   breakGlass: AdminAuditEntry[];
+  processing: ProcessingState;
+  suspendedUsers: number;
+  pausedCompanies: number;
+}
+
+export interface ProcessingState {
+  paused: boolean;
+  reason: string | null;
+  byUserId: string | null;
+  at: string | null;
+}
+
+export type UserStatus = "ACTIVE" | "SUSPENDED" | "BANNED" | "PENDING_VERIFICATION" | "DOCUMENTS_SUBMITTED";
+
+export interface AdminUser {
+  id: string;
+  fullName: string;
+  email: string | null;
+  phone: string | null;
+  role: string;
+  status: UserStatus;
+  createdAt: string;
+  lastLoginAt: string | null;
+  memberships: Array<{ role: CompanyRole; company: { id: string; legalName: string; dba: string | null; pausedAt: string | null } }>;
 }
 
 export interface AdminCompany {
@@ -36,6 +60,8 @@ export interface AdminCompany {
   createdAt: string;
   counts: { members: number; vehicles: number; documents: number; transactions: number; openErrorIssues: number; failedJobs: number };
   lastDocumentAt: string | null;
+  pausedAt: string | null;
+  pausedReason: string | null;
 }
 
 export interface AdminJob {
@@ -76,6 +102,9 @@ export interface CompanySummary {
   language: "EN" | "SO" | "AM";
   timezone: string;
   isDemo: boolean;
+  /** Set when a platform admin paused the company: members can read, changes are refused. */
+  pausedAt?: string | null;
+  pausedReason?: string | null;
 }
 
 export interface CompanyDetail extends CompanySummary {
@@ -622,6 +651,34 @@ export const backoffice = {
   async adminAudit(params: { companyId?: string; action?: string; userId?: string; q?: string; before?: string; limit?: number } = {}) {
     const { data } = await api.get<{ entries: AdminAuditEntry[]; nextBefore: string | null }>("/admin/audit", { params });
     return data;
+  },
+  async adminUsers(params: { q?: string; status?: UserStatus; limit?: number } = {}) {
+    const { data } = await api.get<{ users: AdminUser[] }>("/admin/users", { params });
+    return data.users;
+  },
+  async adminSuspendUser(id: string, reason: string) {
+    await api.post(`/admin/users/${id}/suspend`, { reason });
+  },
+  async adminReactivateUser(id: string, reason?: string) {
+    await api.post(`/admin/users/${id}/reactivate`, reason ? { reason } : {});
+  },
+  async adminPauseCompany(id: string, reason: string) {
+    await api.post(`/admin/companies/${id}/pause`, { reason });
+  },
+  async adminResumeCompany(id: string, reason?: string) {
+    await api.post(`/admin/companies/${id}/resume`, reason ? { reason } : {});
+  },
+  async adminProcessing() {
+    const { data } = await api.get<{ processing: ProcessingState }>("/admin/processing");
+    return data.processing;
+  },
+  async adminPauseProcessing(reason: string) {
+    const { data } = await api.post<{ processing: ProcessingState }>("/admin/processing/pause", { reason });
+    return data.processing;
+  },
+  async adminResumeProcessing(reason?: string) {
+    const { data } = await api.post<{ processing: ProcessingState }>("/admin/processing/resume", reason ? { reason } : {});
+    return data.processing;
   },
   // ── Platform admin: IFTA rate tables ──
   async iftaRates(quarter: string) {

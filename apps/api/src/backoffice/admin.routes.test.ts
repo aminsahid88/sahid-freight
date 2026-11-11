@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { accessToken, companyWithOwner, createUser, prisma, uid } from "../test/fixtures";
+import { claimNext, runOne } from "../jobs/queue";
 import { startTestServer, type TestServer } from "./test-harness";
 
 let s: TestServer;
@@ -38,6 +39,14 @@ test("only platform admins: company owners get 403, anonymous callers 401, on ev
     ["GET", "/admin/audit"],
     ["POST", "/admin/jobs/retry-failed", {}],
     ["POST", `/admin/jobs/${uid()}/retry`, {}],
+    ["GET", "/admin/users"],
+    ["POST", `/admin/users/${owner.user.id}/suspend`, { reason: "should never be allowed" }],
+    ["POST", `/admin/users/${owner.user.id}/reactivate`, {}],
+    ["POST", `/admin/companies/${owner.company.id}/pause`, { reason: "should never be allowed" }],
+    ["POST", `/admin/companies/${owner.company.id}/resume`, {}],
+    ["GET", "/admin/processing"],
+    ["POST", "/admin/processing/pause", { reason: "should never be allowed" }],
+    ["POST", "/admin/processing/resume", {}],
   ] as Array<[string, string, unknown?]>) {
     assert.equal((await s.api(method, url, owner.token, body)).status, 403, `${method} ${url} as owner`);
     assert.equal((await s.api(method, url, null, body)).status, 401, `${method} ${url} anonymous`);
@@ -160,4 +169,127 @@ test("audit: break-glass entries show up across companies with user and company;
   assert.equal(next.status, 200, next.text);
   assert.notEqual((next.json.entries as Array<{ id: string }>)[0]?.id, (page.json.entries as Array<{ id: string }>)[0]?.id);
   assert.equal((await s.api("GET", `/admin/audit?action=made_up`, adminToken)).status, 400);
+});
+
+async function queuedJob(companyId: string | null, step: string) {
+  // runAfter in the past so the job is runnable at once.
+  return prisma.job.create({ data: { idempotencyKey: `${uid("doc")}:${step}:t`, step, companyId, payload: { documentId: uid("doc") }, runAfter: new Date(Date.now() - 10 * 60_000) } });
+}
+
+test("suspend: the person is cut off on their very next request, it is audited, and reactivating restores access", async () => {
+  const a = await companyWithOwner();
+  assert.equal((await s.api("GET", `/companies/${a.company.id}`, a.token)).status, 200);
+
+  assert.equal((await s.api("POST", `/admin/users/${a.user.id}/suspend`, adminToken, { reason: "short" })).status, 400, "reason too short");
+  const sus = await s.api("POST", `/admin/users/${a.user.id}/suspend`, adminToken, { reason: "chargeback dispute, hold the account" });
+  assert.equal(sus.status, 200, sus.text);
+  assert.equal((await prisma.user.findUniqueOrThrow({ where: { id: a.user.id } })).status, "SUSPENDED");
+
+  // Same, still-valid token: refused everywhere in the back office.
+  const blocked = await s.api("GET", `/companies/${a.company.id}`, a.token);
+  assert.equal(blocked.status, 401);
+  assert.equal(blocked.json.error ?? blocked.json.code, "account_suspended", blocked.text);
+  assert.equal((await s.api("GET", "/companies", a.token)).status, 401);
+  assert.equal((await s.api("GET", "/review/queue", a.token)).status, 401);
+  assert.equal((await s.api("POST", `/admin/users/${a.user.id}/suspend`, adminToken, { reason: "chargeback dispute, again" })).status, 409);
+
+  const log = await prisma.auditLog.findFirst({ where: { action: "user_suspended", target: `User:${a.user.id}` } });
+  assert.ok(log);
+  assert.equal(log.userId, adminId);
+  assert.equal((log.meta as { reason: string; previousStatus: string }).previousStatus, "ACTIVE");
+
+  const list = await s.api("GET", `/admin/users?q=${encodeURIComponent(a.user.fullName)}`, adminToken);
+  assert.equal(list.status, 200, list.text);
+  const row = (list.json.users as Array<{ id: string; status: string; memberships: Array<{ role: string; company: { id: string } }> }>).find((u) => u.id === a.user.id);
+  assert.equal(row?.status, "SUSPENDED");
+  assert.deepEqual(row?.memberships.map((m) => [m.role, m.company.id]), [["OWNER", a.company.id]]);
+
+  const re = await s.api("POST", `/admin/users/${a.user.id}/reactivate`, adminToken, { reason: "dispute settled" });
+  assert.equal(re.status, 200, re.text);
+  assert.equal((await s.api("GET", `/companies/${a.company.id}`, a.token)).status, 200);
+  assert.ok(await prisma.auditLog.findFirst({ where: { action: "user_reactivated", target: `User:${a.user.id}` } }));
+  assert.equal((await s.api("POST", `/admin/users/${a.user.id}/reactivate`, adminToken, {})).status, 409);
+
+  // An admin cannot lock themselves out.
+  assert.equal((await s.api("POST", `/admin/users/${adminId}/suspend`, adminToken, { reason: "testing self suspension" })).status, 400);
+  assert.equal((await s.api("POST", `/admin/users/00000000-0000-4000-8000-000000000000/suspend`, adminToken, { reason: "nobody by that id here" })).status, 404);
+});
+
+test("pause a company: members can read but not write, its jobs wait, a break-glass admin can still act; resume undoes it", async () => {
+  const a = await companyWithOwner();
+  const step = `pause-test-${uid()}`;
+  const job = await queuedJob(a.company.id, step);
+
+  const p = await s.api("POST", `/admin/companies/${a.company.id}/pause`, adminToken, { reason: "unpaid invoice, paused for billing" });
+  assert.equal(p.status, 200, p.text);
+  assert.equal((await s.api("POST", `/admin/companies/${a.company.id}/pause`, adminToken, { reason: "unpaid invoice, paused again" })).status, 409);
+
+  assert.equal((await s.api("GET", `/companies/${a.company.id}`, a.token)).status, 200, "reads still work");
+  const mine = await s.api("GET", "/companies", a.token);
+  const entry = (mine.json.companies as Array<{ company: { id: string; pausedAt: string | null; pausedReason: string | null } }>).find((c) => c.company.id === a.company.id);
+  assert.ok(entry?.company.pausedAt, "the member sees the pause");
+  assert.equal(entry?.company.pausedReason, "unpaid invoice, paused for billing");
+
+  const write = await s.api("POST", `/companies/${a.company.id}/vehicles`, a.token, { unitNumber: "777" });
+  assert.equal(write.status, 423, write.text);
+  assert.match(String(write.json.message), /paused/);
+  assert.equal(await prisma.vehicle.count({ where: { companyId: a.company.id, unitNumber: "777" } }), 0);
+
+  // The worker skips the paused company's job; nothing is dropped.
+  assert.equal(await claimNext(prisma, [step]), null);
+  assert.equal((await prisma.job.findUniqueOrThrow({ where: { id: job.id } })).status, "QUEUED");
+
+  // Support can still work inside it with a logged reason.
+  const glass = await s.api("POST", `/companies/${a.company.id}/vehicles`, adminToken, { unitNumber: "778" }, { "x-break-glass-reason": "support fixing a truck during the pause" });
+  assert.equal(glass.status, 201, glass.text);
+
+  const companies = await s.api("GET", "/admin/companies", adminToken);
+  assert.ok((companies.json.companies as Array<{ id: string; pausedAt: string | null }>).find((c) => c.id === a.company.id)?.pausedAt);
+  assert.ok(await prisma.auditLog.findFirst({ where: { action: "company_paused", companyId: a.company.id } }));
+
+  const r = await s.api("POST", `/admin/companies/${a.company.id}/resume`, adminToken, { reason: "invoice paid" });
+  assert.equal(r.status, 200, r.text);
+  assert.equal((await s.api("POST", `/companies/${a.company.id}/vehicles`, a.token, { unitNumber: "779" })).status, 201);
+  const claimed = await claimNext(prisma, [step]);
+  assert.equal(claimed?.id, job.id, "the waiting job runs after resume");
+  await prisma.job.update({ where: { id: job.id }, data: { status: "DONE" } });
+  const resumed = await prisma.auditLog.findFirst({ where: { action: "company_resumed", companyId: a.company.id } });
+  assert.equal((resumed?.meta as { pausedReason: string }).pausedReason, "unpaid invoice, paused for billing");
+  assert.equal((await s.api("POST", `/admin/companies/${a.company.id}/resume`, adminToken, {})).status, 409);
+});
+
+test("pause all processing: the worker claims nothing until resumed, the overview shows it, both steps are audited", async () => {
+  const step = `proc-test-${uid()}`;
+  const job = await queuedJob(null, step);
+  let ran = 0;
+  const processors = { [step]: async () => void ran++ };
+  try {
+    assert.equal((await s.api("POST", "/admin/processing/pause", adminToken, { reason: "x" })).status, 400);
+    const p = await s.api("POST", "/admin/processing/pause", adminToken, { reason: "provider outage, stop spending" });
+    assert.equal(p.status, 200, p.text);
+    assert.equal((await s.api("POST", "/admin/processing/pause", adminToken, { reason: "provider outage, again" })).status, 409);
+
+    const r1 = await runOne(prisma, processors);
+    assert.deepEqual(r1, { ran: false, paused: true });
+    assert.equal(ran, 0);
+    assert.equal((await prisma.job.findUniqueOrThrow({ where: { id: job.id } })).status, "QUEUED");
+
+    const state = await s.api("GET", "/admin/processing", adminToken);
+    assert.equal((state.json.processing as { paused: boolean; reason: string }).paused, true);
+    const ov = await s.api("GET", "/admin/overview", adminToken);
+    assert.equal((ov.json.processing as { paused: boolean }).paused, true);
+    assert.equal(typeof ov.json.suspendedUsers, "number");
+    assert.equal(typeof ov.json.pausedCompanies, "number");
+  } finally {
+    const res = await s.api("POST", "/admin/processing/resume", adminToken, { reason: "provider back" });
+    assert.ok(res.status === 200 || res.status === 409, res.text);
+  }
+  assert.equal(((await s.api("GET", "/admin/processing", adminToken)).json.processing as { paused: boolean }).paused, false);
+  // Resumed: a run picks the job up (claimNext limited to this step's processors).
+  const r2 = await runOne(prisma, processors);
+  assert.equal(r2.ran, true);
+  assert.equal(ran, 1);
+  assert.ok(await prisma.auditLog.findFirst({ where: { action: "processing_paused", userId: adminId } }));
+  const resumed = await prisma.auditLog.findFirst({ where: { action: "processing_resumed", userId: adminId }, orderBy: { createdAt: "desc" } });
+  assert.equal((resumed?.meta as { pausedReason: string }).pausedReason, "provider outage, stop spending");
 });

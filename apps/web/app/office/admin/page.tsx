@@ -8,8 +8,8 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, Building2, FileText, RefreshCw, ScrollText, ShieldAlert } from "lucide-react";
-import { type AdminAuditEntry, type AdminCompany, type AdminJob, type AdminOverview, backoffice, type CompanySummary, formatDate, formatDateTime, type JobStatus } from "@/lib/backoffice";
+import { AlertTriangle, Building2, FileText, Pause, Play, RefreshCw, ScrollText, ShieldAlert, UserX, Users } from "lucide-react";
+import { type AdminAuditEntry, type AdminCompany, type AdminJob, type AdminOverview, type AdminUser, backoffice, type CompanySummary, formatDate, formatDateTime, type JobStatus, type ProcessingState } from "@/lib/backoffice";
 import { useCompanyStore } from "@/lib/company";
 import { formatApiError } from "@/lib/errors";
 import { useAuthStore } from "@/lib/store";
@@ -25,10 +25,10 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Pill, type PillTone } from "@/components/ui/Pill";
 import { Tabs } from "@/components/ui/Tabs";
 
-type Tab = "overview" | "companies" | "jobs" | "audit" | "rates";
-const TABS: Tab[] = ["overview", "companies", "jobs", "audit", "rates"];
+type Tab = "overview" | "companies" | "people" | "jobs" | "audit" | "rates";
+const TABS: Tab[] = ["overview", "companies", "people", "jobs", "audit", "rates"];
 const JOB_TONES: Record<JobStatus, PillTone> = { QUEUED: "blue", RUNNING: "amber", DONE: "green", FAILED: "red" };
-const AUDIT_ACTIONS = ["login", "login_failed", "logout", "upload", "view_document", "edit", "approve", "export", "delete_request", "break_glass", "company_created", "member_added", "member_removed", "review_claim", "review_release", "approval_requested", "approval_decided", "reprocess"];
+const AUDIT_ACTIONS = ["login", "login_failed", "logout", "upload", "view_document", "edit", "approve", "export", "delete_request", "break_glass", "company_created", "member_added", "member_removed", "review_claim", "review_release", "approval_requested", "approval_decided", "reprocess", "user_suspended", "user_reactivated", "company_paused", "company_resumed", "processing_paused", "processing_resumed"];
 
 const companyName = (c: { legalName: string; dba: string | null } | null | undefined, fallback: string) => (c ? c.dba || c.legalName : fallback);
 
@@ -67,6 +67,7 @@ export default function AdminPage() {
       </div>
       {tab === "overview" && <OverviewTab />}
       {tab === "companies" && <CompaniesTab />}
+      {tab === "people" && <PeopleTab />}
       {tab === "jobs" && <JobsTab />}
       {tab === "audit" && <AuditTab />}
       {tab === "rates" && (
@@ -100,8 +101,15 @@ function OverviewTab() {
   const budget = Number(data.spend.budgetUsd);
   return (
     <div className="grid gap-4">
+      <ProcessingControl />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Stat icon={<Building2 size={14} />} label={t("admin.companies")} value={data.companies} detail={t("admin.usersDetail", { count: data.users })} />
+        <Stat
+          icon={<Building2 size={14} />}
+          label={t("admin.companies")}
+          value={data.companies}
+          tone={data.pausedCompanies ? "warning" : "default"}
+          detail={[t("admin.usersDetail", { count: data.users }), data.pausedCompanies ? t("admin.pausedCount", { count: data.pausedCompanies }) : "", data.suspendedUsers ? t("admin.suspendedCount", { count: data.suspendedUsers }) : ""].filter(Boolean).join(" · ")}
+        />
         <Stat icon={<FileText size={14} />} label={t("admin.documents")} value={data.documents.total} detail={`${data.documents.byStatus.PROCESSED} ${t("docStatus.PROCESSED").toLowerCase()} · ${data.documents.byStatus.FAILED} ${t("docStatus.FAILED").toLowerCase()} · ${data.documents.byStatus.UNREADABLE} ${t("docStatus.UNREADABLE").toLowerCase()}`} />
         <Stat icon={<AlertTriangle size={14} />} label={t("admin.openErrors")} value={data.openErrorIssues} tone={data.openErrorIssues ? "warning" : "default"} detail={`${data.transactions.byStatus.VERIFIED} / ${data.transactions.total} ${t("txStatus.VERIFIED").toLowerCase()}`} />
         <Stat icon={<RefreshCw size={14} />} label={t("admin.failedJobs")} value={data.jobs.FAILED} tone={data.jobs.FAILED ? "danger" : "default"} detail={`${data.jobs.QUEUED} ${t("admin.queued").toLowerCase()} · ${data.jobs.RUNNING} ${t("admin.running").toLowerCase()} · ${data.jobs.DONE} ${t("admin.done").toLowerCase()}`} />
@@ -157,9 +165,12 @@ function CompaniesTab() {
   const [error, setError] = useState("");
   const [entering, setEntering] = useState<AdminCompany | null>(null);
   const [reason, setReason] = useState("");
+  const [pausing, setPausing] = useState<AdminCompany | null>(null);
+  const [notice, setNotice] = useState("");
 
+  const reload = () => backoffice.adminCompanies().then(setRows).catch((e) => setError(formatApiError(e, t("common.error"))));
   useEffect(() => {
-    backoffice.adminCompanies().then(setRows).catch((e) => setError(formatApiError(e, t("common.error"))));
+    void reload();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -178,7 +189,7 @@ function CompaniesTab() {
   const confirmEnter = (e: React.FormEvent) => {
     e.preventDefault();
     if (!entering || reason.trim().length < 10) return;
-    const summary: CompanySummary = { id: entering.id, legalName: entering.legalName, dba: entering.dba, usdot: entering.usdot, language: entering.language, timezone: entering.timezone, isDemo: entering.isDemo };
+    const summary: CompanySummary = { id: entering.id, legalName: entering.legalName, dba: entering.dba, usdot: entering.usdot, language: entering.language, timezone: entering.timezone, isDemo: entering.isDemo, pausedAt: entering.pausedAt, pausedReason: entering.pausedReason };
     enterBreakGlass(summary, reason.trim());
     setEntering(null);
     router.push("/office");
@@ -187,6 +198,7 @@ function CompaniesTab() {
   if (error) return <Banner tone="danger">{error}</Banner>;
   return (
     <>
+    {notice && <Banner tone="success" className="mb-4">{notice}</Banner>}
     <Card>
       {!rows ? (
         <CardBody>
@@ -200,6 +212,7 @@ function CompaniesTab() {
             <thead className="thead">
               <tr>
                 <th className="px-4 py-2.5">{t("admin.colCompany")}</th>
+                <th className="px-4 py-2.5">{t("admin.colStatus")}</th>
                 <th className="px-4 py-2.5">{t("admin.colUsdot")}</th>
                 <th className="px-4 py-2.5 text-right">{t("admin.colMembers")}</th>
                 <th className="px-4 py-2.5 text-right">{t("admin.colTrucks")}</th>
@@ -223,6 +236,13 @@ function CompaniesTab() {
                       <span className="font-mono">{c.id.slice(0, 8)}</span>
                     </div>
                   </td>
+                  <td className="px-4 py-3">
+                    {c.pausedAt ? (
+                      <span title={c.pausedReason ?? ""}><Pill label={t("admin.paused")} tone="amber" /></span>
+                    ) : (
+                      <Pill label={t("admin.active")} tone="green" />
+                    )}
+                  </td>
                   <td className="px-4 py-3 tnum">{c.usdot ?? "—"}</td>
                   <td className="px-4 py-3 text-right tnum">{c.counts.members}</td>
                   <td className="px-4 py-3 text-right tnum">{c.counts.vehicles}</td>
@@ -233,9 +253,14 @@ function CompaniesTab() {
                   <td className="px-4 py-3 tnum">{c.lastDocumentAt ? formatDate(c.lastDocumentAt, intl) : "—"}</td>
                   <td className="px-4 py-3 tnum">{formatDate(c.createdAt, intl)}</td>
                   <td className="px-4 py-3 text-right">
-                    <Button size="sm" variant={memberOf.has(c.id) ? "secondary" : "ghost"} icon={memberOf.has(c.id) ? undefined : <ShieldAlert size={13} />} onClick={() => open(c)}>
-                      {memberOf.has(c.id) ? t("admin.open") : t("admin.enter")}
-                    </Button>
+                    <div className="flex justify-end gap-1.5">
+                      <Button size="sm" variant={memberOf.has(c.id) ? "secondary" : "ghost"} icon={memberOf.has(c.id) ? undefined : <ShieldAlert size={13} />} onClick={() => open(c)}>
+                        {memberOf.has(c.id) ? t("admin.open") : t("admin.enter")}
+                      </Button>
+                      <Button size="sm" variant="ghost" icon={c.pausedAt ? <Play size={13} /> : <Pause size={13} />} onClick={() => setPausing(c)}>
+                        {c.pausedAt ? t("admin.resume") : t("admin.pause")}
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -256,7 +281,244 @@ function CompaniesTab() {
           </form>
         </Drawer>
       )}
+      {pausing && (
+        <ReasonDrawer
+          title={t(pausing.pausedAt ? "admin.resumeCompanyTitle" : "admin.pauseCompanyTitle", { company: pausing.dba || pausing.legalName })}
+          hint={pausing.pausedAt ? t("admin.resumeCompanyHint", { reason: pausing.pausedReason ?? "—" }) : t("admin.pauseCompanyHint")}
+          required={!pausing.pausedAt}
+          danger={!pausing.pausedAt}
+          confirmLabel={pausing.pausedAt ? t("admin.resume") : t("admin.pauseCompanyConfirm")}
+          onClose={() => setPausing(null)}
+          onConfirm={async (why) => {
+            if (pausing.pausedAt) await backoffice.adminResumeCompany(pausing.id, why || undefined);
+            else await backoffice.adminPauseCompany(pausing.id, why);
+            setNotice(t(pausing.pausedAt ? "admin.companyResumed" : "admin.companyPaused", { company: pausing.dba || pausing.legalName }));
+            await reload();
+          }}
+        />
+      )}
     </>
+  );
+}
+
+// ── People ────────────────────────────────────────────────────────────────────
+
+type PeopleFilter = "ALL" | "ACTIVE" | "SUSPENDED";
+
+function PeopleTab() {
+  const { t, locale } = useT();
+  const intl = locale === "so" ? "so" : "en-US";
+  const { user: me } = useAuthStore();
+  const [q, setQ] = useState("");
+  const [applied, setApplied] = useState("");
+  const [filter, setFilter] = useState<PeopleFilter>("ALL");
+  const [version, setVersion] = useState(0);
+  const key = `${applied}|${filter}|${version}`;
+  const [data, setData] = useState<{ key: string; users: AdminUser[] } | null>(null);
+  const users = data?.key === key ? data.users : null;
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [acting, setActing] = useState<AdminUser | null>(null);
+
+  useEffect(() => {
+    backoffice
+      .adminUsers({ ...(applied ? { q: applied } : {}), ...(filter === "ALL" ? {} : { status: filter }) })
+      .then((rows) => setData({ key, users: rows }))
+      .catch((e) => setError(formatApiError(e, t("common.error"))));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+
+  const suspended = (u: AdminUser) => u.status === "SUSPENDED" || u.status === "BANNED";
+  const STATUS_TONE: Record<string, PillTone> = { ACTIVE: "green", SUSPENDED: "red", BANNED: "red" };
+
+  return (
+    <div className="grid gap-4">
+      <Banner tone="info">{t("admin.peopleHint")}</Banner>
+      <form
+        className="flex flex-wrap items-end gap-3"
+        onSubmit={(e) => {
+          e.preventDefault();
+          setApplied(q.trim());
+        }}
+      >
+        <Input label={t("admin.searchPeople")} value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("admin.searchPeoplePlaceholder")} className="min-w-72" />
+        <Button type="submit" variant="secondary">{t("admin.apply")}</Button>
+        <div className="ml-auto">
+          <Tabs
+            ariaLabel={t("admin.colStatus")}
+            value={filter}
+            onChange={setFilter}
+            options={[
+              { value: "ALL" as const, label: t("admin.allStatuses") },
+              { value: "ACTIVE" as const, label: t("admin.active") },
+              { value: "SUSPENDED" as const, label: t("admin.suspended") },
+            ]}
+          />
+        </div>
+      </form>
+      {error && <Banner tone="danger">{error}</Banner>}
+      {notice && <Banner tone="success">{notice}</Banner>}
+      <Card>
+        {!users ? (
+          <CardBody>
+            <SkeletonRows rows={5} />
+          </CardBody>
+        ) : users.length === 0 ? (
+          <EmptyState icon={<Users size={20} />} title={t("admin.noPeople")} />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-[13px]">
+              <thead className="thead">
+                <tr>
+                  <th className="px-4 py-2.5">{t("admin.colPerson")}</th>
+                  <th className="px-4 py-2.5">{t("admin.colCompanies")}</th>
+                  <th className="px-4 py-2.5">{t("admin.colLastSignIn")}</th>
+                  <th className="px-4 py-2.5">{t("admin.colStatus")}</th>
+                  <th className="px-4 py-2.5" />
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((u) => (
+                  <tr key={u.id} className="border-t border-line align-top hover:bg-surface">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2 font-semibold text-ink">
+                        {u.fullName}
+                        {u.role === "ADMIN" && <Pill label={t("admin.platformAdmin")} tone="blue" />}
+                        {u.id === me?.id && <span className="text-xs font-normal text-ink-3">{t("admin.you")}</span>}
+                      </div>
+                      <div className="text-xs text-ink-3">{[u.email, u.phone].filter(Boolean).join(" · ") || "—"}</div>
+                    </td>
+                    <td className="px-4 py-3 text-ink-2">
+                      {u.memberships.length === 0 ? (
+                        <span className="text-ink-3">—</span>
+                      ) : (
+                        u.memberships.map((m) => (
+                          <div key={`${m.company.id}:${m.role}`}>
+                            {t(`role.${m.role}`)} · {m.company.dba || m.company.legalName}
+                            {m.company.pausedAt && <span className="ml-1 text-warning">({t("admin.paused").toLowerCase()})</span>}
+                          </div>
+                        ))
+                      )}
+                    </td>
+                    <td className="px-4 py-3 tnum whitespace-nowrap">{u.lastLoginAt ? formatDateTime(u.lastLoginAt, intl) : "—"}</td>
+                    <td className="px-4 py-3"><Pill label={t(`userStatus.${u.status}`)} tone={STATUS_TONE[u.status] ?? "grey"} /></td>
+                    <td className="px-4 py-3 text-right">
+                      {u.id !== me?.id && (
+                        <Button size="sm" variant={suspended(u) ? "secondary" : "ghost"} icon={suspended(u) ? <Play size={13} /> : <UserX size={13} />} onClick={() => setActing(u)}>
+                          {suspended(u) ? t("admin.reactivate") : t("admin.suspend")}
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+      {acting && (
+        <ReasonDrawer
+          title={t(suspended(acting) ? "admin.reactivateTitle" : "admin.suspendTitle", { name: acting.fullName })}
+          hint={suspended(acting) ? t("admin.reactivateHint") : t("admin.suspendHint")}
+          required={!suspended(acting)}
+          danger={!suspended(acting)}
+          confirmLabel={suspended(acting) ? t("admin.reactivate") : t("admin.suspendConfirm")}
+          onClose={() => setActing(null)}
+          onConfirm={async (why) => {
+            if (suspended(acting)) await backoffice.adminReactivateUser(acting.id, why || undefined);
+            else await backoffice.adminSuspendUser(acting.id, why);
+            setNotice(t(suspended(acting) ? "admin.userReactivated" : "admin.userSuspended", { name: acting.fullName }));
+            setVersion((v) => v + 1);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// ── Shared: platform processing switch and the reason drawer ──────────────────
+
+function ProcessingControl() {
+  const { t, locale } = useT();
+  const intl = locale === "so" ? "so" : "en-US";
+  const [state, setState] = useState<ProcessingState | null>(null);
+  const [error, setError] = useState("");
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    backoffice.adminProcessing().then(setState).catch((e) => setError(formatApiError(e, t("common.error"))));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (error) return <Banner tone="danger">{error}</Banner>;
+  if (!state) return null;
+  return (
+    <>
+      {state.paused ? (
+        <Banner tone="danger" title={t("admin.processingPausedTitle")}>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="min-w-0 flex-1">{t("admin.processingPausedBody", { reason: state.reason ?? "—", since: state.at ? formatDateTime(state.at, intl) : "—" })}</span>
+            <Button size="sm" variant="secondary" icon={<Play size={13} />} onClick={() => setOpen(true)}>{t("admin.resumeProcessing")}</Button>
+          </div>
+        </Banner>
+      ) : (
+        <Card>
+          <CardBody className="flex flex-wrap items-center gap-3">
+            <span className="h-2.5 w-2.5 rounded-full bg-success" aria-hidden />
+            <span className="min-w-0 flex-1 text-[13px] text-ink-2"><strong className="text-ink">{t("admin.processingRunning")}</strong> {t("admin.processingRunningHint")}</span>
+            <Button size="sm" variant="danger" icon={<Pause size={13} />} onClick={() => setOpen(true)}>{t("admin.pauseProcessing")}</Button>
+          </CardBody>
+        </Card>
+      )}
+      {open && (
+        <ReasonDrawer
+          title={state.paused ? t("admin.resumeProcessing") : t("admin.pauseProcessing")}
+          hint={state.paused ? t("admin.resumeProcessingHint") : t("admin.pauseProcessingHint")}
+          required={!state.paused}
+          danger={!state.paused}
+          confirmLabel={state.paused ? t("admin.resumeProcessing") : t("admin.pauseProcessing")}
+          onClose={() => setOpen(false)}
+          onConfirm={async (why) => {
+            setState(state.paused ? await backoffice.adminResumeProcessing(why || undefined) : await backoffice.adminPauseProcessing(why));
+          }}
+        />
+      )}
+    </>
+  );
+}
+
+function ReasonDrawer({ title, hint, required, danger, confirmLabel, onClose, onConfirm }: { title: string; hint: string; required: boolean; danger: boolean; confirmLabel: string; onClose: () => void; onConfirm: (reason: string) => Promise<void> }) {
+  const { t } = useT();
+  const [reason, setReason] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const ready = !required || reason.trim().length >= 10;
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ready) return;
+    setBusy(true);
+    setError("");
+    try {
+      await onConfirm(reason.trim());
+      onClose();
+    } catch (err) {
+      setError(formatApiError(err, t("common.error")));
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <Drawer title={title} onClose={onClose} width={480}>
+      <form onSubmit={submit} className="grid gap-4">
+        <Banner tone={danger ? "warning" : "info"}>{hint}</Banner>
+        {error && <Banner tone="danger">{error}</Banner>}
+        <Textarea label={required ? t("admin.reason") : t("admin.reasonOptional")} required={required} minLength={required ? 10 : undefined} value={reason} onChange={(e) => setReason(e.target.value)} />
+        <div className="flex gap-2">
+          <Button type="submit" variant={danger ? "danger" : "primary"} loading={busy} disabled={!ready}>{confirmLabel}</Button>
+          <Button type="button" variant="secondary" onClick={onClose}>{t("common.cancel")}</Button>
+        </div>
+      </form>
+    </Drawer>
   );
 }
 
@@ -334,6 +596,7 @@ function JobsTab() {
 
   return (
     <div className="grid gap-4">
+      <ProcessingControl />
       <Banner tone="info">{t("admin.jobsHint")}</Banner>
       <div className="flex flex-wrap items-end gap-3">
         <Tabs ariaLabel={t("admin.colStatus")} value={status} onChange={setStatus} options={statusOptions} />

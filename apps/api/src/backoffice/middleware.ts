@@ -25,6 +25,8 @@ export interface CompanyRequest extends AuthRequest {
   db?: TenantClient;
 }
 
+const READ_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+
 /** Highest-privilege membership wins when a user holds several roles in one company. */
 const ROLE_RANK: Record<CompanyRole, number> = { OWNER: 6, ADMIN: 5, PARTNER: 4, REVIEWER: 3, STAFF: 2, DRIVER: 1 };
 
@@ -66,6 +68,14 @@ export function requireCompany(prisma: PrismaClient, ...allowed: CompanyRole[]) 
       }
 
       if (allowed.length && !allowed.includes(role)) throw forbidden(`This action needs one of: ${allowed.join(", ")}`);
+
+      // Paused by a platform admin: members can read; writes are refused. A break-glass admin may still act (support).
+      if (!breakGlass && !READ_METHODS.has(req.method)) {
+        const c = await prisma.company.findUnique({ where: { id: companyId }, select: { pausedAt: true, pausedReason: true } });
+        if (c?.pausedAt) {
+          throw new HttpError(423, `This company is paused by Sahid Freight${c.pausedReason ? `: ${c.pausedReason}` : ""}. You can view everything, but changes are blocked until it is resumed.`, "company_paused");
+        }
+      }
 
       req.company = { id: companyId, role, breakGlass };
       req.db = tenantClient(prisma, companyId);

@@ -7,6 +7,7 @@
  * with `FOR UPDATE SKIP LOCKED`, so several worker processes can run safely.
  */
 import type { JobStatus, PrismaClient } from "@prisma/client";
+import { getProcessingState } from "./processing-state";
 
 export interface JobPayload {
   documentId?: string;
@@ -63,15 +64,18 @@ export interface ClaimedJob {
   maxAttempts: number;
 }
 
-/** Atomically claim the next runnable job, or null when the queue is idle. */
-export async function claimNext(prisma: PrismaClient, steps?: string[]): Promise<ClaimedJob | null> {
-  const stepFilter = steps && steps.length ? `AND step = ANY($1::text[])` : "";
-  const params = steps && steps.length ? [steps] : [];
+/** Atomically claim the next runnable job, or null when the queue is idle. Jobs of a paused company are skipped (they wait). */
+export async function claimNext(prisma: PrismaClient, steps?: string[], now: Date = new Date()): Promise<ClaimedJob | null> {
+  // runAfter is written with the app clock (enqueue, fail backoff), so it is compared with the app clock too.
+  // Comparing with the database's NOW() mixed two clocks: a few seconds of drift left fresh jobs unclaimable.
+  const stepFilter = steps && steps.length ? `AND step = ANY($2::text[])` : "";
+  const params: unknown[] = steps && steps.length ? [now, steps] : [now];
   const rows = await prisma.$queryRawUnsafe<ClaimedJob[]>(
     `UPDATE "Job" SET status = 'RUNNING', attempts = attempts + 1, "lockedAt" = NOW(), "updatedAt" = NOW()
      WHERE id = (
        SELECT id FROM "Job"
-       WHERE status = 'QUEUED' AND "runAfter" <= NOW() ${stepFilter}
+       WHERE status = 'QUEUED' AND "runAfter" <= $1::timestamp ${stepFilter}
+         AND ("companyId" IS NULL OR "companyId" NOT IN (SELECT id FROM "Company" WHERE "pausedAt" IS NOT NULL))
        ORDER BY "runAfter", "createdAt"
        FOR UPDATE SKIP LOCKED
        LIMIT 1
@@ -109,7 +113,9 @@ export type Processor = (job: ClaimedJob, prisma: PrismaClient) => Promise<void>
 export async function runOne(
   prisma: PrismaClient,
   processors: Record<string, Processor>,
-): Promise<{ ran: false } | { ran: true; job: ClaimedJob; status: JobStatus }> {
+): Promise<{ ran: false; paused?: boolean } | { ran: true; job: ClaimedJob; status: JobStatus }> {
+  // Platform-wide pause from the control room: claim nothing, queued work waits.
+  if ((await getProcessingState(prisma)).paused) return { ran: false, paused: true };
   const job = await claimNext(prisma, Object.keys(processors));
   if (!job) return { ran: false };
   const processor = processors[job.step];

@@ -8,7 +8,9 @@ import type { PrismaClient } from "@prisma/client";
 import express, { type Express, Router } from "express";
 import { sniffBinaryMime } from "@tbo/core";
 import { type Env } from "../config/env";
+import { protect } from "../middleware/auth.middleware";
 import { createStorage, type Storage, verifyLocalSignature } from "../storage";
+import { requireActiveUser } from "./active-user";
 import { adminRouter } from "./admin.routes";
 import { companiesRouter } from "./companies.routes";
 import { documentsRouter } from "./documents.routes";
@@ -66,6 +68,8 @@ export function mountBackoffice(app: Express, deps: BackofficeDeps): { storage: 
   companies.use("/:companyId/fuel-card-transactions", fuelCardTransactionsRouter(deps.prisma));
   companies.use("/:companyId/reports", reportsRouter(deps.prisma, storage, deps.env));
   companies.use("/:companyId/members", membersRouter(deps.prisma));
+  // Suspended accounts are refused on every back-office route before any router runs.
+  app.use(["/companies", "/review", "/admin"], protect, requireActiveUser(deps.prisma));
   app.use("/companies", companies);
   app.use("/review", reviewRouter(deps.prisma));
   app.use("/admin/ifta-rates", iftaRatesRouter(deps.prisma));

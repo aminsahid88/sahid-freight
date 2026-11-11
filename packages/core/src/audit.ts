@@ -21,6 +21,12 @@ export const AUDIT_ACTIONS = [
   "approval_requested",
   "approval_decided",
   "reprocess",
+  "user_suspended",
+  "user_reactivated",
+  "company_paused",
+  "company_resumed",
+  "processing_paused",
+  "processing_resumed",
 ] as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];

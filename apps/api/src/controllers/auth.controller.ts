@@ -172,7 +172,7 @@ export const login = async (req: Request, res: Response) => {
       await auditPlatform(prisma, { action: "login_failed", userId: user.id, ip: req.ip }).catch(() => undefined);
       return res.status(401).json({ message: "Invalid phone or password" });
     }
-    if (user.status === "SUSPENDED") return res.status(403).json({ message: "Your account has been suspended" });
+    if (user.status === "SUSPENDED" || user.status === "BANNED") return res.status(403).json({ message: "Your account has been suspended. Contact support." });
 
     const { accessToken, refreshToken } = await issueTokens(user.id, user.role);
     // Append-only audit trail (CLAUDE.md: log logins). Never blocks the login itself.
@@ -260,6 +260,7 @@ export const refresh = async (req: Request, res: Response) => {
     const payload = jwt.verify(refreshToken, JWT_REFRESH_SECRET) as { userId: string };
     const user = await prisma.user.findUnique({ where: { id: payload.userId } });
     if (!user) return res.status(401).json({ message: "User not found" });
+    if (user.status === "SUSPENDED" || user.status === "BANNED") return res.status(401).json({ message: "Your account has been suspended. Contact support." });
     const accessToken = jwt.sign({ userId: user.id, role: user.role }, JWT_SECRET, { expiresIn: "7d" });
     return res.status(200).json({ accessToken });
   } catch (error) {
@@ -298,6 +299,7 @@ export const googleAuth = async (req: Request, res: Response) => {
       user = await prisma.user.update({ where: { id: user.id }, data: { googleId } });
     }
 
+    if (user.status === "SUSPENDED" || user.status === "BANNED") return res.status(403).json({ message: "Your account has been suspended. Contact support." });
     const { accessToken, refreshToken } = await issueTokens(user.id, user.role);
 
     return res.status(200).json({
@@ -341,6 +343,7 @@ export const appleAuth = async (req: Request, res: Response) => {
       user = await prisma.user.update({ where: { id: user.id }, data: { appleId } });
     }
 
+    if (user.status === "SUSPENDED" || user.status === "BANNED") return res.status(403).json({ message: "Your account has been suspended. Contact support." });
     const { accessToken, refreshToken } = await issueTokens(user.id, user.role);
 
     return res.status(200).json({
@@ -432,6 +435,7 @@ export const adminLogin = async (req: Request, res: Response) => {
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) return res.status(401).json({ message: "Invalid email or password" });
 
+    if (user.status === "SUSPENDED" || user.status === "BANNED") return res.status(403).json({ message: "Your account has been suspended. Contact support." });
     const { accessToken, refreshToken } = await issueTokens(user.id, user.role);
 
     return res.status(200).json({

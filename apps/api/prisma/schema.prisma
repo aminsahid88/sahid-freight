@@ -722,6 +722,10 @@ model Company {
   timezone             String       @default("America/Chicago")
   inboundEmailSlug     String       @unique
   isDemo               Boolean      @default(false)
+  /// Paused by a platform admin (control room): members can read, writes are refused, its jobs wait. Additive, 2026-11-12.
+  pausedAt             DateTime?
+  pausedReason         String?
+  pausedById           String?
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt
 

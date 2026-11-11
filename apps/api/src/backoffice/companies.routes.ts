@@ -99,7 +99,7 @@ export function companiesRouter(prisma: PrismaClient): Router {
     wrap(async (req: CompanyRequest, res) => {
       const memberships = await prisma.membership.findMany({
         where: { userId: req.user!.userId },
-        include: { company: { select: { id: true, legalName: true, dba: true, usdot: true, language: true, timezone: true, isDemo: true } } },
+        include: { company: { select: { id: true, legalName: true, dba: true, usdot: true, language: true, timezone: true, isDemo: true, pausedAt: true, pausedReason: true } } },
         orderBy: { createdAt: "asc" },
       });
       const byCompany = new Map<string, { company: (typeof memberships)[number]["company"]; roles: string[] }>();

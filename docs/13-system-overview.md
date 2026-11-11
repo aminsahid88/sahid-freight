@@ -23,7 +23,7 @@ not decide alone.
 | Office staff / bookkeeper | Web dashboard | Uploads batches, works the Review queue, imports fuel card and ELD files, generates reports. |
 | Reviewer (outside bookkeeper) | Web dashboard | Works the Review queue. Changes to important values wait for the owner's approval. |
 | Owner | Web dashboard | Everything above, plus approving reviewer changes and managing the team. |
-| Platform admin (us) | Web dashboard: Control room | Sees every company's counts, the job queue and the audit trail; retries failed jobs; loads official rate tables; enters a company only with a logged reason. |
+| Platform admin (us) | Web dashboard: Control room | Sees every company's counts, the people, the job queue and the audit trail; suspends and reactivates people; pauses and resumes a company or all processing; retries failed jobs; loads official rate tables; enters a company only with a logged reason. |
 
 ### 1.3 The eight screens
 

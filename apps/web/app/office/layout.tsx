@@ -177,6 +177,11 @@ export default function OfficeLayout({ children }: { children: React.ReactNode }
   const content = (
     <>
       {error && <Banner tone="danger" className="mb-4">{error}</Banner>}
+      {selected?.company.pausedAt && !selected.breakGlass && (
+        <Banner tone="warning" className="mb-4">
+          {t("company.pausedBanner", { company: selected.company.dba || selected.company.legalName, reason: selected.company.pausedReason ?? "—" })}
+        </Banner>
+      )}
       {selected?.breakGlass && (
         <Banner tone="warning" className="mb-4">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
